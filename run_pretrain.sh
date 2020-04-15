@@ -9,14 +9,15 @@ PYTHONPATH="$(pwd)/tensorflow_models" python ./tensorflow_models/official/nlp/be
   --input_files ${PROJECT_BUCKET}/pretrain/pretrain_data/pretrain_anonymized_bert_train_000.txt.tfrecords	\
   --max_seq_length 96 \
   --max_predictions_per_seq 14 \
-  --num_steps_per_epoch 10 \
+  --num_steps_per_epoch 5 \
+  --log_steps 1 \
   --num_train_epochs 1 \
   --train_batch_size 32 \
   --tpu grpc://${TPU_ADDRESS}:8470 \
   --distribution_strategy tpu \
-  --model_dir ${PROJECT_BUCKET}/${RUN_NAME}/checkpoints \
+  --model_dir ${PROJECT_BUCKET}/pretrain/runs/${RUN_NAME}/checkpoints \
   --init_checkpoint ${PRETRAINED_MODEL}/bert_model.ckpt \
-  --model_export_path ${PROJECT_BUCKET}/pretrain/runs/${RUN_NAME}/ \
+  --model_export_path ${PROJECT_BUCKET}/pretrain/runs/${RUN_NAME} \
   --bert_config_file ${PRETRAINED_MODEL}/bert_config.json 
 
 # --helpfull output
