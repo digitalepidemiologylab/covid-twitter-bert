@@ -13,7 +13,8 @@ PYTHONPATH="$(pwd)/tensorflow_models" python ./tensorflow_models/official/nlp/be
   --train_batch_size 32 \
   --tpu grpc://${TPU_ADDRESS}:8470 \
   --distribution_strategy tpu \
-  --init_checkpoint ${PRETRAINED_MODEL}/checkpoint \
+  --model_dir ${PROJECT_BUCKET}/${RUN_NAME}/checkpoints \
+  --init_checkpoint ${PRETRAINED_MODEL}/bert_model.ckpt \
   --model_export_path ${PROJECT_BUCKET}/${RUN_NAME} \
   --bert_config_file ${PRETRAINED_MODEL}/bert_config.json 
 
