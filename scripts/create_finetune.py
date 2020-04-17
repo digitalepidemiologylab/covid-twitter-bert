@@ -64,6 +64,8 @@ def replace_user_handles(text):
     text = text.replace('@twitteruser', '@<user>')
     # Replace any other remaining user mentions
     text = re.sub(user_handle_regex, '@<user>', text)
+    # fixes a minor issue of double @ signs
+    text = re.sub('@@<user>', '@<user>', text)
     return text
 
 def replace_urls(text):
