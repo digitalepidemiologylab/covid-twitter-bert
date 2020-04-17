@@ -20,7 +20,9 @@ sheet_handler = gc.open('Twitter Evaluation Datasets')
 
 sheets = ['vaccine_sentiment_epfl', 
         'maternal_vaccine_stance_lshtm',
-        'twitter_sentiment_semeval']
+        'twitter_sentiment_semeval',
+        'covid_worry']
+
 transl_table = dict([(ord(x), ord(y)) for x, y in zip( u"‘’´“”–-",  u"'''\"\"--")])
 user_handle_regex = re.compile(r'(^|[^@\w])@(\w{1,15})\b')
 control_char_regex = re.compile(r'[\r\n\t]+')
@@ -78,7 +80,7 @@ def clean_data(df):
     return df
 
 def main():
-    output_dir = os.path.join('output', 'finetune')
+    output_dir = os.path.join('..', 'output', 'finetune')
     for s in sheets:
         logger.info(f'Reading sheet {s}...')
         df = read_data(s)
@@ -90,7 +92,7 @@ def main():
         for _type in ['train', 'dev', 'test']:
             _df = df[df['dataset'] == _type]
             _df = _df.sample(frac=1)
-            f_path_folder = os.path.join(output_dir, _type)
+            f_path_folder = os.path.join(output_dir, s)
             if not os.path.isdir(f_path_folder):
                 os.makedirs(f_path_folder)
             f_path = os.path.join(f_path_folder, f'{s}_{_type}.tsv')

@@ -7,7 +7,7 @@ PRETRAINED_MODEL=gs://cloud-tpu-checkpoints/bert/uncased_L-24_H-1024_A-16
 
 gsutil rm -r $PROJECT_BUCKET/pretrain/runs/${RUN_NAME}
 
-PYTHONPATH="$(pwd)/tensorflow_models" python ./tensorflow_models/official/nlp/bert/run_pretraining.py \
+PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nlp/bert/run_pretraining.py \
   --input_files ${PROJECT_BUCKET}/pretrain/pretrain_data/pretrain_anonymized_bert_train_???.txt.tfrecords	\
   --max_seq_length 96 \
   --max_predictions_per_seq 14 \
