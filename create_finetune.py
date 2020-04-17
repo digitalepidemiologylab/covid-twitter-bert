@@ -79,8 +79,6 @@ def clean_data(df):
 
 def main():
     output_dir = os.path.join('output', 'finetune')
-    if not os.path.isdir(output_dir):
-        os.makedirs(output_dir)
     for s in sheets:
         logger.info(f'Reading sheet {s}...')
         df = read_data(s)
@@ -92,8 +90,11 @@ def main():
         for _type in ['train', 'dev', 'test']:
             _df = df[df['dataset'] == _type]
             _df = _df.sample(frac=1)
-            f_path = os.path.join(output_dir, f'{s}_{_type}.tsv')
-            logging.info(f'Writing cleaned finetune data {f_path}')
+            f_path_folder = os.path.join(output_dir, _type)
+            if not os.path.isdir(f_path_folder):
+                os.makedirs(f_path_folder)
+            f_path = os.path.join(f_path_folder, f'{s}_{_type}.tsv')
+            logging.info(f'Writing {len(_df):,} examples to cleaned finetune data {f_path}')
             _df.to_csv(f_path, columns=['id', 'label', 'a', 'text'], header=False, index=False, sep='\t')
 
 if __name__ == "__main__":
