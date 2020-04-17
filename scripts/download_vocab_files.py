@@ -11,7 +11,7 @@ download_locations = {
         }
 
 def main():
-    output_folder = os.path.join('vocabs')
+    output_folder = os.path.join('..', 'vocabs')
     if not os.path.isdir(output_folder):
         os.makedirs(output_folder)
     for _type, url in download_locations.items():
