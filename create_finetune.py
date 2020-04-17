@@ -53,18 +53,29 @@ def clean_text(text):
     text = html.unescape(text)
     # standardize quotation marks and apostrophes
     text = text.translate(transl_table)
-    # Replace previously added @twitteruser and filler URLs with fillers used in pretraining data
-    text = text.replace('@twitteruser', '@<user>')
-    text = text.replace('http://anonymisedurl.com', '<url>')
     # replace multiple spaces with single space
     text = ' '.join(text.split())
     return text
 
+def replace_user_handles(text):
+    # Replace previously added filler user mentions
+    text = text.replace('@twitteruser', '@<user>')
+    # Replace any other remaining user mentions
+    text = re.sub(user_handle_regex, '@<user>', text)
+    return text
+
+def replace_urls(text):
+    # Replace previously added filler URL
+    text = text.replace('http://anonymisedurl.com', '<url>')
+    # Replace any other remaining urls
+    return re.sub('((www\.[^\s]+)|(https?://[^\s]+)|(http?://[^\s]+))', '<url>', text)
+
 def clean_data(df):
     """Replaces user mentions & standardize text"""
     df.loc[:, 'text'] = df.text.apply(clean_text)
+    df.loc[:, 'text'] = df.text.apply(replace_user_handles)
+    df.loc[:, 'text'] = df.text.apply(replace_urls)
     return df
-
 
 def main():
     output_dir = os.path.join('output', 'finetune')
@@ -75,9 +86,15 @@ def main():
         df = read_data(s)
         logger.info('Cleaning data...')
         df = clean_data(df)
-        f_path = os.path.join(output_dir, f'{s}_cleaned.csv')
-        logging.info(f'Writing cleaned finetune data {f_path}')
-        df.to_csv(f_path)
+        # add dummy column
+        df['a'] = 'a'
+        # write train, dev and test set
+        for _type in ['train', 'dev', 'test']:
+            _df = df[df['dataset'] == _type]
+            _df = _df.sample(frac=1)
+            f_path = os.path.join(output_dir, f'{s}_{_type}.tsv')
+            logging.info(f'Writing cleaned finetune data {f_path}')
+            _df.to_csv(f_path, columns=['id', 'label', 'a', 'text'], header=False, index=False, sep='\t')
 
 if __name__ == "__main__":
     main()
