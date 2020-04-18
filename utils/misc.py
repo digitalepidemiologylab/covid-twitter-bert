@@ -2,6 +2,7 @@ import logging
 import json
 import os
 import csv
+import argparse
 
 logger = logging.getLogger(__name__)
 
@@ -33,3 +34,8 @@ class JSONEncoder(json.JSONEncoder):
             return obj.tolist()
         else:
             return super(MyEncoder, self).default(obj)
+
+class ArgParseDefault(argparse.ArgumentParser):
+    """Simple wrapper which shows defaults in help"""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs, formatter_class=argparse.ArgumentDefaultsHelpFormatter)

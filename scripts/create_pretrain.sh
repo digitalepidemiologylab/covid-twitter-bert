@@ -2,8 +2,13 @@
 
 output_file="output/pretrain/$(basename $1).tfrecords.gz"
 
-# PYTHONPATH="$(pwd)/../tensorflow_models" python ./tensorflow_models/official/nlp/data/create_pretraining_data.py --input_file "$1" --gzip_compress --max_seq_length 96 --output_file $output_file --vocab_file ./vocabs/bert-large-uncased-vocab.txt --max_predictions_per_seq 14 --helpfull
-PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nlp/data/create_pretraining_data.py --helpfull
+PYTHONPATH="$(pwd)/../tensorflow_models" python ./tensorflow_models/official/nlp/data/create_pretraining_data.py \
+  --input_file "$1" \
+  --gzip_compress \
+  --max_seq_length 96 \
+  --output_file $output_file \
+  --vocab_file ../vocabs/bert-large-uncased-vocab.txt \
+  --max_predictions_per_seq 14
 
 
 # --helpfull output
