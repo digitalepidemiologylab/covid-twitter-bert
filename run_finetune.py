@@ -1,28 +1,19 @@
-################################
-####### IMPORT MODULES #########
-################################
-import sys, os, math, json, csv, datetime, pprint, uuid, time, argparse, logging, tqdm
+import sys
+import os
+import datetime
+import pprint
+import uuid
+import time
+import argparse
+import logging
+import tqdm
+from utils.finetune_helpers import performance_metrics, get_predictions_output
+from utils.misc import  append_to_csv, save_to_json
+
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
 logger = logging.getLogger(__name__)
 
-###################################
-##### CLONING BERT AND THE DATA ###
-###################################
-
-# Clone Data - OLD STUFF - CHANGE!!!
-if not os.path.exists('data'):
-    os.makedirs('data')
-    os.system("gsutil -m cp -r gs://perepublic/EPFL_multilang/data/ .")
-else:
-    logger.info('** All training files has already been copied to data')
-
-
-
-###################################
-##### IMPORT REMAINING MODULES ####
-###################################
-from vac_utils import performance_metrics, get_predictions_output, append_to_csv, save_to_json
 import tensorflow as tf
 import keras
 import numpy as np
