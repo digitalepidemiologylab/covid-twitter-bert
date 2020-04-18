@@ -72,7 +72,7 @@ SAVE_CHECKPOINTS_STEPS = 1000
 SAVE_SUMMARY_STEPS = 500
 NUM_TPU_CORES = 8
 ITERATIONS_PER_LOOP = 100 #Martin - check setting here... maybe 10?
-LOWER_CASED = True
+LOWER_CASED = True ##This is currently not used..
 
 ##############################
 ########### FUNCTIONS ########
@@ -181,6 +181,7 @@ def run_experiment(exp_nr, use_tpu, tpu_address, repeat, min_num_epochs, usernam
     logger.info(f'Getting ready to run the following experiments for {repeat} repeats: {experiments}')
 
     #Martin - fix path
+    #I think this has a LOWER CASE parameter check
     tokenizer = FullTokenizer(vocab_file=os.path.join(bert_ckpt_dir, "vocab.txt"))
 
 
