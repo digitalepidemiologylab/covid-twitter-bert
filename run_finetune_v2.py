@@ -11,6 +11,7 @@ import tqdm
 import json
 import tensorflow as tf
 from utils.misc import ArgParseDefault
+from utils.finetune_helpers import Metrics
 
 # import from official repo
 sys.path.append('tensorflow_models')
@@ -97,13 +98,14 @@ def get_loss_fn(num_classes):
 
 def metric_fn():
     # TODO: Support F1 scores here
-    return tf.keras.metrics.SparseCategoricalAccuracy('test_accuracy', dtype=tf.float32)
+    return Metrics()
+    # return tf.keras.metrics.SparseCategoricalAccuracy('test_accuracy', dtype=tf.float32)
 
 def train(args, strategy, repeat):
     """Train using the Keras/TF 2.0. Adapted from the tensorflow/models Github"""
     # CONFIG
     # Use timestamp to generate a unique run name
-    ts = datetime.datetime.now().strftime('%Y_%M_%d_%s')
+    ts = datetime.datetime.now().strftime('%Y_%m_%d_%s')
     run_name = f'run_{ts}'
     data_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/finetune_data/{args.finetune_data}/tfrecord'
     output_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/runs/{args.finetune_data}/{run_name}'
@@ -129,9 +131,12 @@ def train(args, strategy, repeat):
     optimizer = classifier_model.optimizer
     loss_fn = get_loss_fn(num_labels)
 
-    # TODO: restore from arbitrary checkpoint
-    model_key = f'{args.model_class}_{args.model_type}'
-    checkpoint_path = os.path.join(PRETRAINED_MODELS[model_key], 'bert_model.ckpt')
+    # Restore checkpoint
+    if args.init_checkpoint is None:
+        model_key = f'{args.model_class}_{args.model_type}'
+        checkpoint_path = os.path.join(PRETRAINED_MODELS[model_key], 'bert_model.ckpt')
+    else:
+        checkpoint_path = f'gs://{args.bucket_name}/{args.project_name}/pretrain/runs/{args.init_checkpoint}'
     checkpoint = tf.train.Checkpoint(model=core_model)
     checkpoint.restore(checkpoint_path).assert_existing_objects_matched()
     logger.info(f'Successfully restored checkpoint from {checkpoint_path}')
@@ -155,6 +160,10 @@ def train(args, strategy, repeat):
         log_steps=args.log_steps,
         logdir=output_dir)
     custom_callbacks = [summary_callback, checkpoint_callback, time_history_callback]
+    if args.early_stopping_epochs > 0:
+        logger.info(f'Using early stopping of after {args.early_stopping_epochs} epochs of val_loss not decreasing')
+        early_stopping_callback = tf.keras.callbacks.EarlyStopping(patience=args.early_stopping_epochs, monitor='val_loss')
+        custom_callbacks.append(early_stopping_callback)
 
     # Generate dataset_fn
     train_input_fn = get_dataset_fn(
@@ -179,7 +188,7 @@ def train(args, strategy, repeat):
         validation_steps=eval_steps,
         callbacks=custom_callbacks)
     time_end = time.time()
-    logger.info('Finished training after {(time_end-time_start)/60:.1f} min')
+    logger.info(f'Finished training after {(time_end-time_start)/60:.1f} min')
 
 
     # # Martin - from old file - do we need=
@@ -253,20 +262,23 @@ def parse_args():
     parser = ArgParseDefault()
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
-    parser.add_argument('--finetune_data', default='covid_worry', type=str, help='Finetune data folder name. \
-            The folder has to be located in gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}.\
-            TFrecord files (train.tfrecord and dev.tfrecord as well as meta.json) should be located in a \
-            subfolder gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}/tfrecord/')
+    parser.add_argument('--finetune_data', default='maternal_vaccine_stance_lshtm', choices=['maternal_vaccine_stance_lshtm',\
+            'covid_worry', 'vaccine_sentiment_epfl', 'twittter_sentiment_semeval'],
+            help='Finetune data folder name. The folder has to be located in gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}.\
+                    TFrecord files (train.tfrecord and dev.tfrecord as well as meta.json) should be located in a \
+                    subfolder gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}/tfrecord/')
     parser.add_argument('--tpu_ip', default='10.217.209.114', help='IP-address of the TPU')
     parser.add_argument('--not_use_tpu', action='store_true', default=False, help='Do not use TPUs')
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
-    parser.add_argument('--init_checkpoint', default=None, help='Intiialize from checkpoint')
+    parser.add_argument('--init_checkpoint', default=None, help='Run name to initialize checkpoint from. Example: "run2/ctl_step_8000.ckpt-8". \
+            By default using a pretrained model from gs://cloud-tpu-checkpoints.')
     parser.add_argument('--repeats', default=1, type=int, help='Number of times the script should run. Default is 1')
     parser.add_argument('--num_epochs', default=1, type=int, help='Number of epochs')
     parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')
     parser.add_argument('--eval_batch_size', default=32, type=int, help='Eval batch size')
     parser.add_argument('--learning_rate', default=5e-5, type=float, help='Learning rate')
     parser.add_argument('--max_seq_length', default=96, type=int, help='Maximum sequence length')
+    parser.add_argument('--early_stopping_epochs', default=-1, type=int, help='Stop when loss hasn\'t decreased during n epochs')
     parser.add_argument('--model_class', default='bert', type=str, choices=['bert'], help='Model class')
     parser.add_argument('--model_type', default='large_uncased', choices=['large_uncased', 'base_uncased'], type=str, help='Model class')
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
