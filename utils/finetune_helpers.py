@@ -1,97 +1,74 @@
 import numpy as np
-# import sklearn.metrics
+import sklearn.metrics
 import os
 import logging
 import time
 import tensorflow as tf
-# from keras.callbacks import Callback
 
 
 logger = logging.getLogger(__name__)
 
-
 class Metrics(tf.keras.callbacks.Callback):
     """Metrics to compute as a callback"""
+
+    def __init__(self, eval_data_fn, label_mapping):
+        super().__init__()
+        self.eval_data = eval_data_fn()
+        self.label_mapping = label_mapping
+        self.scores = []
+        self.predictions = []
+
     def on_train_begin(self, logs={}):
         self.val_f1s = []
         self.val_recalls = []
         self.val_precisions = []
 
     def on_epoch_end(self, epoch, logs={}):
-        pred = self.model.predict(self.model.validation_data[0])
-        print(pred)
-        val_targ = self.model.validation_data[1]
-        print(val_predict)
-        print(val_targ)
-        # _val_f1 = f1_score(val_targ, val_predict)
-        # _val_recall = recall_score(val_targ, val_predict)
-        # _val_precision = precision_score(val_targ, val_predict)
-        # self.val_f1s.append(_val_f1)
-        # self.val_recalls.append(_val_recall)
-        # self.val_precisions.append(_val_precision)
-        # print(“ — val_f1: %f — val_precision: %f — val_recall %f” %(_val_f1, _val_precision, _val_recall)
+        y_true = np.concatenate([label.numpy() for _, label in self.eval_data])
+        preds = self.model.predict(self.eval_data)
+        y_pred = tf.argmax(preds, axis=1).numpy()
+        scores = self.performance_metrics(y_true, y_pred, label_mapping=self.label_mapping)
+        logger.info(f'Scores after epoch {epoch}:\n{scores}')
+        # store scores and predictions for later
+        self.scores.append(scores)
+        self.predictions.append(y_pred)
 
-
-
-def performance_metrics(y_true, y_pred, metrics=None, averaging=None, label_mapping=None):
-    """
-    Compute performance metrics
-    """
-    def _compute_performance_metric(scoring_function, m, y_true, y_pred):
-        for av in averaging:
-            if av is None:
-                metrics_by_class = scoring_function(y_true, y_pred, average=av, labels=labels)
-                for i, class_metric in enumerate(metrics_by_class):
-                    if label_mapping is None:
-                        label_name = labels[i]
-                    else:
-                        label_name = label_mapping[labels[i]]
-                    scores[m + '_' + str(label_name)] = class_metric
-            else:
-                scores[m + '_' + av] = scoring_function(y_true, y_pred, average=av, labels=labels)
-    if averaging is None:
-        averaging = ['micro', 'macro', 'weighted', None]
-    if metrics is None:
-        metrics = ['accuracy', 'precision', 'recall', 'f1']
-    scores = {}
-    if label_mapping is None:
-        # infer labels from data
-        labels = sorted(list(set(y_true + y_pred)))
-    else:
-        labels = sorted(list(label_mapping.keys()))
-    if len(labels) <= 2:
-        # binary classification
-        averaging += ['binary']
-    for m in metrics:
-        if m == 'accuracy':
-            scores[m] = sklearn.metrics.accuracy_score(y_true, y_pred)
-        elif m == 'precision':
-            _compute_performance_metric(sklearn.metrics.precision_score, m, y_true, y_pred)
-        elif m == 'recall':
-            _compute_performance_metric(sklearn.metrics.recall_score, m, y_true, y_pred)
-        elif m == 'f1':
-            _compute_performance_metric(sklearn.metrics.f1_score, m, y_true, y_pred)
-    return scores
-
-def get_predictions_output(experiment_id, guid, probabilities, y_true, cls_hidden_state=None, label_mapping=None, dataset='train'):
-    probabilities = np.array(probabilities)
-    guid = np.array(guid)
-    assert len(probabilities) == len(y_true)
-    assert len(guid) == len(y_true)
-    output = {'Experiment_Id': experiment_id, 'dataset': dataset, 'created_at': time.time(), 'guid': {}}
-    for g in guid:
-        output['guid'][g] = []
-    for i, g in enumerate(guid):
-        sorted_ids = np.argsort(-probabilities[i])
+    def performance_metrics(self, y_true, y_pred, metrics=None, averaging=None, label_mapping=None):
+        """
+        Compute performance metrics
+        """
+        def _compute_performance_metric(scoring_function, m, y_true, y_pred):
+            for av in averaging:
+                if av is None:
+                    metrics_by_class = scoring_function(y_true, y_pred, average=av, labels=labels)
+                    for i, class_metric in enumerate(metrics_by_class):
+                        if label_mapping is None:
+                            label_name = labels[i]
+                        else:
+                            label_name = label_mapping[labels[i]]
+                        scores[m + '_' + str(label_name)] = class_metric
+                else:
+                    scores[m + '_' + av] = scoring_function(y_true, y_pred, average=av, labels=labels)
+        if averaging is None:
+            averaging = ['micro', 'macro', 'weighted', None]
+        if metrics is None:
+            metrics = ['accuracy', 'precision', 'recall', 'f1']
+        scores = {}
         if label_mapping is None:
-            labels = sorted_ids
+            # infer labels from data
+            labels = sorted(list(set(y_true + y_pred)))
         else:
-            labels = [label_mapping[s] for s in sorted_ids]
-        output['guid'][g].append({'prediction' : labels[0]})
-        output['guid'][g].append({'predictions' : labels})
-        output['guid'][g].append({'probability' : probabilities[i][sorted_ids][0]})
-        output['guid'][g].append({'probabilities' : probabilities[i][sorted_ids].tolist()})
-        output['guid'][g].append({'y_true' : label_mapping[y_true[i]]})
-        if cls_hidden_state is not None:
-            output['guid'][g].append({'cls_hidden_state' : cls_hidden_state[i]})
-    return output
+            labels = sorted(list(label_mapping.keys()))
+        if len(labels) <= 2:
+            # binary classification
+            averaging += ['binary']
+        for m in metrics:
+            if m == 'accuracy':
+                scores[m] = sklearn.metrics.accuracy_score(y_true, y_pred)
+            elif m == 'precision':
+                _compute_performance_metric(sklearn.metrics.precision_score, m, y_true, y_pred)
+            elif m == 'recall':
+                _compute_performance_metric(sklearn.metrics.recall_score, m, y_true, y_pred)
+            elif m == 'f1':
+                _compute_performance_metric(sklearn.metrics.f1_score, m, y_true, y_pred)
+        return scores

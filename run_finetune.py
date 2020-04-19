@@ -5,371 +5,270 @@ import pprint
 import uuid
 import time
 import argparse
+import math
 import logging
 import tqdm
-from utils.finetune_helpers import performance_metrics, get_predictions_output
-from utils.misc import  append_to_csv, save_to_json
+import json
+import tensorflow as tf
+from utils.misc import ArgParseDefault
+from utils.finetune_helpers import Metrics
+import pandas as pd
+
+# import from official repo
+sys.path.append('tensorflow_models')
+from official.utils.misc import distribution_utils
+from official.nlp.bert import bert_models
+from official.nlp.bert import configs as bert_configs
+from official.nlp import optimization
+from official.modeling import performance
+from official.nlp.bert import input_pipeline
+from official.utils.misc import keras_utils
 
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
 logger = logging.getLogger(__name__)
 
-import tensorflow as tf
-import keras
-import numpy as np
-import pandas as pd
-import modeling
-import optimization
-import run_classifier
-import tokenization
 
-import bert
-from bert import BertModelLayer
-from bert.loader import StockBertConfig, map_stock_config_to_params, load_stock_weights
-from bert.tokenization.bert_tokenization import FullTokenizer
-
-
-##############################
-########## CONSTANTS ######### Martin - ALL PATHS NEEDS TO BE CHANGED
-##############################
-BERT_MODEL_DIR = 'gs://perepublic/multi_cased_L-12_H-768_A-12/'#MOVE TO EXPERIMENT ARGUMENT??
-BERT_MODEL_NAME = 'bert_model.ckpt'#MOVE TO EXPERIMENT ARGUMENT??
-BERT_MODEL_FILE = os.path.join(BERT_MODEL_DIR, BERT_MODEL_NAME)#MOVE TO EXPERIMENT ARGUMENT??
-TEMP_OUTPUT_BASEDIR = 'gs://perepublic/finetuned_models/'
-LOG_CSV_DIR = 'log_csv/'
-PREDICTIONS_JSON_DIR = 'predictions_json/'
-HIDDEN_STATE_JSON_DIR = 'hidden_state_json/'
-
-logdirs = [LOG_CSV_DIR, PREDICTIONS_JSON_DIR, HIDDEN_STATE_JSON_DIR]
-
-for d in logdirs:
-    if not os.path.exists(d):
-        os.makedirs(d)
-
-##############################
-####### HYPERPARAMETERS ######
-##############################
-LEARNING_RATE = 2e-5
-MAX_SEQ_LENGTH = 96
-TRAIN_BATCH_SIZE = 8
-EVAL_BATCH_SIZE = 8
-PREDICT_BATCH_SIZE = 8
-WARMUP_PROPORTION = 0.1
-
-##############################
-############ CONFIG ##########
-##############################
-SAVE_CHECKPOINTS_STEPS = 1000
-SAVE_SUMMARY_STEPS = 500
-NUM_TPU_CORES = 8
-ITERATIONS_PER_LOOP = 100 #Martin - check setting here... maybe 10?
-LOWER_CASED = True ##This is currently not used..
-
-##############################
-########### FUNCTIONS ########
-##############################
-def tpu_init(ip):
-    #Set up the TPU
-    from google.colab import auth
-    auth.authenticate_user()
-    tpu_address = 'grpc://' + str(ip) + ':8470'
-
-    with tf.Session(tpu_address) as session:
-        logger.info('TPU devices:')
-        pprint.pprint(session.list_devices())
-    logger.info(f'TPU address is active on {tpu_address}')
-    return tpu_address
-
-class ClassificationData:
-  DATA_COLUMN = "text"
-  LABEL_COLUMN = "label"
-
-  def __init__(self, train, dev, test, tokenizer: FullTokenizer, classes, max_seq_len=MAX_SEQ_LENGTH):
-    self.tokenizer = tokenizer
-    self.max_seq_len = 0
-    self.classes = classes
-    
-    ((self.train_x, self.train_y), (self.dev_x, self.dev_y), (self.test_x, self.test_y)) = map(self._prepare, [train, dev, test])
-
-    print("max seq_len", self.max_seq_len)
-    self.max_seq_len = min(self.max_seq_len, max_seq_len)
-    self.train_x, self.test_x = map(self._pad, [self.train_x, self.test_x])
-
-  def _prepare(self, df):
-    x, y = [], []
-    
-    for _, row in tqdm(df.iterrows()):
-      text, label = row[ClassificationData.DATA_COLUMN], row[ClassificationData.LABEL_COLUMN]
-      tokens = self.tokenizer.tokenize(text)
-      tokens = ["[CLS]"] + tokens + ["[SEP]"]
-      token_ids = self.tokenizer.convert_tokens_to_ids(tokens)
-      self.max_seq_len = max(self.max_seq_len, len(token_ids))
-      x.append(token_ids)
-      y.append(self.classes.index(label))
-
-    return np.array(x), np.array(y)
-
-  def _pad(self, ids):
-    x = []
-    for input_ids in ids:
-      input_ids = input_ids[:min(len(input_ids), self.max_seq_len - 2)]
-      input_ids = input_ids + [0] * (self.max_seq_len - len(input_ids))
-      x.append(np.array(input_ids))
-    return np.array(x)
-
-def create_model(max_seq_len, bert_ckpt_file):
-
-    with tf.io.gfile.GFile(bert_config_file, "r") as reader:
-        bc = StockBertConfig.from_json_string(reader.read())
-        bert_params = map_stock_config_to_params(bc)
-        bert_params.adapter_size = None
-        bert = BertModelLayer.from_params(bert_params, name="bert")
-            
-    input_ids = keras.layers.Input(shape=(max_seq_len, ), dtype='int32', name="input_ids")
-    bert_output = bert(input_ids)
-
-    ##Martin - Change to logging
-    print("bert shape", bert_output.shape)
-
-    cls_out = keras.layers.Lambda(lambda seq: seq[:, 0, :])(bert_output)
-    cls_out = keras.layers.Dropout(0.5)(cls_out)
-    logits = keras.layers.Dense(units=768, activation="tanh")(cls_out)
-    logits = keras.layers.Dropout(0.5)(logits)
-    
-    ##Martin - classed needs to be changed here
-    logits = keras.layers.Dense(units=len(classes), activation="softmax")(logits)
-
-    model = keras.Model(inputs=input_ids, outputs=logits)
-    model.build(input_shape=(None, max_seq_len))
-
-    load_stock_weights(bert, bert_ckpt_file)
-            
-    return model
-
-
-##############################
-##### DEFINE EXPERIMENTS #####
-##############################
-
-experiment_definitions = {
-    "1": {
-        "name": "covid_worry - base",
-        "pretrain_steps": "0",
-        "checkpoint": "gs://martins/covid_worry/base",
-        "dataset_path": "gs://martins/covid_worry/dataset/"
-    },
-    "2": {
-        "name": "covid_worry - 10000",
-        "pretrain_steps": "10000",
-        "checkpoint": "gs://martins/covid_worry/checkpoint10000",
-        "dataset_path": "gs://martins/covid_worry/dataset/"
-    }
+PRETRAINED_MODELS = {
+    'bert_large_uncased': 'gs://cloud-tpu-checkpoints/bert/keras_bert/uncased_L-24_H-1024_A-16',
+    'bert_base_uncased': 'gs://cloud-tpu-checkpoints/bert/keras_bert/uncased_L-12_H-768_A-12'
 }
 
-###########################
-##### RUN EXPERIMENTS #####
-###########################
-
-
-def run_experiment(exp_nr, use_tpu, tpu_address, repeat, min_num_epochs, username, comment, store_last_layer):
-    logger.info(f'Getting ready to run the following experiments for {repeat} repeats: {experiments}')
-
-    #Martin - fix path
-    #I think this has a LOWER CASE parameter check
-    tokenizer = FullTokenizer(vocab_file=os.path.join(bert_ckpt_dir, "vocab.txt"))
-
-
-    ###Martin Needs to be changes to correct paths...
-    train = pd.read_csv("train.csv")
-    dev = pd.read_csv("dev.csv")
-    test = pd.read_csv("test.csv")
-    classes = train.intent.unique().tolist()
-    data = ClassificationData(train, dev, test, tokenizer, classes, max_seq_len=MAX_SEQ_LENGTH)
-
-    logger.info(f"***** Starting Experiment {exp_nr} *******")
-    logger.info(f"***** {experiment_definitions[exp_nr]['name']} ******")
-    logger.info("***********************************************")
-
-    #Get a unique ID for every experiment run
-    experiment_id = str(uuid.uuid4())
-
-    ###########################
-    ######### TRAINING ########
-    ###########################
-
-    temp_output_dir = os.path.join(
-        TEMP_OUTPUT_BASEDIR,experiment_id)
-
-    os.environ['TFHUB_CACHE_DIR'] = temp_output_dir
-    logger.info(f"***** Setting temporary dir {temp_output_dir} **")
-    logger.info(f"***** Train started in {temp_output_dir} **")
-
-    if tpu_address:
-        tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(tpu_address)
+def get_model_config(args):
+    if args.model_config_path:
+        config_path = args.config_path
     else:
-        tpu_cluster_resolver = None
+        model_key = f'{args.model_class}_{args.model_type}'
+        if not model_key in PRETRAINED_MODELS.keys():
+            raise ValueError('Could not find a pretrained model matching the model class {args.model_class} and {args.model_type}')
+        config_path = os.path.join(PRETRAINED_MODELS[model_key], 'bert_config.json')
+    config = bert_configs.BertConfig.from_json_file(config_path)
+    return config
 
-    #Initiation
-    model = create_model(data.MAX_SEQ_LENGTH, bert_ckpt_file)
-    model.compile(
-        optimizer=keras.optimizers.Adam(LEARNING_RATE),
-        loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-        ##Add F1-score here??
-        metrics=[keras.metrics.SparseCategoricalAccuracy(name="acc")]
-    )
+def get_input_meta_data(data_dir):
+    with tf.io.gfile.GFile(os.path.join(data_dir, 'tfrecord', 'meta.json'), 'rb') as reader:
+        input_meta_data = json.loads(reader.read().decode('utf-8'))
+    return input_meta_data
 
-    #Martin - change path
-    log_dir = "log/intent_detection/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%s")
+def get_model(args, model_config, steps_per_epoch, warmup_steps, num_labels, max_seq_length):
+    # Get classifier and core model (used to initialize from checkpoint)
+    classifier_model, core_model = bert_models.classifier_model(
+            model_config,
+            num_labels,
+            max_seq_length,
+            hub_module_url=None,
+            hub_module_trainable=False)
+    # Optimizer
+    optimizer = optimization.create_optimizer(
+            args.learning_rate,
+            steps_per_epoch * args.num_epochs,
+            warmup_steps,
+            args.optimizer_type)
+    # TODO: Support fp16
+    classifier_model.optimizer = performance.configure_optimizer(
+            optimizer,
+            use_float16=False,
+            use_graph_rewrite=False)
+    return classifier_model, core_model
 
-    tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir)
+def get_dataset_fn(input_file_pattern, max_seq_length, global_batch_size, is_training):
+  """Gets a closure to create a dataset."""
+  def _dataset_fn(ctx=None):
+    """Returns tf.data.Dataset for distributed BERT pretraining."""
+    batch_size = ctx.get_per_replica_batch_size(
+        global_batch_size) if ctx else global_batch_size
+    dataset = input_pipeline.create_classifier_dataset(
+        input_file_pattern,
+        max_seq_length,
+        batch_size,
+        is_training=is_training,
+        input_pipeline_context=ctx)
+    return dataset
 
+  return _dataset_fn
 
-    ##Martin - Not sure about epochs here. Do this need to be defined? Can we abort?
-    history = model.fit(
-        x=data.train_x, 
-        y=data.train_y,
-        validation_split=0.1,
-        batch_size=16,
-        shuffle=True,
-        epochs=20,
-        callbacks=[tensorboard_callback]
-    )
+def get_loss_fn(num_classes):
+    """Gets the classification loss function."""
+    def classification_loss_fn(labels, logits):
+        """Classification loss."""
+        labels = tf.squeeze(labels)
+        log_probs = tf.nn.log_softmax(logits, axis=-1)
+        one_hot_labels = tf.one_hot(tf.cast(labels, dtype=tf.int32), depth=num_classes, dtype=tf.float32)
+        per_example_loss = -tf.reduce_sum(tf.cast(one_hot_labels, dtype=tf.float32) * log_probs, axis=-1)
+        return tf.reduce_mean(per_example_loss)
+    return classification_loss_fn
 
-    
-    ##Martin - from old file - do we need=
-    tf.logging.info('  Num steps = %d', num_train_steps)
+def get_label_mapping(data_dir):
+    with tf.io.gfile.GFile(os.path.join(data_dir, 'label_mapping.json'), 'rb') as reader:
+        label_mapping = json.loads(reader.read().decode('utf-8'))
+    label_mapping = dict(zip(range(len(label_mapping)), label_mapping))
+    return label_mapping
 
+def get_metrics():
+    return [tf.keras.metrics.SparseCategoricalAccuracy('test_accuracy', dtype=tf.float32)]
 
-    ######################################
-    ######### #########PREDICTION ########
-    ######################################
-    
-    ## This is currently not OK. Can we evaluate this after every epoch, and not only in the end?
-    y_pred_train = model.predict(data.train_x).argmax(axis=-1)
-    y_pred_dev = model.predict(data.dev_x).argmax(axis=-1)
-    y_pred_test = model.predict(data.test_x).argmax(axis=-1)
-    
-    ##Martin - Do whatever you need here....
-    ##I just left the old code here... None of the input is working
-    
-    ## PSUDO CODE
-    ## * If epochs > min_num_epochs and y_pred_dev_F1 is dropping 
-    ## * Abort training
-    ## * Calculate y_pred_test Acc/Loss/F1 etc and save that to log
-     
+def train(args, strategy, repeat):
+    """Train using the Keras/TF 2.0. Adapted from the tensorflow/models Github"""
+    # CONFIG
+    # Use timestamp to generate a unique run name
+    ts = datetime.datetime.now().strftime('%Y_%m_%d_%s')
+    run_name = f'run_{ts}'
+    data_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/finetune_data/{args.finetune_data}'
+    output_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/runs/{args.finetune_data}/{run_name}'
 
-    logger.info('Final scores:')
-    logger.info(scores)
-    logger.info('***** Finished second half of evaluation of {} at {} *****'.
-            format(experiment_definitions[exp_nr]["name"],
-                    datetime.datetime.now()))
+    # Get configs
+    model_config = get_model_config(args)
+    input_meta_data = get_input_meta_data(data_dir)
+    label_mapping = get_label_mapping(data_dir)
+    logger.info(f'Loaded training data meta.json file: {input_meta_data}')
 
-    # write full dev prediction output
-    predictions_output = get_predictions_output(experiment_id, guid, probabilities, y_true, label_mapping=label_mapping, dataset='dev')
-    save_to_json(predictions_output, os.path.join(PREDICTIONS_JSON_DIR, f'dev_{experiment_id}.json'))
+    # Calculate steps, warmup steps and eval steps
+    train_data_size = input_meta_data['train_data_size']
+    num_labels = input_meta_data['num_labels']
+    max_seq_length = input_meta_data['max_seq_length']
+    steps_per_epoch = int(train_data_size / args.train_batch_size)
+    warmup_proportion = 0.1
+    warmup_steps = int(args.num_epochs * train_data_size * warmup_proportion/ args.train_batch_size)
+    eval_steps = int(math.ceil(input_meta_data['eval_data_size'] / args.eval_batch_size))
+    logger.info(f'Running {args.num_epochs} epochs with {steps_per_epoch:,} steps per epoch')
+    logger.info(f'Using warmup proportion of {warmup_proportion}, resulting in {warmup_steps:,} warmup steps')
+
+    # Get model
+    classifier_model, core_model = get_model(args, model_config, steps_per_epoch, warmup_steps, num_labels, max_seq_length)
+    optimizer = classifier_model.optimizer
+    loss_fn = get_loss_fn(num_labels)
+
+    # Restore checkpoint
+    if args.init_checkpoint is None:
+        model_key = f'{args.model_class}_{args.model_type}'
+        checkpoint_path = os.path.join(PRETRAINED_MODELS[model_key], 'bert_model.ckpt')
+    else:
+        checkpoint_path = f'gs://{args.bucket_name}/{args.project_name}/pretrain/runs/{args.init_checkpoint}'
+    checkpoint = tf.train.Checkpoint(model=core_model)
+    checkpoint.restore(checkpoint_path).assert_existing_objects_matched()
+    logger.info(f'Successfully restored checkpoint from {checkpoint_path}')
+
+    # Run keras compile
+    logger.info(f'Compiling keras model...')
+    classifier_model.compile(
+        optimizer=optimizer,
+        loss=loss_fn,
+        metrics=get_metrics(),
+        experimental_steps_per_execution=args.steps_per_loop)
+    logger.info(f'... done')
+
+    # Create all custom callbacks
+    summary_dir = os.path.join(output_dir, 'summaries')
+    summary_callback = tf.keras.callbacks.TensorBoard(summary_dir)
+    checkpoint_path = os.path.join(output_dir, 'checkpoint')
+    checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path, save_weights_only=True)
+    time_history_callback = keras_utils.TimeHistory(
+        batch_size=args.train_batch_size,
+        log_steps=args.log_steps,
+        logdir=output_dir)
+    custom_callbacks = [summary_callback, checkpoint_callback, time_history_callback]
+    if args.early_stopping_epochs > 0:
+        logger.info(f'Using early stopping of after {args.early_stopping_epochs} epochs of val_loss not decreasing')
+        early_stopping_callback = tf.keras.callbacks.EarlyStopping(patience=args.early_stopping_epochs, monitor='val_loss')
+        custom_callbacks.append(early_stopping_callback)
+
+    # Generate dataset_fn
+    train_input_fn = get_dataset_fn(
+        os.path.join(data_dir, 'tfrecord', 'train.tfrecord'),
+        max_seq_length,
+        args.train_batch_size,
+        is_training=True)
+    eval_input_fn = get_dataset_fn(
+        os.path.join(data_dir, 'tfrecord', 'dev.tfrecord'),
+        max_seq_length,
+        args.eval_batch_size,
+        is_training=False)
+
+    # Add mertrics callback to calculate performance metrics at the end of epoch
+    performance_metrics_callback = Metrics(eval_input_fn, label_mapping)
+    custom_callbacks.append(performance_metrics_callback)
+
+    # Run keras fit
+    time_start = time.time()
+    logger.info('Run training...')
+    history = classifier_model.fit(
+        x=train_input_fn(),
+        validation_data=eval_input_fn(),
+        steps_per_epoch=steps_per_epoch,
+        epochs=args.num_epochs,
+        validation_steps=eval_steps,
+        callbacks=custom_callbacks)
+    time_end = time.time()
+    logger.info(f'Finished training after {(time_end-time_start)/60:.1f} min')
 
     # Write log to Training Log File
+    final_scores = performance_metrics_callback.scores[-1]
     data = {
-        'Experiment_Name': experiment_definitions[exp_nr]["name"],
-        'Experiment_Id':experiment_id,
-        'Date': format(datetime.datetime.now()),
-        'User': username,
-        'Model': BERT_MODEL_NAME,
-        'Num_Train_Steps': num_train_steps,
-        'Train_Annot_Dataset': train_annot_dataset,
-        'Eval_Annot_Dataset': eval_annot_dataset,
-        'Learning_Rate': LEARNING_RATE,
-        'Max_Seq_Length': MAX_SEQ_LENGTH,
-        'Eval_Loss': result['eval_loss'],
-        'Loss': result['loss'],
-        'Comment': comment,
-        **scores
-    }
+            'run_name': run_name,
+            'max_seq_length': max_seq_length,
+            'data_dir': data_dir,
+            'output_dir': output_dir,
+            'created_at': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            **final_scores,
+            **vars(args)
+            }
+    f_path_log = f'gs://{args.bucket_name}/{args.project_name}/finetune/traininglog.csv'
+    f_path_log_local = 'traininglog.csv'
+    df = pd.DataFrame.from_dict({x: [y] for x, y in data.items()})
+    if os.path.isfile(f_path_log_local):
+        df_old = pd.read_csv(f_path_log_local)
+        df = pd.concat([df_old, df])
+    df.to_csv(f_path_log_local, index=False)
+    # write to cloud storage
+    df.to_csv(f_path_log, index=False)
 
-    append_to_csv(data, os.path.join(LOG_CSV_DIR,'fulltrainlog.csv'))
-    logger.info(f"***** Completed Experiment {exp_nr} *******")
+def main(args):
+    # Get distribution strategy
+    if args.not_use_tpu:
+        strategy = distribution_utils.get_distribution_strategy(distribution_strategy='mirrored', num_gpus=args.num_gpus)
+    else:
+        logger.info(f'Intializing TPU on address {args.tpu_ip}...')
+        tpu_address = f'grpc://{args.tpu_ip}:8470'
+        strategy = distribution_utils.get_distribution_strategy(distribution_strategy='tpu', tpu_address=tpu_address, num_gpus=args.num_gpus)
+    # Run training
+    for repeat in range(args.repeats):
+        train(args, strategy, repeat)
 
-
-
-logger.info(f"***** Completed all experiments in {repeat} repeats. We should now clean up all remaining files *****")
-for c in completed_train_dirs:
-    logger.info("Deleting these directories: ")
-    logger.info("gsutil -m rm -r " + c)
-    os.system("gsutil -m rm -r " + c)
-
-
-
-def parse_args(args):
+def parse_args():
     # Parse commandline
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--tpu_ip',
-        dest='tpu_ip',
-        default=None,
-        help='IP-address of the TPU')
-    parser.add_argument(
-        '--use_tpu',
-        dest='use_tpu',
-        action='store_true',
-        default=False,
-        help='Use TPU. Set to 1 or 0. If set to false, GPU will be used instead')
-    parser.add_argument(
-        '-u',
-        '--username',
-        help='Optional. Username is used in the directory name and in the logfile',
-        default='Anonymous')
-    parser.add_argument(
-        '-r',
-        '--repeats',
-        help='Number of times the script should run. Default is 1',
-        default=1,
-        type=int)
-    parser.add_argument(
-        '-e',
-        '--experiments',
-        type=str,
-        help='Experiment numbers to run. Use , to separate individual runs or - to run a sequence of runs.',
-        default='1')
-    parser.add_argument(
-        '-n',
-        '--num_train_steps',
-        help='Number of train steps. Default is 100',
-        default=100,
-        type=int)
-    parser.add_argument(
-        '--store_last_layer',
-        action='store_true',
-        default=False,
-        help='Store last layer of encoder')
-    parser.add_argument(
-        '--comment',
-        help='Optional. Add a Comment to the logfile for internal reference.',
-        default='No Comment')
+    parser = ArgParseDefault()
+    parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
+    parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
+    parser.add_argument('--finetune_data', default='maternal_vaccine_stance_lshtm', choices=['maternal_vaccine_stance_lshtm',\
+            'covid_worry', 'vaccine_sentiment_epfl', 'twittter_sentiment_semeval'],
+            help='Finetune data folder name. The folder has to be located in gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}.\
+                    TFrecord files (train.tfrecord and dev.tfrecord as well as meta.json) should be located in a \
+                    subfolder gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}/tfrecord/')
+    parser.add_argument('--tpu_ip', default='10.217.209.114', help='IP-address of the TPU')
+    parser.add_argument('--not_use_tpu', action='store_true', default=False, help='Do not use TPUs')
+    parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
+    parser.add_argument('--init_checkpoint', default=None, help='Run name to initialize checkpoint from. Example: "run2/ctl_step_8000.ckpt-8". \
+            By default using a pretrained model from gs://cloud-tpu-checkpoints.')
+    parser.add_argument('--repeats', default=1, type=int, help='Number of times the script should run. Default is 1')
+    parser.add_argument('--num_epochs', default=1, type=int, help='Number of epochs')
+    parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')
+    parser.add_argument('--eval_batch_size', default=32, type=int, help='Eval batch size')
+    parser.add_argument('--learning_rate', default=5e-5, type=float, help='Learning rate')
+    parser.add_argument('--max_seq_length', default=96, type=int, help='Maximum sequence length')
+    parser.add_argument('--early_stopping_epochs', default=-1, type=int, help='Stop when loss hasn\'t decreased during n epochs')
+    parser.add_argument('--model_class', default='bert', type=str, choices=['bert'], help='Model class')
+    parser.add_argument('--model_type', default='large_uncased', choices=['large_uncased', 'base_uncased'], type=str, help='Model class')
+    parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
+    parser.add_argument('--dtype', default='fp32', choices=['fp32', 'bf16', 'fp16'], type=str, help='Data type')
+    parser.add_argument('--steps_per_loop', default=1000, type=int, help='Steps per loop')
+    parser.add_argument('--log_steps', default=1000, type=int, help='Frequency with which to log timing information with TimeHistory.')
+    parser.add_argument('--model_config_path', default=None, type=str, help='Path to model config file, by default \
+            try to infer from model_class/model_type args and fetch from gs://cloud-tpu-checkpoints')
+    # Currently not supported:
+    # parser.add_argument('--store_last_layer', action='store_true', default=False, help='Store last layer of encoder')
     args = parser.parse_args()
     return args
 
-def main(args):
-    args = parse_args(args)
-
-    #Initialise the TPUs if they are used
-    if args.use_tpu == 1:
-        use_tpu = True
-        tpu_address = tpu_init(args.tpu_ip)
-        logger.info('Using TPU')
-    else:
-        use_tpu = False
-        tpu_address = None
-        logger.info('Using GPU')
-
-    for repeat in range(args.repeats):
-
-        ##Martin - some changes here. I think having the loop running over the experiments are better implementet here than inside the run_experiment. So it should have "exp_nr" instead of "experiments" as input
-        ##Num_train_steps should also be changed. It should continue until dropping. Having a minimun for instance 3.
-        ##Eval on dev-set and test on test. Add train_steps to output log
-        run_experiment(args.experiments, use_tpu, tpu_address, repeat+1, args.num_epochs,
-                       args.username, args.comment, args.store_last_layer)
-        logger.info(f'*** Completed repeats {repeat + 1}')
-
-
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    args = parse_args()
+    main(args)
