@@ -11,7 +11,6 @@ import sys
 import functools
 import json
 import tensorflow as tf
-import pickle
 sys.path.append('../tensorflow_models')
 sys.path.append('..')
 from official.nlp.data.classifier_data_lib import DataProcessor, generate_tf_record_from_data_file, InputExample
@@ -26,11 +25,11 @@ scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/au
 credentials = Credentials.from_service_account_file('/home/martin/.config/gcloud/cb-tpu-projects-service.json', scopes=scope)
 gc = gspread.authorize(credentials)
 sheet_handler = gc.open('Twitter Evaluation Datasets')
-default_sheets = ['vaccine_sentiment_epfl', 
+default_sheets = ['vaccine_sentiment_epfl',
         'maternal_vaccine_stance_lshtm',
         'twitter_sentiment_semeval',
         'covid_worry']
-
+tsv_columns = ['id', 'label', 'text']
 transl_table = dict([(ord(x), ord(y)) for x, y in zip( u"‘’´“”–-",  u"'''\"\"--")])
 user_handle_regex = re.compile(r'(^|[^@\w])@(\w{1,15})\b')
 control_char_regex = re.compile(r'[\r\n\t]+')
@@ -46,14 +45,19 @@ class TextClassificationProcessor(DataProcessor):
         with open(os.path.join(data_dir, 'label_mapping.json'), 'w') as f:
             json.dump(self.labels, f)
 
+    def get_examples(self, data_dir, _type):
+        f_path = os.path.join(data_dir, f'{_type}.tsv')
+        lines = self._read_tsv(f_path)
+        return self._create_examples(lines, _type)
+
     def get_train_examples(self, data_dir):
-        return self._create_examples(self._read_tsv(os.path.join(data_dir, 'train.tsv')), 'train')
+        return self.get_examples(data_dir, 'train')
 
     def get_dev_examples(self, data_dir):
-        return self._create_examples(self._read_tsv(os.path.join(data_dir, 'dev.tsv')), 'dev')
+        return self.get_examples(data_dir, 'dev')
 
     def get_test_examples(self, data_dir):
-        return self._create_examples(self._read_tsv(os.path.join(data_dir, 'test.tsv')), 'test')
+        return self.get_examples(data_dir, 'test')
 
     def get_labels(self):
         return self.labels
@@ -65,16 +69,13 @@ class TextClassificationProcessor(DataProcessor):
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
         examples = []
-        for (i, line) in enumerate(lines):
-            if i == 0:
-                continue
+        for i, line in enumerate(lines):
             guid = f'{set_type}-{i}'
+            text_a = tokenization.convert_to_unicode(line[tsv_columns.index('text')])
             if set_type == 'test':
-                text_a = tokenization.convert_to_unicode(line[1])
                 label = '0'
             else:
-                text_a = tokenization.convert_to_unicode(line[0])
-                label = tokenization.convert_to_unicode(line[1])
+                label = tokenization.convert_to_unicode(line[tsv_columns.index('label')])
             examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
         return examples
 
@@ -167,8 +168,6 @@ def main(args):
         df = read_data(s)
         # logger.info('Cleaning data...')
         df = clean_data(df)
-        # add dummy column
-        df['a'] = 'a'
         # # write train, dev and test set
         f_path_folder = os.path.join(output_dir, s)
         for _type in ['train', 'dev', 'test']:
@@ -178,7 +177,7 @@ def main(args):
                 os.makedirs(f_path_folder)
             f_path = os.path.join(f_path_folder, f'{_type}.tsv')
             logging.info(f'Writing {len(_df):,} examples to cleaned finetune data {f_path}')
-            _df.to_csv(f_path, columns=['id', 'label', 'a', 'text'], header=False, index=False, sep='\t')
+            _df.to_csv(f_path, columns=tsv_columns, header=False, index=False, sep='\t')
         # generate tfrecords files
         logging.info(f'Generating tfrecord files...')
         # we sort the labels alphabetically in order to maintain consistent label ids

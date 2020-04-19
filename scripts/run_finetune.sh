@@ -6,6 +6,8 @@ RUN_NAME=run1
 TPU_ADDRESS=10.217.209.114
 BERT_DIR=gs://cloud-tpu-checkpoints/bert/keras_bert/uncased_L-24_H-1024_A-16
 
+gsutil rm -r ${PROJECT_BUCKET}/finetune/runs/${SHEET}/${RUN_NAME}
+
 PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nlp/bert/run_classifier.py \
   --train_data_path ${PROJECT_BUCKET}/finetune/finetune_data/${SHEET}/tfrecord/train.tfrecord \
   --eval_data_path ${PROJECT_BUCKET}/finetune/finetune_data/${SHEET}/tfrecord/dev.tfrecord \
@@ -24,90 +26,90 @@ PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nl
   --verbosity 0
 
 # --helpfull output
-# ../tensorflow_models/official/nlp/bert/run_classifier.py:                                                                                                                                                                                                                                                                                                                   
-#   --eval_batch_size: Batch size for evaluation.                                                                                                                                                                                                                                                                                                                             
-#     (default: '32')                                                                                                                                                                                                                                                                                                                                                         
-#     (an integer)                                                                                                                                                                                                                                                                                                                                                            
-#   --eval_data_path: Path to evaluation data for BERT classifier.                                                                                                                                                                                                                                                                                                            
-#   --input_meta_data_path: Path to file that contains meta data about input to be used for training and evaluation.                                                                                                                                                                                                                                                          
-#   --mode: <train_and_eval|export_only>: One of {"train_and_eval", "export_only"}. `train_and_eval`: trains the model and evaluates in the meantime. `export_only`: will take the latest checkpoint inside model_dir and export a `SavedModel`.                                                                                                                              
-#     (default: 'train_and_eval')                                                                                                                                                                                                                                                                                                                                             
-#   --train_batch_size: Batch size for training.                                                                                                                                                                                                                                                                                                                              
-#     (default: '32')                                                                                                                                                                                                                                                                                                                                                         
-#     (an integer)                                                                                                                                                                                                                                                                                                                                                            
-#   --train_data_path: Path to training data for BERT classifier.                                                                                                                                                                                                                                                                                                             
-#                                                                                                                                                                                                                                                                                                                                                                             
-# absl.app:                                                                                                                                                                                                                                                                                                                                                                   
-#   -?,--[no]help: show this help                                                                                                                                                                                                                                                                                                                                             
+# ../tensorflow_models/official/nlp/bert/run_classifier.py:
+#   --eval_batch_size: Batch size for evaluation.
+#     (default: '32')
+#     (an integer)
+#   --eval_data_path: Path to evaluation data for BERT classifier.
+#   --input_meta_data_path: Path to file that contains meta data about input to be used for training and evaluation.
+#   --mode: <train_and_eval|export_only>: One of {"train_and_eval", "export_only"}. `train_and_eval`: trains the model and evaluates in the meantime. `export_only`: will take the latest checkpoint inside model_dir and export a `SavedModel`.
+#     (default: 'train_and_eval')
+#   --train_batch_size: Batch size for training.
+#     (default: '32')
+#     (an integer)
+#   --train_data_path: Path to training data for BERT classifier.
+#
+# absl.app:
+#   -?,--[no]help: show this help
 #     (default: 'false')
 #   --[no]helpfull: show full help
-#     (default: 'false')                                          
-#   -h,--[no]helpshort: show this help                                                                              
-#     (default: 'false')                                                                                                                                                                                                                        
-#   --[no]helpxml: like --helpfull, but generates XML output                      
-#     (default: 'false')                                                        
+#     (default: 'false')
+#   -h,--[no]helpshort: show this help
+#     (default: 'false')
+#   --[no]helpxml: like --helpfull, but generates XML output
+#     (default: 'false')
 #   --[no]only_check_args: Set to true to validate args and exit.
 #     (default: 'false')
 #   --[no]pdb_post_mortem: Set to true to handle uncaught exceptions with PDB post mortem.
 #     (default: 'false')
 #   --profile_file: Dump profile information to a file (for python -m pstats). Implies --run_with_profiling.
-#   --[no]run_with_pdb: Set to true for PDB debug mode                            
+#   --[no]run_with_pdb: Set to true for PDB debug mode
 #     (default: 'false')
 #   --[no]run_with_profiling: Set to true for profiling the script. Execution will be slower, and the output format might change over time.
 #     (default: 'false')
 #   --[no]use_cprofile_for_profiling: Use cProfile instead of the profile module for profiling. This has no effect unless --run_with_profiling is set.
-#     (default: 'true') 
-#                                                           
-# absl.logging:                   
-#   --[no]alsologtostderr: also log to stderr?                                   
+#     (default: 'true')
+#
+# absl.logging:
+#   --[no]alsologtostderr: also log to stderr?
 #     (default: 'false')
-#   --log_dir: directory to write logfiles into                                           
-#     (default: '')     
-#   --[no]logtostderr: Should only log to stderr?                                                           
-#     (default: 'false')                              
+#   --log_dir: directory to write logfiles into
+#     (default: '')
+#   --[no]logtostderr: Should only log to stderr?
+#     (default: 'false')
 #   --[no]showprefixforinfo: If False, do not prepend prefix to info messages when it's logged to stderr, --verbosity is set to INFO level, and python logging is used.
-#     (default: 'true')                                                                                                                    
+#     (default: 'true')
 #   --stderrthreshold: log messages at this level, or more severe, to stderr in addition to the logfile.  Possible values are 'debug', 'info', 'warning', 'error', and 'fatal'.  Obsoletes --alsologtostderr. Using --alsologtostderr cancels the effect of this flag. Please also note that this flag is subject to --verbosity and requires logfile not be stderr.
-#     (default: 'fatal')                                                                                                                              
+#     (default: 'fatal')
 #   -v,--verbosity: Logging verbosity level. Messages logged at this level or lower will be included. Set to 1 for debug logging. If the flag was not set or supplied, the value will be changed from the default of -1 (warning) to 0 (info) after flags are parsed.
-#     (default: '-1')                                                               
-#     (an integer)                  
-#                                             
-# absl.testing.absltest:            
+#     (default: '-1')
+#     (an integer)
+#
+# absl.testing.absltest:
 #   --test_random_seed: Random seed for testing. Some test frameworks may change the default value of this flag between runs, so it is not appropriate for seeding probabilistic tests.
-#     (default: '301')                                                          
-#     (an integer)                                     
+#     (default: '301')
+#     (an integer)
 #   --test_randomize_ordering_seed: If positive, use this as a seed to randomize the execution order for test cases. If "random", pick a random seed to use. If 0 or not set, do not randomize test case execution order. This flag also overrides the TEST_RANDOMIZE_ORDERING_SEED environment variable.
-#     (default: '')                                                                                                                                                    
-#   --test_srcdir: Root of directory tree where source files live                     
-#     (default: '')                                                                                                                                                                                                                                                                                                                                                 
+#     (default: '')
+#   --test_srcdir: Root of directory tree where source files live
+#     (default: '')
 #   --test_tmpdir: Directory for temporary testing files
-#     (default: '/tmp/absl_testing')                                                                                                                                                                                                                                 
+#     (default: '/tmp/absl_testing')
 #   --xml_output_file: File to store XML test results
 #     (default: '')
-#                                 
-# official.nlp.bert.common_flags:                                              
-#   --bert_config_file: Bert configuration file to define core bert layers.                                                                                                            
+#
+# official.nlp.bert.common_flags:
+#   --bert_config_file: Bert configuration file to define core bert layers.
 #   --[no]hub_module_trainable: True to make keras layers in the hub module trainable.
-#     (default: 'true')                                         
-#   --hub_module_url: TF-Hub path/url to Bert module. If specified, init_checkpoint flag should not be used.                                                                                                                                                                                             
+#     (default: 'true')
+#   --hub_module_url: TF-Hub path/url to Bert module. If specified, init_checkpoint flag should not be used.
 #   --init_checkpoint: Initial checkpoint (usually from a pre-trained BERT model).
-#   --learning_rate: The initial learning rate for Adam.                      
-#     (default: '5e-05')                                                              
-#     (a number)                                                         
+#   --learning_rate: The initial learning rate for Adam.
+#     (default: '5e-05')
+#     (a number)
 #   --model_export_path: Path to the directory, where trainined model will be exported.
 #   --num_train_epochs: Total number of training epochs to perform.
-#     (default: '3')                                                                 
-#     (an integer)                                                                  
-#   --optimizer_type: The type of optimizer to use for training (adamw|lamb)        
-#     (default: 'adamw')                                                              
+#     (default: '3')
+#     (an integer)
+#   --optimizer_type: The type of optimizer to use for training (adamw|lamb)
+#     (default: 'adamw')
 #   --[no]scale_loss: Whether to divide the loss by number of replica inside the per-replica loss function.
-#     (default: 'false')                                                             
+#     (default: 'false')
 # --steps_per_loop: Number of steps per graph-mode loop. Only training step happens inside the loop. Callbacks will not be called inside.
 #   (default: '1')
-#   (an integer)  
+#   (an integer)
 # --tpu: TPU address to connect to.
-#   (default: '')               
+#   (default: '')
 # --[no]use_keras_compile_fit: If True, uses Keras compile/fit() API for training logic. Otherwise use custom training loop.
 #   (default: 'false')
 #
