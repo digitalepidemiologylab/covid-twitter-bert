@@ -47,12 +47,12 @@ def get_input_meta_data(data_dir):
         input_meta_data = json.loads(reader.read().decode('utf-8'))
     return input_meta_data
 
-def get_model(args, model_config, input_meta_data, steps_per_epoch, warmup_steps):
+def get_model(args, model_config, steps_per_epoch, warmup_steps, num_labels, max_seq_length):
     # Get classifier and core model (used to initialize from checkpoint)
     classifier_model, core_model = bert_models.classifier_model(
             model_config,
-            input_meta_data['num_labels'],
-            input_meta_data['max_seq_length'],
+            num_labels,
+            max_seq_length,
             hub_module_url=None,
             hub_module_trainable=False)
     # Optimizer
@@ -111,30 +111,39 @@ def train(args, strategy, repeat):
     # Get configs
     model_config = get_model_config(args)
     input_meta_data = get_input_meta_data(data_dir)
+    logger.info(f'Loaded training data meta.json file: {input_meta_data}')
 
     # Calculate steps, warmup steps and eval steps
     train_data_size = input_meta_data['train_data_size']
+    num_labels = input_meta_data['num_labels']
+    max_seq_length = input_meta_data['max_seq_length']
     steps_per_epoch = int(train_data_size / args.train_batch_size)
-    warmup_steps = int(args.num_epochs * train_data_size * 0.1 / args.train_batch_size)
+    warmup_proportion = 0.1
+    warmup_steps = int(args.num_epochs * train_data_size * warmup_proportion/ args.train_batch_size)
     eval_steps = int(math.ceil(input_meta_data['eval_data_size'] / args.eval_batch_size))
+    logger.info(f'Running {args.num_epochs} epochs with {steps_per_epoch:,} steps per epoch')
+    logger.info(f'Using warmup proportion of {warmup_proportion}, resulting in {warmup_steps:,} warmup steps')
 
-
-    classifier_model, core_model = get_model(args, model_config, input_meta_data, steps_per_epoch, warmup_steps)
+    # Get model
+    classifier_model, core_model = get_model(args, model_config, steps_per_epoch, warmup_steps, num_labels, max_seq_length)
     optimizer = classifier_model.optimizer
-    loss_fn = get_loss_fn(input_meta_data['num_labels'])
+    loss_fn = get_loss_fn(num_labels)
 
     # TODO: restore from arbitrary checkpoint
     model_key = f'{args.model_class}_{args.model_type}'
     checkpoint_path = os.path.join(PRETRAINED_MODELS[model_key], 'bert_model.ckpt')
     checkpoint = tf.train.Checkpoint(model=core_model)
     checkpoint.restore(checkpoint_path).assert_existing_objects_matched()
+    logger.info(f'Successfully restored checkpoint from {checkpoint_path}')
 
     # Run keras compile
+    logger.info(f'Compiling keras model...')
     classifier_model.compile(
         optimizer=optimizer,
         loss=loss_fn,
         metrics=[metric_fn()],
         experimental_steps_per_execution=args.steps_per_loop)
+    logger.info(f'... done')
 
     # Create all custom callbacks
     summary_dir = os.path.join(output_dir, 'summaries')
@@ -150,16 +159,18 @@ def train(args, strategy, repeat):
     # Generate dataset_fn
     train_input_fn = get_dataset_fn(
         os.path.join(data_dir, 'train.tfrecord'),
-        input_meta_data['max_seq_length'],
+        max_seq_length,
         args.train_batch_size,
         is_training=True)
     eval_input_fn = get_dataset_fn(
         os.path.join(data_dir, 'dev.tfrecord'),
-        input_meta_data['max_seq_length'],
+        max_seq_length,
         args.eval_batch_size,
         is_training=False)
 
     # Run keras fit
+    time_start = time.time()
+    logger.info('Run training...')
     classifier_model.fit(
         x=train_input_fn(),
         validation_data=eval_input_fn(),
@@ -167,6 +178,8 @@ def train(args, strategy, repeat):
         epochs=args.num_epochs,
         validation_steps=eval_steps,
         callbacks=custom_callbacks)
+    time_end = time.time()
+    logger.info('Finished training after {(time_end-time_start)/60:.1f} min')
 
 
     # # Martin - from old file - do we need=
@@ -228,9 +241,10 @@ def main(args):
     if args.not_use_tpu:
         strategy = distribution_utils.get_distribution_strategy(distribution_strategy='mirrored', num_gpus=args.num_gpus)
     else:
-        tpu_address = f'grpc://{args.tpu_ip}:8470'
         logger.info(f'Intializing TPU on address {args.tpu_ip}...')
+        tpu_address = f'grpc://{args.tpu_ip}:8470'
         strategy = distribution_utils.get_distribution_strategy(distribution_strategy='tpu', tpu_address=tpu_address, num_gpus=args.num_gpus)
+    # Run training
     for repeat in range(args.repeats):
         train(args, strategy, repeat)
 
@@ -240,7 +254,7 @@ def parse_args():
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--finetune_data', default='covid_worry', type=str, help='Finetune data folder name. \
-            The folder has to be located in gs://{bucket_name}/{project_name}/finetune/finetune_data/.\
+            The folder has to be located in gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}.\
             TFrecord files (train.tfrecord and dev.tfrecord as well as meta.json) should be located in a \
             subfolder gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}/tfrecord/')
     parser.add_argument('--tpu_ip', default='10.217.209.114', help='IP-address of the TPU')
