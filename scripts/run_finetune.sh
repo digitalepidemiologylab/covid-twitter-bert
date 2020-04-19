@@ -1,7 +1,7 @@
 #!/bin/sh
 
 PROJECT_BUCKET=gs://cb-tpu-projects/covid-bert
-SHEET=twitter_sentiment_semeval
+SHEET=maternal_vaccine_stance_lshtm
 RUN_NAME=run1
 TPU_ADDRESS=10.217.209.114
 BERT_DIR=gs://cloud-tpu-checkpoints/bert/keras_bert/uncased_L-24_H-1024_A-16
@@ -12,9 +12,9 @@ PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nl
   --train_data_path ${PROJECT_BUCKET}/finetune/finetune_data/${SHEET}/tfrecord/train.tfrecord \
   --eval_data_path ${PROJECT_BUCKET}/finetune/finetune_data/${SHEET}/tfrecord/dev.tfrecord \
   --input_meta_data_path ${PROJECT_BUCKET}/finetune/finetune_data/${SHEET}/tfrecord/meta.json \
-  --eval_batch_size 320 \
+  --eval_batch_size 32 \
   --mode train_and_eval \
-  --train_batch_size 320 \
+  --train_batch_size 32 \
   --tpu grpc://${TPU_ADDRESS}:8470 \
   --distribution_strategy tpu \
   --learning_rate=2e-5 \
@@ -22,7 +22,7 @@ PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nl
   --bert_config_file=${BERT_DIR}/bert_config.json \
   --init_checkpoint=${BERT_DIR}/bert_model.ckpt \
   --model_dir ${PROJECT_BUCKET}/finetune/runs/${SHEET}/${RUN_NAME} \
-  --steps_per_loop 1 \
+  --steps_per_loop 1000 \
   --verbosity 0
 
 # --helpfull output
