@@ -190,7 +190,7 @@ def parse_args():
     parser.add_argument('--sheets', default=default_sheets, choices=default_sheets, nargs='+', help='Parse sheets')
     parser.add_argument('--max_seq_length', default=96, type=int, help='Maximum sequence length')
     parser.add_argument('--do_lower_case', default=True, type=bool, help='Use lower case')
-    parser.add_argument('--vocab_file', default='../vocabs/bert-large-cased-vocab.txt', type=str, help='Use lower case')
+    parser.add_argument('--vocab_file', default='../vocabs/bert-large-uncased-vocab.txt', type=str, help='Use lower case')
     parser.add_argument('--tokenizer_type', default='word_piece', choices=['word_piece', 'sentence_piece'], type=str, help='BERT uses word_piece, Albert uses sentence_piece')
     parser.add_argument('--sp_tokenizer_path', type=str, help='The path to the model used by sentence piece tokenizer.')
     return parser.parse_args()
