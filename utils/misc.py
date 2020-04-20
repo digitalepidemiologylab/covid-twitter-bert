@@ -17,8 +17,7 @@ def append_to_csv(data, f_name_local, f_name_remote):
     df = pd.DataFrame.from_dict({x: [y] for x, y in data.items()})
     if os.path.isfile(f_name_local):
         df_old = pd.read_csv(f_name_local)
-        df = pd.concat([f_name_local, df])
-    if os.path.isfile(f_name_local):
+        df = pd.concat([df_old, df])
         f = open(f_name_local)
         fcntl.flock(f, fcntl.LOCK_EX)
         df.to_csv(f_name_local, index=False)
