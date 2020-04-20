@@ -31,7 +31,7 @@ class Metrics(tf.keras.callbacks.Callback):
         logger.info(f'Scores after epoch {epoch}:\n{scores}')
         # store scores and predictions for later
         self.scores.append(scores)
-        self.predictions.append(y_pred)
+        self.predictions.append(list(y_pred))
 
     def performance_metrics(self, y_true, y_pred, metrics=None, averaging=None, label_mapping=None):
         """

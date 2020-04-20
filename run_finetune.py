@@ -205,18 +205,27 @@ def train(args, strategy, repeat):
         validation_steps=eval_steps,
         callbacks=custom_callbacks)
     time_end = time.time()
-    logger.info(f'Finished training after {(time_end-time_start)/60:.1f} min')
+    training_time_min = (time_end-time_start)/60
+    logger.info(f'Finished training after {training_time_min:.1f} min')
 
     # Write log to Training Log File
     final_scores = performance_metrics_callback.scores[-1]
+    all_scores = performance_metrics_callback.scores
+    all_predictions = performance_metrics_callback.predictions
     data = {
             'created_at': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'run_name': run_name,
+            'final_loss': history.history['loss'][-1],
+            'final_val_loss': history.history['val_loss'][-1],
             'max_seq_length': max_seq_length,
+            'training_time_min': training_time_min,
             'data_dir': data_dir,
             'output_dir': output_dir,
+            **history.history,
             **final_scores,
-            **vars(args)
+            **vars(args),
+            'all_scores': all_scores,
+            'all_predictions': all_predictions
             }
     f_path_log_remote = f'gs://{args.bucket_name}/{args.project_name}/finetune/traininglog.csv'
     f_path_log_local = 'traininglog.csv'
@@ -263,8 +272,8 @@ def parse_args():
     parser.add_argument('--model_type', default='large_uncased', choices=['large_uncased', 'base_uncased'], type=str, help='Model class')
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
     parser.add_argument('--dtype', default='fp32', choices=['fp32', 'bf16', 'fp16'], type=str, help='Data type')
-    parser.add_argument('--steps_per_loop', default=1000, type=int, help='Steps per loop')
-    parser.add_argument('--log_steps', default=1000, type=int, help='Frequency with which to log timing information with TimeHistory.')
+    parser.add_argument('--steps_per_loop', default=100, type=int, help='Steps per loop')
+    parser.add_argument('--log_steps', default=100, type=int, help='Frequency with which to log timing information with TimeHistory.')
     parser.add_argument('--model_config_path', default=None, type=str, help='Path to model config file, by default \
             try to infer from model_class/model_type args and fetch from gs://cloud-tpu-checkpoints')
     # Currently not supported:
