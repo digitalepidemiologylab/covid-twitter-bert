@@ -38,6 +38,7 @@ class Metrics(tf.keras.callbacks.Callback):
         Compute performance metrics
         """
         def _compute_performance_metric(scoring_function, m, y_true, y_pred):
+            # compute averaging
             for av in averaging:
                 if av is None:
                     metrics_by_class = scoring_function(y_true, y_pred, average=av, labels=labels)
@@ -46,14 +47,15 @@ class Metrics(tf.keras.callbacks.Callback):
                             label_name = labels[i]
                         else:
                             label_name = label_mapping[labels[i]]
-                        scores[m + '_' + str(label_name)] = class_metric
+                        scores['scores_by_label'][m + '_' + str(label_name)] = class_metric
                 else:
                     scores[m + '_' + av] = scoring_function(y_true, y_pred, average=av, labels=labels)
+
         if averaging is None:
             averaging = ['micro', 'macro', 'weighted', None]
         if metrics is None:
-            metrics = ['accuracy', 'precision', 'recall', 'f1']
-        scores = {}
+            metrics = ['accuracy', 'precision', 'recall', 'f1', 'matthews_corrcoef', 'cohen_kappa']
+        scores = {'scores_by_label': {}}
         if label_mapping is None:
             # infer labels from data
             labels = sorted(list(set(y_true + y_pred)))
@@ -71,4 +73,8 @@ class Metrics(tf.keras.callbacks.Callback):
                 _compute_performance_metric(sklearn.metrics.recall_score, m, y_true, y_pred)
             elif m == 'f1':
                 _compute_performance_metric(sklearn.metrics.f1_score, m, y_true, y_pred)
+            elif m == 'matthews_corrcoef':
+                scores[m] = sklearn.metrics.matthews_corrcoef(y_true, y_pred)
+            elif m == 'cohen_kappa':
+                scores[m] = sklearn.metrics.cohen_kappa_score(y_true, y_pred, labels=labels)
         return scores

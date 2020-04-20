@@ -10,7 +10,7 @@ import logging
 import tqdm
 import json
 import tensorflow as tf
-from utils.misc import ArgParseDefault
+from utils.misc import ArgParseDefault, append_to_csv
 from utils.finetune_helpers import Metrics
 import pandas as pd
 
@@ -212,15 +212,9 @@ def train(args, strategy, repeat):
             **final_scores,
             **vars(args)
             }
-    f_path_log = f'gs://{args.bucket_name}/{args.project_name}/finetune/traininglog.csv'
+    f_path_log_remote = f'gs://{args.bucket_name}/{args.project_name}/finetune/traininglog.csv'
     f_path_log_local = 'traininglog.csv'
-    df = pd.DataFrame.from_dict({x: [y] for x, y in data.items()})
-    if os.path.isfile(f_path_log_local):
-        df_old = pd.read_csv(f_path_log_local)
-        df = pd.concat([df_old, df])
-    df.to_csv(f_path_log_local, index=False)
-    # write to cloud storage
-    df.to_csv(f_path_log, index=False)
+    append_to_csv(data, f_path_log_local, f_path_log_remote)
 
 def main(args):
     # Get distribution strategy
@@ -249,6 +243,7 @@ def parse_args():
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
     parser.add_argument('--init_checkpoint', default=None, help='Run name to initialize checkpoint from. Example: "run2/ctl_step_8000.ckpt-8". \
             By default using a pretrained model from gs://cloud-tpu-checkpoints.')
+    parser.add_argument('--init_checkpoint_index', type=int, help='Checkpoint index. This argument is ignored and only added for reporting.')
     parser.add_argument('--repeats', default=1, type=int, help='Number of times the script should run. Default is 1')
     parser.add_argument('--num_epochs', default=1, type=int, help='Number of epochs')
     parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')
