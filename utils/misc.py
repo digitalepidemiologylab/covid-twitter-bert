@@ -4,6 +4,7 @@ import os
 import csv
 import argparse
 import fcntl
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +18,13 @@ def append_to_csv(data, f_name_local, f_name_remote):
     if os.path.isfile(f_name_local):
         df_old = pd.read_csv(f_name_local)
         df = pd.concat([f_name_local, df])
-    f = open(f_name_local)
-    fcntl.flock(f, fcntl.LOCK_EX)
-    df.to_csv(f_path_log_local, index=False)
-    fcntl.flock(f, fcntl.LOCK_UN)
+    if os.path.isfile(f_name_local):
+        f = open(f_name_local)
+        fcntl.flock(f, fcntl.LOCK_EX)
+        df.to_csv(f_name_local, index=False)
+        fcntl.flock(f, fcntl.LOCK_UN)
+    else:
+        df.to_csv(f_name_local, index=False)
     logger.info(f'Wrote log to csv {f_name_local}')
     # write to cloud storage
     df.to_csv(f_name_remote, index=False)

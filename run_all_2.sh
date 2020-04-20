@@ -1,13 +1,16 @@
 #!/usr/bin/env sh
 
-python run_finetune.py --finetune_data maternal_vaccine_stance_lshtm --num_epochs 3
-python run_finetune.py --finetune_data maternal_vaccine_stance_lshtm --num_epochs 3 --init_checkpoint run2/pretrained/bert_model.ckpt-10
-python run_finetune.py --finetune_data covid_worry --num_epochs 3
-python run_finetune.py --finetune_data covid_worry --num_epochs 3 --init_checkpoint run2/pretrained/bert_model.ckpt-10
-python run_finetune.py --finetune_data twittter_sentiment_semeval --num_epochs 3
-python run_finetune.py --finetune_data twittter_sentiment_semeval --num_epochs 3 --init_checkpoint run2/pretrained/bert_model.ckpt-10
-python run_finetune.py --finetune_data vaccine_sentiment_epfl --num_epochs 3
-python run_finetune.py --finetune_data vaccine_sentiment_epfl --num_epochs 3 --init_checkpoint run2/pretrained/bert_model.ckpt-10
+TPU_IP=10.250.176.154
+NUM_EPOCHS=5
+INIT_CHECKPOINT_10=run2/pretrained/bert_model.ckpt-10
+INIT_CHECKPOINT_5=run2/pretrained/bert_model.ckpt-10
+
+
+for FINETUNE_DATA in maternal_vaccine_stance_lshtm covid_worry twittter_sentiment_semeval vaccine_sentiment_epfl
+do
+  python run_finetune.py --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --init_checkpoint_index 5 --init_checkpoint $INIT_CHECKPOINT_5
+done
+
 
 
 # help output

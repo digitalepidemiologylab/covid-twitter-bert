@@ -76,5 +76,5 @@ class Metrics(tf.keras.callbacks.Callback):
             elif m == 'matthews_corrcoef':
                 scores[m] = sklearn.metrics.matthews_corrcoef(y_true, y_pred)
             elif m == 'cohen_kappa':
-                scores[m] = sklearn.metrics.cohen_kappa_score(y_true, y_pred, labels=labels)
+                scores[m] = sklearn.metrics.cohen_kappa_score(y_true, y_pred)
         return scores

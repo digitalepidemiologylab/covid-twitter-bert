@@ -126,10 +126,16 @@ def train(args, strategy, repeat):
     train_data_size = input_meta_data['train_data_size']
     num_labels = input_meta_data['num_labels']
     max_seq_length = input_meta_data['max_seq_length']
-    steps_per_epoch = int(train_data_size / args.train_batch_size)
+    if args.limit_train_steps is None:
+        steps_per_epoch = int(train_data_size / args.train_batch_size)
+    else:
+        steps_per_epoch = args.limit_train_steps
     warmup_proportion = 0.1
     warmup_steps = int(args.num_epochs * train_data_size * warmup_proportion/ args.train_batch_size)
-    eval_steps = int(math.ceil(input_meta_data['eval_data_size'] / args.eval_batch_size))
+    if args.limit_eval_steps is None:
+        eval_steps = int(math.ceil(input_meta_data['eval_data_size'] / args.eval_batch_size))
+    else:
+        eval_steps = args.limit_eval_steps
     logger.info(f'Running {args.num_epochs} epochs with {steps_per_epoch:,} steps per epoch')
     logger.info(f'Using warmup proportion of {warmup_proportion}, resulting in {warmup_steps:,} warmup steps')
 
@@ -204,11 +210,11 @@ def train(args, strategy, repeat):
     # Write log to Training Log File
     final_scores = performance_metrics_callback.scores[-1]
     data = {
+            'created_at': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'run_name': run_name,
             'max_seq_length': max_seq_length,
             'data_dir': data_dir,
             'output_dir': output_dir,
-            'created_at': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             **final_scores,
             **vars(args)
             }
@@ -246,6 +252,8 @@ def parse_args():
     parser.add_argument('--init_checkpoint_index', type=int, help='Checkpoint index. This argument is ignored and only added for reporting.')
     parser.add_argument('--repeats', default=1, type=int, help='Number of times the script should run. Default is 1')
     parser.add_argument('--num_epochs', default=1, type=int, help='Number of epochs')
+    parser.add_argument('--limit_train_steps', type=int, help='Limit the number of train steps per epoch. Useful for testing.')
+    parser.add_argument('--limit_eval_steps', type=int, help='Limit the number of eval steps per epoch. Useful for testing.')
     parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')
     parser.add_argument('--eval_batch_size', default=32, type=int, help='Eval batch size')
     parser.add_argument('--learning_rate', default=5e-5, type=float, help='Learning rate')
