@@ -11,12 +11,13 @@ logger = logging.getLogger(__name__)
 class Metrics(tf.keras.callbacks.Callback):
     """Metrics to compute as a callback"""
 
-    def __init__(self, eval_data_fn, label_mapping):
+    def __init__(self, eval_data_fn, label_mapping, logdir):
         super().__init__()
         self.eval_data = eval_data_fn()
         self.label_mapping = label_mapping
         self.scores = []
         self.predictions = []
+        self.logdir = logdir
 
     def on_train_begin(self, logs={}):
         self.val_f1s = []
@@ -29,6 +30,12 @@ class Metrics(tf.keras.callbacks.Callback):
         y_pred = tf.argmax(preds, axis=1).numpy()
         scores = self.performance_metrics(y_true, y_pred, label_mapping=self.label_mapping)
         logger.info(f'Scores after epoch {epoch}:\n{scores}')
+        # add to summary writer
+        metrics_writer = tf.summary.create_file_writer(self.logdir)
+        metrics_writer.set_as_default()
+        for metric, value in scores.items():
+            if metric != 'scores_by_label':
+                tf.summary.scalar(metric, data=value, step=epoch)
         # store scores and predictions for later
         self.scores.append(scores)
         self.predictions.append(list(y_pred))

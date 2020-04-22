@@ -28,7 +28,8 @@ sheet_handler = gc.open('Twitter Evaluation Datasets')
 default_sheets = ['vaccine_sentiment_epfl',
         'maternal_vaccine_stance_lshtm',
         'twitter_sentiment_semeval',
-        'covid_worry']
+        'covid_worry',
+        'SST-2']
 tsv_columns = ['id', 'label', 'text']
 transl_table = dict([(ord(x), ord(y)) for x, y in zip( u"‘’´“”–-",  u"'''\"\"--")])
 user_handle_regex = re.compile(r'(^|[^@\w])@(\w{1,15})\b')
@@ -172,6 +173,9 @@ def main(args):
         f_path_folder = os.path.join(output_dir, s)
         for _type in ['train', 'dev', 'test']:
             _df = df[df['dataset'] == _type]
+            if len(_df) == 0:
+                logger.warning(f'Type {_type} has no records. Skipping.')
+                continue
             _df = _df.sample(frac=1)
             if not os.path.isdir(f_path_folder):
                 os.makedirs(f_path_folder)

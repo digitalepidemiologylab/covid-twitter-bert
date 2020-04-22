@@ -5,13 +5,14 @@ import csv
 import argparse
 import fcntl
 import pandas as pd
+import tensorflow as tf
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
 def save_to_json(data, f_name):
-    with open(f_name, mode='w') as f:
-        json.dump(data, f, cls=JSONEncoder, indent=4)
-    logger.info(f'Wrote log to json file {f_name}')
+    with tf.io.gfile.GFile(f_name, 'w') as writer:
+        writer.write(json.dumps(data, cls=JSONEncoder, indent=4))
 
 def append_to_csv(data, f_name_local, f_name_remote):
     df = pd.DataFrame.from_dict({x: [y] for x, y in data.items()})
