@@ -26,6 +26,11 @@ def main():
     run_logs = get_run_logs()
     logger.info(f'... loaded a total of {len(run_logs)} run logs')
     df = pd.DataFrame(run_logs)
+    if len(df) == 0:
+        logger.info('No run logs found.')
+        return
+    df['created_at'] = pd.to_datetime(df['created_at'])
+    df.sort_values('created_at', inplace=True)
     f_path = os.path.join('.', 'traininglog.csv')
     logger.info(f'Writing to file {f_path}')
     df.to_csv(f_path, index=False)
