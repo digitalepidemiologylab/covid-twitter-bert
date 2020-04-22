@@ -249,7 +249,7 @@ def parse_args():
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--finetune_data', default='maternal_vaccine_stance_lshtm', choices=['maternal_vaccine_stance_lshtm',\
-            'covid_worry', 'vaccine_sentiment_epfl', 'twittter_sentiment_semeval'],
+            'covid_worry', 'vaccine_sentiment_epfl', 'twitter_sentiment_semeval'],
             help='Finetune data folder name. The folder has to be located in gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}.\
                     TFrecord files (train.tfrecord and dev.tfrecord as well as meta.json) should be located in a \
                     subfolder gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}/tfrecord/')

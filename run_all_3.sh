@@ -4,11 +4,13 @@ TPU_IP=10.221.183.202
 NUM_EPOCHS=5
 INIT_CHECKPOINT_10=run2/pretrained/bert_model.ckpt-10
 INIT_CHECKPOINT_5=run2/pretrained/bert_model_step_50000.ckpt-5
+TRAIN_BATCH_SIZE=128
+EVAL_BATCH_SIZE=8
 
 
-for FINETUNE_DATA in maternal_vaccine_stance_lshtm covid_worry twittter_sentiment_semeval vaccine_sentiment_epfl
+for FINETUNE_DATA in maternal_vaccine_stance_lshtm covid_worry twitter_sentiment_semeval vaccine_sentiment_epfl
 do
-  python run_finetune.py --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --init_checkpoint_index 10 --init_checkpoint $INIT_CHECKPOINT_10
+  python run_finetune.py --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --init_checkpoint_index 10 --init_checkpoint $INIT_CHECKPOINT_10
 done
 
 
