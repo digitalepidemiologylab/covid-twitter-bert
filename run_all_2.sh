@@ -1,16 +1,29 @@
 #!/usr/bin/env sh
 
-TPU_IP=10.250.176.154
+TPU_IP=10.134.45.242
 NUM_EPOCHS=10
-INIT_CHECKPOINT_10=run2/pretrained/bert_model.ckpt-10
+INIT_CHECKPOINT_1=run2/pretrained/bert_model_step_10000.ckpt-1
+INIT_CHECKPOINT_2=run2/pretrained/bert_model_step_20000.ckpt-2
+INIT_CHECKPOINT_3=run2/pretrained/bert_model_step_30000.ckpt-3
+INIT_CHECKPOINT_4=run2/pretrained/bert_model_step_40000.ckpt-4
 INIT_CHECKPOINT_5=run2/pretrained/bert_model_step_50000.ckpt-5
-TRAIN_BATCH_SIZE=128
+INIT_CHECKPOINT_6=run2/pretrained/bert_model_step_60000.ckpt-6
+INIT_CHECKPOINT_7=run2/pretrained/bert_model_step_70000.ckpt-7
+INIT_CHECKPOINT_8=run2/pretrained/bert_model_step_80000.ckpt-8
+INIT_CHECKPOINT_9=run2/pretrained/bert_model_step_90000.ckpt-9
+INIT_CHECKPOINT_10=run2/pretrained/bert_model.ckpt-10
+TRAIN_BATCH_SIZE=32
+LR=2e-5
 EVAL_BATCH_SIZE=8
 
 
-for FINETUNE_DATA in maternal_vaccine_stance_lshtm covid_worry twitter_sentiment_semeval vaccine_sentiment_epfl
+for FINETUNE_DATA in maternal_vaccine_stance_lshtm covid_worry covid_category twitter_sentiment_semeval vaccine_sentiment_epfl
 do
-  python run_finetune.py --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --init_checkpoint_index 5 --init_checkpoint $INIT_CHECKPOINT_5
+  python run_finetune.py --run_prefix per_v1 --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 0
+  python run_finetune.py --run_prefix per_v1 --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 2 --init_checkpoint $INIT_CHECKPOINT_2
+  python run_finetune.py --run_prefix per_v1 --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 4 --init_checkpoint $INIT_CHECKPOINT_4
+  python run_finetune.py --run_prefix per_v1 --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 8 --init_checkpoint $INIT_CHECKPOINT_8
+  python run_finetune.py --run_prefix per_v1 --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 10 --init_checkpoint $INIT_CHECKPOINT_10
 done
 
 
