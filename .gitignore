@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 
 traininglog.csv
+analysis/plots

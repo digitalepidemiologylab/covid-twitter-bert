@@ -9,9 +9,9 @@ EVAL_BATCH_SIZE=8
 
 for BS in 32 64 80
 do
-  for LR_scale in 2e-05 5e-05 1e-04
+  for LR in 2e-05 5e-05 1e-04
   do
-    python run_finetune.py --run_prefix martin_hyperparameters --train_batch_size $BS --eval_batch_size 8 --tpu_ip $TPU_IP --finetune_data maternal_vaccine_stance_lshtm --num_epochs 10 --init_checkpoint_index 0
+    python run_finetune.py --run_prefix martin_hyperparameters --train_batch_size $BS --eval_batch_size 8 --tpu_ip $TPU_IP --finetune_data maternal_vaccine_stance_lshtm --num_epochs 5 --init_checkpoint_index 0 --learning_rate $LR
   done
 done
 
