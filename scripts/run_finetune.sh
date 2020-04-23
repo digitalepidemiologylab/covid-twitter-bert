@@ -22,7 +22,7 @@ PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nl
   --bert_config_file=${BERT_DIR}/bert_config.json \
   --init_checkpoint=${BERT_DIR}/bert_model.ckpt \
   --model_dir ${PROJECT_BUCKET}/finetune/runs/${SHEET}/${RUN_NAME} \
-  --steps_per_loop 1000 \
+  --steps_per_loop 10 \
   --verbosity 0
 
 # --helpfull output

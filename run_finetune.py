@@ -25,7 +25,6 @@ from utils.finetune_helpers import Metrics
 import pandas as pd
 
 
-
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -147,74 +146,76 @@ def train(args, strategy, repeat):
     logger.info(f'Using warmup proportion of {args.warmup_proportion}, resulting in {warmup_steps:,} warmup steps')
 
     # Get model
-    classifier_model, core_model = get_model(args, model_config, steps_per_epoch, warmup_steps, num_labels, max_seq_length)
-    optimizer = classifier_model.optimizer
-    loss_fn = get_loss_fn(num_labels)
+    with strategy.scope():
+        classifier_model, core_model = get_model(args, model_config, steps_per_epoch, warmup_steps, num_labels, max_seq_length)
+        optimizer = classifier_model.optimizer
+        loss_fn = get_loss_fn(num_labels)
 
-    # Restore checkpoint
-    if args.init_checkpoint is None:
-        model_key = f'{args.model_class}_{args.model_type}'
-        checkpoint_path = os.path.join(PRETRAINED_MODELS[model_key], 'bert_model.ckpt')
-    else:
-        checkpoint_path = f'gs://{args.bucket_name}/{args.project_name}/pretrain/runs/{args.init_checkpoint}'
-    checkpoint = tf.train.Checkpoint(model=core_model)
-    checkpoint.restore(checkpoint_path).assert_existing_objects_matched()
-    logger.info(f'Successfully restored checkpoint from {checkpoint_path}')
+        # Restore checkpoint
+        if args.init_checkpoint is None:
+            model_key = f'{args.model_class}_{args.model_type}'
+            checkpoint_path = os.path.join(PRETRAINED_MODELS[model_key], 'bert_model.ckpt')
+        else:
+            checkpoint_path = f'gs://{args.bucket_name}/{args.project_name}/pretrain/runs/{args.init_checkpoint}'
+        checkpoint = tf.train.Checkpoint(model=core_model)
+        checkpoint.restore(checkpoint_path).assert_existing_objects_matched()
+        logger.info(f'Successfully restored checkpoint from {checkpoint_path}')
 
-    # Run keras compile
-    logger.info(f'Compiling keras model...')
-    classifier_model.compile(
-        optimizer=optimizer,
-        loss=loss_fn,
-        metrics=get_metrics(),
-        experimental_steps_per_execution=args.steps_per_loop)
-    logger.info(f'... done')
+        # Run keras compile
+        logger.info(f'Compiling keras model...')
+        classifier_model.compile(
+            optimizer=optimizer,
+            loss=loss_fn,
+            metrics=get_metrics(),
+            experimental_steps_per_execution=args.steps_per_loop)
+        logger.info(f'... done')
 
-    # Create all custom callbacks
-    summary_dir = os.path.join(output_dir, 'summaries')
-    summary_callback = tf.keras.callbacks.TensorBoard(summary_dir, profile_batch=0)
-    checkpoint_path = os.path.join(output_dir, 'checkpoint')
-    checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path, save_weights_only=True)
-    time_history_callback = keras_utils.TimeHistory(
-        batch_size=args.train_batch_size,
-        log_steps=args.time_history_log_steps,
-        logdir=summary_dir)
-    custom_callbacks = [summary_callback, checkpoint_callback, time_history_callback]
-    if args.early_stopping_epochs > 0:
-        logger.info(f'Using early stopping of after {args.early_stopping_epochs} epochs of val_loss not decreasing')
-        early_stopping_callback = tf.keras.callbacks.EarlyStopping(patience=args.early_stopping_epochs, monitor='val_loss')
-        custom_callbacks.append(early_stopping_callback)
+        # Create all custom callbacks
+        summary_dir = os.path.join(output_dir, 'summaries')
+        summary_callback = tf.keras.callbacks.TensorBoard(summary_dir, profile_batch=0)
+        checkpoint_path = os.path.join(output_dir, 'checkpoint')
+        checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path, save_weights_only=True)
+        time_history_callback = keras_utils.TimeHistory(
+            batch_size=args.train_batch_size,
+            log_steps=args.time_history_log_steps,
+            logdir=summary_dir)
+        custom_callbacks = [summary_callback, checkpoint_callback, time_history_callback]
+        if args.early_stopping_epochs > 0:
+            logger.info(f'Using early stopping of after {args.early_stopping_epochs} epochs of val_loss not decreasing')
+            early_stopping_callback = tf.keras.callbacks.EarlyStopping(patience=args.early_stopping_epochs, monitor='val_loss')
+            custom_callbacks.append(early_stopping_callback)
 
-    # Generate dataset_fn
-    train_input_fn = get_dataset_fn(
-        os.path.join(data_dir, 'tfrecord', 'train.tfrecord'),
-        max_seq_length,
-        args.train_batch_size,
-        is_training=True)
-    eval_input_fn = get_dataset_fn(
-        os.path.join(data_dir, 'tfrecord', 'dev.tfrecord'),
-        max_seq_length,
-        args.eval_batch_size,
-        is_training=False)
+        # Generate dataset_fn
+        train_input_fn = get_dataset_fn(
+            os.path.join(data_dir, 'tfrecord', 'train.tfrecord'),
+            max_seq_length,
+            args.train_batch_size,
+            is_training=True)
+        eval_input_fn = get_dataset_fn(
+            os.path.join(data_dir, 'tfrecord', 'dev.tfrecord'),
+            max_seq_length,
+            args.eval_batch_size,
+            is_training=False)
 
-    # Add mertrics callback to calculate performance metrics at the end of epoch
-    performance_metrics_callback = Metrics(eval_input_fn, label_mapping, os.path.join(summary_dir, 'metrics'))
-    custom_callbacks.append(performance_metrics_callback)
+        # Add mertrics callback to calculate performance metrics at the end of epoch
+        performance_metrics_callback = Metrics(eval_input_fn, label_mapping, os.path.join(summary_dir, 'metrics'))
+        custom_callbacks.append(performance_metrics_callback)
 
-    # Run keras fit
-    time_start = time.time()
-    logger.info('Run training...')
-    history = classifier_model.fit(
-        x=train_input_fn(),
-        validation_data=eval_input_fn(),
-        steps_per_epoch=steps_per_epoch,
-        epochs=args.num_epochs,
-        validation_steps=eval_steps,
-        callbacks=custom_callbacks,
-        verbose=1)
-    time_end = time.time()
-    training_time_min = (time_end-time_start)/60
-    logger.info(f'Finished training after {training_time_min:.1f} min')
+        # Run keras fit
+        time_start = time.time()
+        logger.info('Run training...')
+        custom_callbacks = []
+        history = classifier_model.fit(
+            x=train_input_fn(),
+            validation_data=eval_input_fn(),
+            steps_per_epoch=steps_per_epoch,
+            epochs=args.num_epochs,
+            validation_steps=eval_steps,
+            callbacks=custom_callbacks,
+            verbose=1)
+        time_end = time.time()
+        training_time_min = (time_end-time_start)/60
+        logger.info(f'Finished training after {training_time_min:.1f} min')
 
     final_scores = performance_metrics_callback.scores[-1]
     all_scores = performance_metrics_callback.scores
@@ -282,7 +283,7 @@ def parse_args():
     parser.add_argument('--limit_eval_steps', type=int, help='Limit the number of eval steps per epoch. Useful for testing.')
     parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')
     parser.add_argument('--eval_batch_size', default=32, type=int, help='Eval batch size')
-    parser.add_argument('--learning_rate', default=5e-5, type=float, help='Learning rate')
+    parser.add_argument('--learning_rate', default=2e-5, type=float, help='Learning rate')
     parser.add_argument('--warmup_proportion', default=0.1, type=float, help='Learning rate warmup proportion')
     parser.add_argument('--max_seq_length', default=96, type=int, help='Maximum sequence length')
     parser.add_argument('--early_stopping_epochs', default=-1, type=int, help='Stop when loss hasn\'t decreased during n epochs')
