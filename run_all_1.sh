@@ -4,7 +4,7 @@ TPU_IP=10.217.209.114
 NUM_EPOCHS=10
 INIT_CHECKPOINT_10=run2/pretrained/bert_model.ckpt-10
 INIT_CHECKPOINT_5=run2/pretrained/bert_model_step_50000.ckpt-5
-TRAIN_BATCH_SIZE=64
+TRAIN_BATCH_SIZE=32
 LR=1e-4
 EVAL_BATCH_SIZE=8
 
