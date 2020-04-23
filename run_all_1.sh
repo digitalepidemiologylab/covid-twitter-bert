@@ -10,9 +10,9 @@ EVAL_BATCH_SIZE=8
 
 for FINETUNE_DATA in maternal_vaccine_stance_lshtm covid_worry covid_category twitter_sentiment_semeval vaccine_sentiment_epfl
 do
-  python run_finetune.py --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 0
-  python run_finetune.py --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 5 --init_checkpoint $INIT_CHECKPOINT_5
-  python run_finetune.py --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 10 --init_checkpoint $INIT_CHECKPOINT_10
+  python run_finetune.py --run_prefix martin_v1 --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 0
+  python run_finetune.py --run_prefix martin_v1 --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 5 --init_checkpoint $INIT_CHECKPOINT_5
+  python run_finetune.py --run_prefix martin_v1 --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 10 --init_checkpoint $INIT_CHECKPOINT_10
 done
 
 # for BS in 32 64 80
