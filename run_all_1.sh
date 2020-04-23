@@ -7,9 +7,12 @@ INIT_CHECKPOINT_5=run2/pretrained/bert_model_step_50000.ckpt-5
 TRAIN_BATCH_SIZE=128
 EVAL_BATCH_SIZE=8
 
-for FINETUNE_DATA in maternal_vaccine_stance_lshtm covid_worry twitter_sentiment_semeval vaccine_sentiment_epfl
+for BS in 32 64 80
 do
-  python run_finetune.py --train_batch_size 32 --eval_batch_size 8 --tpu_ip $TPU_IP --finetune_data $FINETUNE_DATA --num_epochs 3 --init_checkpoint_index 0
+  for LR_scale in 2e-05 5e-05 1e-04
+  do
+    python run_finetune.py --run_prefix martin_hyperparameters --train_batch_size $BS --eval_batch_size 8 --tpu_ip $TPU_IP --finetune_data maternal_vaccine_stance_lshtm --num_epochs 10 --init_checkpoint_index 0
+  done
 done
 
 

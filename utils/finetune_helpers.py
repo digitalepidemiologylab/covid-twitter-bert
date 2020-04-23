@@ -19,17 +19,13 @@ class Metrics(tf.keras.callbacks.Callback):
         self.predictions = []
         self.logdir = logdir
 
-    def on_train_begin(self, logs={}):
-        self.val_f1s = []
-        self.val_recalls = []
-        self.val_precisions = []
-
-    def on_epoch_end(self, epoch, logs={}):
+    def on_epoch_end(self, epoch, logs):
+        logger.info('Computing metrics on validation set...')
+        t_s = time.time()
         y_true = np.concatenate([label.numpy() for _, label in self.eval_data])
         preds = self.model.predict(self.eval_data)
         y_pred = tf.argmax(preds, axis=1).numpy()
         scores = self.performance_metrics(y_true, y_pred, label_mapping=self.label_mapping)
-        logger.info(f'Scores after epoch {epoch}:\n{scores}')
         # add to summary writer
         metrics_writer = tf.summary.create_file_writer(self.logdir)
         metrics_writer.set_as_default()
@@ -39,6 +35,9 @@ class Metrics(tf.keras.callbacks.Callback):
         # store scores and predictions for later
         self.scores.append(scores)
         self.predictions.append(list(y_pred))
+        t_e = time.time()
+        logger.info(f'... finished computing metrics in {int(t_e-t_s):,} s.')
+        logger.info(f'Scores after epoch {epoch}:\n{scores}')
 
     def performance_metrics(self, y_true, y_pred, metrics=None, averaging=None, label_mapping=None):
         """
