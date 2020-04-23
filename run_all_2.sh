@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 TPU_IP=10.250.176.154
-NUM_EPOCHS=5
+NUM_EPOCHS=10
 INIT_CHECKPOINT_10=run2/pretrained/bert_model.ckpt-10
 INIT_CHECKPOINT_5=run2/pretrained/bert_model_step_50000.ckpt-5
 TRAIN_BATCH_SIZE=128

@@ -29,6 +29,7 @@ default_sheets = ['vaccine_sentiment_epfl',
         'maternal_vaccine_stance_lshtm',
         'twitter_sentiment_semeval',
         'covid_worry',
+        'covid_category',
         'SST-2']
 tsv_columns = ['id', 'label', 'text']
 transl_table = dict([(ord(x), ord(y)) for x, y in zip( u"‘’´“”–-",  u"'''\"\"--")])
