@@ -246,6 +246,8 @@ def train(args, strategy, repeat):
             'output_dir': output_dir,
             'all_scores': all_scores,
             'all_predictions': all_predictions,
+            'num_labels': num_labels,
+            'label_mapping': label_mapping,
             **full_history,
             **final_scores,
             **vars(args),
