@@ -2,31 +2,24 @@ import os
 import logging
 import sklearn.metrics
 import pandas as pd
-from utils.analysis_helpers import find_project_root
+from utils.analysis_helpers import get_train_logs, save_fig, plot
 import seaborn as sns
 import matplotlib.pyplot as plt
+import sys; sys.path.append('..')
+from utils.misc import ArgParseDefault
+import ast
 
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
 logger = logging.getLogger(__name__)
 
 
-def get_train_logs():
-    f_path = os.path.join(find_project_root(), 'traininglog.csv')
-    return pd.read_csv(f_path)
-
-
-def main():
+@plot
+def main(args):
+    raise NotImplementedError
     df = get_train_logs()
-
-    __import__('pdb').set_trace()
-    f_path = os.path.join(find_project_root(), 'output', run)
-    if not os.path.isdir(f_path):
-        raise FileNotFoundError(f'Could not find run directory {f_path}')
-    test_output_file = os.path.join(find_project_root(), 'output', run, 'test_output.csv')
-    if not os.path.isfile(test_output_file):
-        raise FileNotFoundError(f'No file {test_output_file} found for run {run}. Pass the option `write_test_output: true` when training the model.')
-    df = pd.read_csv(test_output_file)
-    label_mapping = get_label_mapping(f_path)
-    labels = list(label_mapping.keys())
+    df = df[df['run_name'] == args.run_name]
+    # label_mapping = get_label_mapping(f_path)
+    # labels = list(label_mapping.keys())
     cnf_matrix = sklearn.metrics.confusion_matrix(df.label, df.prediction)
     df = pd.DataFrame(cnf_matrix, columns=labels, index=labels)
     # plotting
@@ -36,5 +29,13 @@ def main():
     save_fig(fig, f_path, 'confusion_matrix')
 
 
+def parse_args():
+    # Parse commandline
+    parser = ArgParseDefault()
+    parser.add_argument('--run_name', required=True, help='Run name to plot confusion matrix for')
+    args = parser.parse_args()
+    return args
+
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    main(args)

@@ -6,6 +6,7 @@ from functools import wraps
 from matplotlib.ticker import FormatStrFormatter
 import matplotlib.dates as mdates
 import logging
+import pandas as pd
 
 
 logger = logging.getLogger(__name__)
@@ -21,28 +22,20 @@ def add_colorbar(fig, ax, label='sentiment', cmap='RdYlBu', vmin=-1, vmax=1, x=0
     cbar.set_label(label)
     cbar.outline.set_visible(False)
 
+def get_train_logs():
+    f_path = os.path.join(find_project_root(), 'traininglog.csv')
+    return pd.read_csv(f_path)
+
 def find_project_root():
     return os.path.abspath(os.path.join(os.path.abspath(__file__), '..', '..', '..'))
 
-def notebook_plot(func):
+def plot(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        style_sheet = os.path.join(find_project_root(), 'analysis', 'stylesheets', 'notebook.mplstyle')
+        style_sheet = os.path.join(find_project_root(), 'analysis', 'stylesheets', 'figure_small.mplstyle')
         plt.style.use(style_sheet)
         return func(*args, **kwargs)
     return wrapper
-
-def paper_plot(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        style_sheet = os.path.join(find_project_root(), 'analysis', 'stylesheets', 'paper.mplstyle')
-        plt.style.use(style_sheet)
-        return func(*args, **kwargs)
-    return wrapper
-
-def use_stylesheet(name='paper'):
-    style_sheet = os.path.join(find_project_root(), 'analysis', 'stylesheets', '{}.mplstyle'.format(name))
-    plt.style.use(style_sheet)
 
 def label_subplots(axes, upper_case=True, offset_points=(-40, 0)):
     start_ord = 65 if upper_case else 97
