@@ -83,7 +83,7 @@ def run(args, strategy):
     """Pretrains model using TF2. Adapted from the tensorflow/models Github"""
     # CONFIG
     # Use timestamp to generate a unique run name
-    ts = datetime.datetime.now().strftime('%Y_%m_%d_%s')
+    ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M_%s')
     if args.run_prefix:
         run_name = f'run_{args.run_prefix}_{ts}'
     else:

@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-TPU_IP=10.217.209.114
+TPU_IP=10.74.219.210
 NUM_EPOCHS=10
 # INIT_CHECKPOINT_1=run2/pretrained/bert_model_step_10000.ckpt-1
 # INIT_CHECKPOINT_2=run2/pretrained/bert_model_step_20000.ckpt-2
