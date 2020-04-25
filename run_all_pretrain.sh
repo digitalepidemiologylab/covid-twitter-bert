@@ -2,11 +2,11 @@
 
 TPU_IP=10.74.219.210
 
-python run_pretrain.py
+python run_pretrain.py \
   --pretrain_data v1 \
   --max_seq_length 96 \
   --max_predictions_per_seq 14 \
-  --num_train_epochs 10 \
+  --num_epochs 10 \
   --learning_rate 2e-5 \
   --num_steps_per_epoch 20000 \
   --train_batch_size 1024 \
@@ -29,8 +29,6 @@ python run_pretrain.py
 #                         bert)
 #   --tpu_ip TPU_IP       IP-address of the TPU (default: 10.74.219.210)
 #   --not_use_tpu         Do not use TPUs (default: False)
-#   --num_train_epochs NUM_TRAIN_EPOCHS
-#                         Number of training epochs (default: 1)
 #   --num_gpus NUM_GPUS   Number of GPUs to use (default: 1)
 #   --optimizer_type {adamw,lamb}
 #                         Optimizer (default: adamw)

@@ -162,7 +162,6 @@ def parse_args():
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--tpu_ip', default='10.74.219.210', help='IP-address of the TPU')
     parser.add_argument('--not_use_tpu', action='store_true', default=False, help='Do not use TPUs')
-    parser.add_argument('--num_train_epochs', default=1, type=int, help='Number of training epochs')
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
     parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')
