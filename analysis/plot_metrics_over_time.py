@@ -17,24 +17,22 @@ logger = logging.getLogger(__name__)
 def main(args):
     df = get_train_logs()
     df = df[df.run_name.str.contains(args.run_prefix)]
-    data = {}
-    for i, row in df.iterrows():
-        scores = ast.literal_eval(row.all_scores)
-        data[row.run_name] = {}
-        for epoch, score in enumerate(scores):
-            data[row.run_name][epoch + 1] = score[args.metric]
 
-    fig, ax = plt.subplots(1, 1, figsize=(10,4))
-    for run_name, scores in data.items():
-        rec = df[df['run_name'] == run_name].iloc[0]
-        label = f'bs: {rec.train_batch_size}, lr: {rec.learning_rate}'
-        ax.plot(list(scores.keys()), list(scores.values()), label=label)
-    ax.set_ylim([0, 0.8])
-    ax.set_xlabel('Epoch')
-    ax.set_ylabel(args.metric)
-    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    ax.grid()
+    # transform to dict
+    df['all_scores'] = df.all_scores.apply(ast.literal_eval)
+    _df = pd.DataFrame(df.all_scores.tolist(), index=df.index)
+    score_cols = []
+    for col in _df:
+        score_col = int(col)
+        df[score_col] = _df[col].apply(lambda s: s[args.metric])
+        score_cols.append(score_col)
+    df = df[score_cols + ['finetune_data', 'init_checkpoint_index']]
+    df = df.groupby(['finetune_data', 'init_checkpoint_index']).mean().reset_index()
+    df = df.melt(value_vars=score_cols, id_vars=['finetune_data', 'init_checkpoint_index'], var_name='epoch', value_name=args.metric)
+    fig = sns.relplot(x='epoch', y=args.metric, hue='init_checkpoint_index', row='finetune_data', kind='line', data=df, height=2, aspect=1.3)
+    for ax in fig.axes:
+        ax[0].grid()
+        ax[0].set_ylim((None, 1))
 
     # plotting
     save_fig(fig, 'metrics_vs_time', version=args.version, plot_formats=['png'])
@@ -44,7 +42,7 @@ def parse_args():
     parser = ArgParseDefault()
     parser.add_argument('--run_prefix', default='v1', help='Prefix to plot heatmap')
     parser.add_argument('--metric', default='f1_macro', help='Metric to plot')
-    parser.add_argument('-v', '--version', type=int, default=3, help='Plot version')
+    parser.add_argument('-v', '--version', type=int, default=4, help='Plot version')
     args = parser.parse_args()
     return args
 

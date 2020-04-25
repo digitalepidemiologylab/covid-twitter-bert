@@ -6,7 +6,6 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import sys; sys.path.append('..')
 from utils.misc import ArgParseDefault
-from matplotlib.ticker import MaxNLocator
 import ast
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
