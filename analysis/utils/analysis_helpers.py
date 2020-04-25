@@ -10,6 +10,8 @@ import pandas as pd
 
 
 logger = logging.getLogger(__name__)
+# disable matplotlib font manage logger
+logging.getLogger('matplotlib.font_manager').disabled = True
 
 def add_colorbar(fig, ax, label='sentiment', cmap='RdYlBu', vmin=-1, vmax=1, x=0, y=0, length=.2, width=.01, labelsize=None, norm=None, fmt=None):
     if norm is None:
