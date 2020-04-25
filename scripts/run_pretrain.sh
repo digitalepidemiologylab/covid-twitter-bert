@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TPU_ADDRESS=10.217.209.114
+TPU_ADDRESS=10.74.219.210
 RUN_NAME=run2
 PROJECT_BUCKET=gs://cb-tpu-projects/covid-bert
 PRETRAINED_MODEL=gs://cloud-tpu-checkpoints/bert/uncased_L-24_H-1024_A-16
@@ -8,7 +8,7 @@ PRETRAINED_MODEL=gs://cloud-tpu-checkpoints/bert/uncased_L-24_H-1024_A-16
 gsutil rm -r $PROJECT_BUCKET/pretrain/runs/${RUN_NAME}
 
 PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nlp/bert/run_pretraining.py \
-  --input_files ${PROJECT_BUCKET}/pretrain/pretrain_data/pretrain_anonymized_bert_train_???.txt.tfrecords	\
+  --input_files ${PROJECT_BUCKET}/pretrain/pretrain_data/v1/pretrain_anonymized_bert_train_???.txt.tfrecords	\
   --max_seq_length 96 \
   --max_predictions_per_seq 14 \
   --num_train_epochs 10 \
@@ -23,8 +23,7 @@ PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nl
   --steps_per_loop 1000 \
   --verbosity 0
 
-# --helpfull output
-# ./tensorflow_models/official/nlp/bert/run_pretraining.py:
+# ../tensorflow_models/official/nlp/bert/run_pretraining.py:
 #   --input_files: File path to retrieve training data for pre-training.
 #   --max_predictions_per_seq: Maximum predictions per sequence_output.
 #     (default: '20')
@@ -38,6 +37,8 @@ PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nl
 #   --train_batch_size: Total batch size for training.
 #     (default: '32')
 #     (an integer)
+#   --[no]use_next_sentence_label: Whether to use next sentence label to compute final loss.
+#     (default: 'true')
 #   --warmup_steps: Warmup steps for Adam weight decay optimizer.
 #     (default: '10000.0')
 #     (a number)
@@ -93,6 +94,9 @@ PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nl
 #
 # official.nlp.bert.common_flags:
 #   --bert_config_file: Bert configuration file to define core bert layers.
+#   --end_lr: The end learning rate for learning rate decay.
+#     (default: '0.0')
+#     (a number)
 #   --gin_file: List of paths to the config files.;
 #     repeat this option to specify a list of values
 #   --gin_param: Newline separated list of Gin parameter bindings.;
@@ -119,7 +123,6 @@ PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nl
 #     (default: '')
 #   --[no]use_keras_compile_fit: If True, uses Keras compile/fit() API for training logic. Otherwise use custom training loop.
 #     (default: 'false')
-#
 # official.utils.flags._base:
 #   -ds,--distribution_strategy:
 #     The Distribution Strategy to use for training. Accepted values are 'off',
@@ -195,8 +198,8 @@ PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nl
 #     Whether and how the GPU device uses its own threadpool.
 #
 # tensorflow.python.ops.parallel_for.pfor:
-#   --[no]op_conversion_fallback_to_while_loop: If true, falls back to using a while loop for ops for which a converter is not defined.
-#     (default: 'false')
+#   --[no]op_conversion_fallback_to_while_loop: DEPRECATED: Flag is ignored.
+#     (default: 'true')
 #
 # tensorflow_hub.resolver:
 #   --tfhub_cache_dir: If set, TF-Hub will download and cache Modules into this directory. Otherwise it will attempt to find a network path.
@@ -206,3 +209,4 @@ PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nl
 #     (default: '')
 #   --undefok: comma-separated list of flag names that it is okay to specify on the command line even if the program does not define a flag with that name.  IMPORTANT: flags in this list that have arguments MUST use the --flag=value format.
 #     (default: '')
+

@@ -12,7 +12,6 @@ INIT_CHECKPOINT_7=run2/pretrained/bert_model_step_70000.ckpt-7
 INIT_CHECKPOINT_8=run2/pretrained/bert_model_step_80000.ckpt-8
 INIT_CHECKPOINT_9=run2/pretrained/bert_model_step_90000.ckpt-9
 INIT_CHECKPOINT_10=run2/pretrained/bert_model.ckpt-10
-INIT_CHECKPOINT_PER=per_maternal_vaccine/model.ckpt-450000
 TRAIN_BATCH_SIZE=32
 LR=2e-5
 EVAL_BATCH_SIZE=8

@@ -2,7 +2,7 @@
 
 output_file="output/pretrain/$(basename $1).tfrecords.gz"
 
-PYTHONPATH="$(pwd)/../tensorflow_models" python ./tensorflow_models/official/nlp/data/create_pretraining_data.py \
+PYTHONPATH="$(pwd)/../tensorflow_models" python ../tensorflow_models/official/nlp/data/create_pretraining_data.py \
   --input_file "$1" \
   --gzip_compress \
   --max_seq_length 96 \
@@ -10,9 +10,8 @@ PYTHONPATH="$(pwd)/../tensorflow_models" python ./tensorflow_models/official/nlp
   --vocab_file ../vocabs/bert-large-uncased-vocab.txt \
   --max_predictions_per_seq 14
 
-
 # --helpfull output
-# ./tensorflow_models/official/nlp/data/create_pretraining_data.py:
+# ../tensorflow_models/official/nlp/data/create_pretraining_data.py:
 #   --[no]do_lower_case: Whether to lower case the input text. Should be True for uncased models and False for cased models.
 #     (default: 'true')
 #   --[no]do_whole_word_mask: Whether to use whole word masking rather than per-WordPiece masking.
@@ -91,8 +90,8 @@ PYTHONPATH="$(pwd)/../tensorflow_models" python ./tensorflow_models/official/nlp
 #     (default: '')
 #
 # tensorflow.python.ops.parallel_for.pfor:
-#   --[no]op_conversion_fallback_to_while_loop: If true, falls back to using a while loop for ops for which a converter is not defined.
-#     (default: 'false')
+#   --[no]op_conversion_fallback_to_while_loop: DEPRECATED: Flag is ignored.
+#     (default: 'true')
 #
 # absl.flags:
 #   --flagfile: Insert flag definitions from the given file into the command line.

@@ -33,18 +33,10 @@ tf_logger = tf.get_logger()
 tf_logger.handlers.pop()
 
 PRETRAINED_MODELS = {
-    'bert_large_uncased': 'gs://cloud-tpu-checkpoints/bert/keras_bert/uncased_L-24_H-1024_A-16',
-    'bert_base_uncased': 'gs://cloud-tpu-checkpoints/bert/keras_bert/uncased_L-12_H-768_A-12'
+    'bert_large_uncased': 'pretrained_models/bert/keras_bert/uncased_L-24_H-1024_A-16'
 }
 
-def get_model_config(args):
-    if args.model_config_path:
-        config_path = args.config_path
-    else:
-        model_key = f'{args.model_class}_{args.model_type}'
-        if not model_key in PRETRAINED_MODELS.keys():
-            raise ValueError('Could not find a pretrained model matching the model class {args.model_class} and {args.model_type}')
-        config_path = os.path.join(PRETRAINED_MODELS[model_key], 'bert_config.json')
+def get_model_config(config_path):
     config = bert_configs.BertConfig.from_json_file(config_path)
     return config
 
@@ -52,6 +44,18 @@ def get_input_meta_data(data_dir):
     with tf.io.gfile.GFile(os.path.join(data_dir, 'tfrecord', 'meta.json'), 'rb') as reader:
         input_meta_data = json.loads(reader.read().decode('utf-8'))
     return input_meta_data
+
+def configure_optimizer(optimizer, use_float16=False, use_graph_rewrite=False, loss_scale='dynamic'):
+    """Configures optimizer object with performance options."""
+    if use_float16:
+        # Wraps optimizer with a LossScaleOptimizer. This is done automatically in compile() with the
+        # "mixed_float16" policy, but since we do not call compile(), we must wrap the optimizer manually.
+        optimizer = (tf.keras.mixed_precision.experimental.LossScaleOptimizer(optimizer, loss_scale=loss_scale))
+    if use_graph_rewrite:
+        # Note: the model dtype must be 'float32', which will ensure
+        # tf.ckeras.mixed_precision and tf.train.experimental.enable_mixed_precision_graph_rewrite do not double up.
+        optimizer = tf.train.experimental.enable_mixed_precision_graph_rewrite(optimizer)
+    return optimizer
 
 def get_model(args, model_config, steps_per_epoch, warmup_steps, num_labels, max_seq_length):
     # Get classifier and core model (used to initialize from checkpoint)
@@ -66,9 +70,9 @@ def get_model(args, model_config, steps_per_epoch, warmup_steps, num_labels, max
             args.learning_rate,
             steps_per_epoch * args.num_epochs,
             warmup_steps,
+            args.end_lr,
             args.optimizer_type)
-    # TODO: Support fp16
-    classifier_model.optimizer = performance.configure_optimizer(
+    classifier_model.optimizer = configure_optimizer(
             optimizer,
             use_float16=False,
             use_graph_rewrite=False)
@@ -110,7 +114,15 @@ def get_label_mapping(data_dir):
 def get_metrics():
     return [tf.keras.metrics.SparseCategoricalAccuracy('test_accuracy', dtype=tf.float32)]
 
-def train(args, strategy, repeat):
+def get_pretrained_model_path(args):
+    model_key = f'{args.model_class}_{args.model_type}'
+    try:
+        pretrained_model_path = PRETRAINED_MODELS[model_key]
+    except KeyError:
+        raise ValueError(f'Could not find a pretrained model matching the model class {args.model_class} and {args.model_type}')
+    return pretrained_model_path
+
+def run(args):
     """Train using the Keras/TF 2.0. Adapted from the tensorflow/models Github"""
     # CONFIG
     # Use timestamp to generate a unique run name
@@ -123,8 +135,16 @@ def train(args, strategy, repeat):
     data_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/finetune_data/{args.finetune_data}'
     output_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/runs/{args.finetune_data}/{run_name}'
 
+    # model config path
+    if args.model_config_path is None:
+        # use config path from pretrained model
+        pretrained_model_path = get_pretrained_model_path(args)
+        pretrained_model_config_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_config.json'
+    else:
+        pretrained_model_config_path = args.model_config_path
+
     # Get configs
-    model_config = get_model_config(args)
+    model_config = get_model_config(pretrained_model_config_path)
     input_meta_data = get_input_meta_data(data_dir)
     label_mapping = get_label_mapping(data_dir)
     logger.info(f'Loaded training data meta.json file: {input_meta_data}')
@@ -153,8 +173,8 @@ def train(args, strategy, repeat):
 
     # Restore checkpoint
     if args.init_checkpoint is None:
-        model_key = f'{args.model_class}_{args.model_type}'
-        checkpoint_path = os.path.join(PRETRAINED_MODELS[model_key], 'bert_model.ckpt')
+        pretrained_model_path = get_pretrained_model_path(args)
+        checkpoint_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_model.ckpt'
     else:
         checkpoint_path = f'gs://{args.bucket_name}/{args.project_name}/pretrain/runs/{args.init_checkpoint}'
     checkpoint = tf.train.Checkpoint(model=core_model)
@@ -257,6 +277,19 @@ def train(args, strategy, repeat):
     logger.info(f'Writing training log to {f_path_training_log}...')
     save_to_json(data, f_path_training_log)
 
+def set_mixed_precision_policy(args):
+    """Sets mix precision policy."""
+    if args.dtype == 'fp16':
+        policy = tf.keras.mixed_precision.experimental.Policy('mixed_float16', loss_scale=loss_scale)
+        tf.keras.mixed_precision.experimental.set_policy(policy)
+    elif args.dtype == 'bf16':
+        policy = tf.keras.mixed_precision.experimental.Policy('mixed_bfloat16')
+        tf.keras.mixed_precision.experimental.set_policy(policy)
+    elif args.dtype == 'fp32':
+        tf.keras.mixed_precision.experimental.set_policy('float32')
+    else:
+        raise ValueError(f'Unknown dtype {args.dtype}')
+
 def main(args):
     # Get distribution strategy
     if args.not_use_tpu:
@@ -265,10 +298,12 @@ def main(args):
         logger.info(f'Intializing TPU on address {args.tpu_ip}...')
         tpu_address = f'grpc://{args.tpu_ip}:8470'
         strategy = distribution_utils.get_distribution_strategy(distribution_strategy='tpu', tpu_address=tpu_address, num_gpus=args.num_gpus)
+    # set mixed precision
+    set_mixed_precision_policy(args)
     # Run training
     for repeat in range(args.repeats):
         with strategy.scope():
-            train(args, strategy, repeat)
+            run(args)
 
 def parse_args():
     # Parse commandline
@@ -281,11 +316,11 @@ def parse_args():
             help='Finetune data folder name. The folder has to be located in gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}.\
                     TFrecord files (train.tfrecord and dev.tfrecord as well as meta.json) should be located in a \
                     subfolder gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}/tfrecord/')
-    parser.add_argument('--tpu_ip', default='10.217.209.114', help='IP-address of the TPU')
+    parser.add_argument('--tpu_ip', default='10.74.219.210', help='IP-address of the TPU')
     parser.add_argument('--not_use_tpu', action='store_true', default=False, help='Do not use TPUs')
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
     parser.add_argument('--init_checkpoint', default=None, help='Run name to initialize checkpoint from. Example: "run2/ctl_step_8000.ckpt-8". \
-            By default using a pretrained model from gs://cloud-tpu-checkpoints.')
+            By default using a pretrained model from gs://{bucket_name}/pretrained_models/')
     parser.add_argument('--init_checkpoint_index', type=int, help='Checkpoint index. This argument is ignored and only added for reporting.')
     parser.add_argument('--repeats', default=1, type=int, help='Number of times the script should run. Default is 1')
     parser.add_argument('--num_epochs', default=3, type=int, help='Number of epochs')
@@ -294,6 +329,7 @@ def parse_args():
     parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')
     parser.add_argument('--eval_batch_size', default=32, type=int, help='Eval batch size')
     parser.add_argument('--learning_rate', default=2e-5, type=float, help='Learning rate')
+    parser.add_argument('--end_lr', default=0, type=float, help='Final learning rate')
     parser.add_argument('--warmup_proportion', default=0.1, type=float, help='Learning rate warmup proportion')
     parser.add_argument('--max_seq_length', default=96, type=int, help='Maximum sequence length')
     parser.add_argument('--early_stopping_epochs', default=-1, type=int, help='Stop when loss hasn\'t decreased during n epochs')
@@ -305,8 +341,6 @@ def parse_args():
     parser.add_argument('--time_history_log_steps', default=10, type=int, help='Frequency with which to log timing information with TimeHistory.')
     parser.add_argument('--model_config_path', default=None, type=str, help='Path to model config file, by default \
             try to infer from model_class/model_type args and fetch from gs://cloud-tpu-checkpoints')
-    # Currently not supported:
-    # parser.add_argument('--store_last_layer', action='store_true', default=False, help='Store last layer of encoder')
     args = parser.parse_args()
     return args
 
