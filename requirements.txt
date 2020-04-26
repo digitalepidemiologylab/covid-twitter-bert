@@ -8,3 +8,6 @@ scikit-learn
 seaborn
 matplotlib==3.1.0
 google-cloud-storage
+spacy
+emoji
+unidecode

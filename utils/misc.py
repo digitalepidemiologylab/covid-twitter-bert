@@ -45,3 +45,10 @@ class ArgParseDefault(argparse.ArgumentParser):
     """Simple wrapper which shows defaults in help"""
     def __init__(self, **kwargs):
         super().__init__(**kwargs, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+def add_bool_arg(parser, name, default=False, help=''):
+    group = parser.add_mutually_exclusive_group(required=False)
+    group.add_argument('--' + name, dest=name, action='store_true', help=help)
+    group.add_argument('--do_not_' + name, dest=name, action='store_false')
+    parser.set_defaults(**{name: default})
+
