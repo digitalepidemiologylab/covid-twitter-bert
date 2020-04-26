@@ -7,6 +7,7 @@ from official.nlp.bert import bert_models
 from official.nlp.bert import configs as bert_configs
 from official.nlp.bert import model_training_utils
 from official.nlp import optimization
+from official.utils.misc import keras_utils
 
 import os
 import datetime
@@ -119,6 +120,14 @@ def run(args, strategy):
         pretrain_model.optimizer = configure_optimizer(optimizer, use_float16=args.dtype == 'fp16', use_graph_rewrite=False)
         return pretrain_model, core_model
 
+    # custom callbacks
+    summary_dir = os.path.join(output_dir, 'summaries')
+    time_history_callback = keras_utils.TimeHistory(
+        batch_size=args.train_batch_size,
+        log_steps=args.time_history_log_steps,
+        logdir=summary_dir)
+    custom_callbacks = [time_history_callback]
+
     # run training loop
     model_training_utils.run_customized_training_loop(
         strategy=strategy,
@@ -134,7 +143,7 @@ def run(args, strategy):
         eval_steps=None,
         metric_fn=None,
         init_checkpoint=pretrained_model_checkpoint_path,
-        custom_callbacks=None,
+        custom_callbacks=custom_callbacks,
         run_eagerly=False,
         sub_model_export_name='pretrained/bert_model',
         explicit_allreduce=False,
@@ -176,6 +185,7 @@ def parse_args():
     parser.add_argument('--model_class', default='bert', type=str, choices=['bert'], help='Model class')
     parser.add_argument('--model_type', default='large_uncased', choices=['large_uncased', 'base_uncased'], type=str, help='Model class to pretraining')
     parser.add_argument('--steps_per_loop', default=10, type=int, help='Steps per loop')
+    parser.add_argument('--time_history_log_steps', default=1000, type=int, help='Frequency with which to log timing information with TimeHistory.')
     args = parser.parse_args()
     return args
 
