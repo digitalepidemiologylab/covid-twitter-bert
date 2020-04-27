@@ -1,4 +1,6 @@
-from tensorflow_models.official.nlp.bert import tokenization
+import sys
+sys.path.append('../tensorflow_models')
+from official.nlp.bert import tokenization
 import argparse
 import os
 
@@ -14,9 +16,6 @@ def main(args):
     print('\nTokenized and converted to IDs:')
     ids = tknzr.convert_tokens_to_ids(tokenized)
     print(ids)
-    print('\nDirectly converted to IDs:')
-    input_ids = tknzr.convert_tokens_to_ids(args.input)
-    print(input_ids)
 
 def parse_args():
     parser = argparse.ArgumentParser()
