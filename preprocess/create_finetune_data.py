@@ -1,6 +1,7 @@
 """Script which loads multiple datasets and prepares them for finetuning"""
 import pandas as pd
 import os
+import datetime
 import logging
 import sys
 import json
@@ -107,24 +108,32 @@ def read_data(sheet_name):
     return df
 
 def main(args):
-    data_dir = os.path.join(DATA_DIR, 'finetune')
+    # create run dirs
+    ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M_%s')
+    if args.run_prefix:
+        run_name = f'run_{args.run_prefix}_{ts}'
+    else:
+        run_name = f'run_{ts}'
+    run_dir = os.path.join(DATA_DIR, 'finetune', run_name)
+    if not os.path.isdir(run_dir):
+        os.makedirs(run_dir)
+    # find input data
+    originals_dir = os.path.join(DATA_DIR, 'finetune', 'originals')
     if len(args.finetune_datasets) == 0:
-        finetune_datasets = os.listdir(data_dir)
+        finetune_datasets = os.listdir(originals_dir)
     else:
         finetune_datasets = args.finetune_datasets
     do_lower_case = PRETRAINED_MODELS[args.model_class]['lower_case']
     for dataset in finetune_datasets:
         logger.info(f'Processing dataset {dataset}...')
-        dataset_dir = os.path.join(data_dir, dataset)
-        originals_folder = os.path.join(dataset_dir, 'original')
-        preprocessed_folder = os.path.join(dataset_dir, 'preprocessed')
+        preprocessed_folder = os.path.join(run_dir, dataset, 'preprocessed')
         if not os.path.isdir(preprocessed_folder):
             os.makedirs(preprocessed_folder)
         labels = set()
         for _type in ['train', 'dev']:
             f_name = f'{_type}.tsv'
             logger.info(f'Reading data for for type {_type}...')
-            f_path = os.path.join(originals_folder, f_name)
+            f_path = os.path.join(originals_dir, dataset, f_name)
             if not os.path.isfile(f_path):
                 logger.info(f'Could not find file {f_path}. Skipping.')
                 continue
@@ -137,17 +146,19 @@ def main(args):
         logger.info('Creating tfrecords files...')
         # we sort the labels alphabetically in order to maintain consistent label ids
         labels = sorted(list(labels))
+        dataset_dir = os.path.join(run_dir, dataset)
         generate_tfrecords(args, dataset_dir, labels)
         # saving config
-        f_path_config = os.path.join(dataset_dir, 'create_finetune_config.json')
-        logger.info(f'Saving config to {f_path_config}')
-        save_to_json(vars(args), f_path_config)
+    f_path_config = os.path.join(run_dir, 'create_finetune_config.json')
+    logger.info(f'Saving config to {f_path_config}')
+    save_to_json(vars(args), f_path_config)
 
 def parse_args():
     parser = ArgParseDefault()
     parser.add_argument('--finetune_datasets', default=[], type=list, nargs='+', help='Finetune dataset(s) to process. These correspond to folder names in data/finetune. \
             Data should be located in data/finetune/{finetune_dataset}/original/[train.csv/dev.csv/test.csv]. By default runs all datasets.')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class')
+    parser.add_argument('--run_prefix', help='Prefix to be added to all runs. Useful to identify runs')
     parser.add_argument('--max_seq_length', default=96, type=int, help='Maximum sequence length')
     parser.add_argument('--username_filler', default='twitteruser', type=str, help='Username filler')
     parser.add_argument('--url_filler', default='twitterurl', type=str, help='URL filler (ignored when replace_urls option is false)')
