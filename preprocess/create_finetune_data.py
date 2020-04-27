@@ -82,15 +82,15 @@ def generate_tfrecords(args, dataset_dir, labels):
     processor_text_fn = tokenization.convert_to_unicode
     # generate tfrecords
     input_dir = os.path.join(dataset_dir, 'preprocessed')
-    output_dir = os.path.join(dataset_dir, 'tfrecord')
+    output_dir = os.path.join(dataset_dir, 'tfrecords')
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
     input_meta_data = generate_tf_record_from_data_file(
         processor,
         input_dir,
         tokenizer,
-        train_data_output_path=os.path.join(output_dir, 'train.tfrecord'),
-        eval_data_output_path=os.path.join(output_dir, 'dev.tfrecord'),
+        train_data_output_path=os.path.join(output_dir, 'train.tfrecords'),
+        eval_data_output_path=os.path.join(output_dir, 'dev.tfrecords'),
         max_seq_length=args.max_seq_length)
     with tf.io.gfile.GFile(os.path.join(dataset_dir, 'meta.json'), 'w') as writer:
         writer.write(json.dumps(input_meta_data, indent=4) + '\n')
