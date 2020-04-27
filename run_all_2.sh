@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-TPU_IP=10.134.45.242
+TPU_IP=10.213.45.170
 NUM_EPOCHS=10
 
 PRETRAIN_RUN_1=run_2020_04_25-20-45_1587847524
@@ -16,15 +16,6 @@ LR=2e-5
 EVAL_BATCH_SIZE=8
 FINETUNE_DATA_V1=v1
 FINETUNE_DATA_V2=run_2020_04_27-23-57_1588024625
-
-# for FINETUNE_DATASET in maternal_vaccine_stance_lshtm covid_worry covid_category twitter_sentiment_semeval vaccine_sentiment_epfl SST-2
-# do
-#   # With word masking, using v2 of finetune data
-#   # python run_finetune.py --run_prefix per_test --model_class bert_large_uncased_wwm --finetune_data ${FINETUNE_DATA_V2}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 0
-#
-#   # Without word masking, using v1 of finetune data
-#   python run_finetune.py --run_prefix per_test --model_class bert_large_uncased --finetune_data ${FINETUNE_DATA_V1}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 0
-# done
 
 for FINETUNE_DATASET in maternal_vaccine_stance_lshtm covid_worry covid_category twitter_sentiment_semeval vaccine_sentiment_epfl SST-2
 do
