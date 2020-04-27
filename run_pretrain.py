@@ -34,7 +34,7 @@ def get_dataset_fn(args):
     """Returns input dataset from input file string."""
     def _dataset_fn(ctx=None):
         """Returns tf.data.Dataset for distributed BERT pretraining."""
-        input_data = [f'gs://{args.bucket_name}/{args.project_name}/pretrain/pretrain_data/{args.pretrain_data}/pretrain_anonymized_bert_train_???.txt.tfrecords']
+        input_data = [f'gs://{args.bucket_name}/{args.project_name}/pretrain/pretrain_data/{args.pretrain_data}/tfrecords/train/*.tfrecords']
         batch_size = ctx.get_per_replica_batch_size(args.train_batch_size)
         train_dataset = input_pipeline.create_pretrain_dataset(
             input_data,
@@ -161,12 +161,12 @@ def main(args):
 def parse_args():
     # Parse commandline
     parser = ArgParseDefault()
+    parser.add_argument('--tpu_ip', required=True, help='IP-address of the TPU')
+    parser.add_argument('--pretrain_data', required=True, type=str, help='Folder which contains pretrain data. Should be located under gs://{bucket_name}/{project_name}/pretrain/pretrain_data/')
     parser.add_argument('--run_prefix', help='Prefix to be added to all runs. Useful to group runs')
-    parser.add_argument('--pretrain_data', default='v1', type=str, help='Folder which contains pretrain data. Should be located under gs://{bucket_name}/{project_name}/pretrain/pretrain_data/')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
-    parser.add_argument('--tpu_ip', default='10.74.219.210', help='IP-address of the TPU')
     parser.add_argument('--not_use_tpu', action='store_true', default=False, help='Do not use TPUs')
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
