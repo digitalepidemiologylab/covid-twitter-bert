@@ -35,6 +35,7 @@ tsv_columns = ['id', 'label', 'text']
 transl_table = dict([(ord(x), ord(y)) for x, y in zip( u"‘’´“”–-",  u"'''\"\"--")])
 user_handle_regex = re.compile(r'(^|[^@\w])@(\w{1,15})\b')
 control_char_regex = re.compile(r'[\r\n\t]+')
+DATA_DIR = os.path.join('..', 'data')
 
 
 class TextClassificationProcessor(DataProcessor):
@@ -164,7 +165,7 @@ def clean_data(df):
     return df
 
 def main(args):
-    output_dir = os.path.join('..', 'output', 'finetune')
+    output_dir = os.path.join(DATA_DIR, 'finetune')
     for s in args.sheets:
         logger.info(f'Reading sheet {s}...')
         df = read_data(s)

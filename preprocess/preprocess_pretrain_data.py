@@ -3,6 +3,7 @@ sys.path.append('..')
 sys.path.append('../tensorflow_models')
 from utils.misc import ArgParseDefault, add_bool_arg
 from preprocess import preprocess_bert, segment_sentences
+from config import PRETRAINED_MODELS
 
 import glob
 import datetime
@@ -15,6 +16,8 @@ import multiprocessing
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
 logger = logging.getLogger(__name__)
 
+DATA_FOLDER = os.path.join('..', 'data')
+
 def get_input_files(input_folder):
     return glob.glob(os.path.join(input_folder, '**', '*.txt'))
 
@@ -23,10 +26,12 @@ def main(args):
     logger.info(f'Found {len(input_files):,} input text files')
     
     # preprocess fn
-    if args.model == 'bert':
+    if 'bert' in args.model_class:
         preprocess_fn = preprocess_bert
     else:
-        raise ValueError(f'Model {args.model} is not yet supported.')
+        raise ValueError(f'Model {args.model_class} is not yet supported.')
+    if PRETRAINED_MODELS[args.model_class]['lower_case'] != args.do_lower_case:
+        logger.warning(f"Pretrained model expects lower case option {PRETRAINED_MODELS[args.model_class]['lower_case']}")
 
     # create run dirs
     ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M_%s')
@@ -34,7 +39,7 @@ def main(args):
         run_name = f'run_{args.run_prefix}_{ts}'
     else:
         run_name = f'run_{ts}'
-    output_folder = os.path.join('..', 'output', 'pretrain', 'preprocessed', run_name)
+    output_folder = os.path.join(DATA_FOLDER, 'pretrain', run_name, 'preprocessed')
     if not os.path.isdir(output_folder):
         os.makedirs(output_folder)
 
@@ -106,7 +111,7 @@ def parse_args():
     parser.add_argument('--input_data', default='/drives/sde/wuhan_project/preprocess/data/other/pretrain/run_2020_04_26-15-25_1587907545', help='Path to folder with txt files. \
             Folder may contain train/dev/test subfolders. Each txt file contains the text of a single tweet per line.')
     parser.add_argument('--run_prefix', help='Prefix to be added to all runs. Useful to identify runs')
-    parser.add_argument('--model', default='bert', choices=['bert'], help='Model class')
+    parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class')
     parser.add_argument('--username_filler', default='twitteruser', type=str, help='Username filler')
     parser.add_argument('--url_filler', default='twitterurl', type=str, help='URL filler (ignored when replace_urls option is false)')
     parser.add_argument('--num_logged_samples', default=10, type=int, help='Log first n samples to output')
