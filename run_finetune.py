@@ -38,7 +38,7 @@ def get_model_config(config_path):
     return config
 
 def get_input_meta_data(data_dir):
-    with tf.io.gfile.GFile(os.path.join(data_dir, 'tfrecord', 'meta.json'), 'rb') as reader:
+    with tf.io.gfile.GFile(os.path.join(data_dir, 'meta.json'), 'rb') as reader:
         input_meta_data = json.loads(reader.read().decode('utf-8'))
     return input_meta_data
 
@@ -129,7 +129,7 @@ def run(args):
         run_name = f'run_{ts}'
     logger.info(f'*** Starting run {run_name} ***')
     data_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/finetune_data/{args.finetune_data}'
-    output_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/runs/{args.finetune_data}/{run_name}'
+    output_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/runs/{run_name}'
 
     # model config path
     if args.model_config_path is None:
@@ -203,12 +203,12 @@ def run(args):
 
     # Generate dataset_fn
     train_input_fn = get_dataset_fn(
-        os.path.join(data_dir, 'tfrecord', 'train.tfrecord'),
+        os.path.join(data_dir, 'tfrecords', 'train.tfrecords'),
         max_seq_length,
         args.train_batch_size,
         is_training=True)
     eval_input_fn = get_dataset_fn(
-        os.path.join(data_dir, 'tfrecord', 'dev.tfrecord'),
+        os.path.join(data_dir, 'tfrecords', 'dev.tfrecords'),
         max_seq_length,
         args.eval_batch_size,
         is_training=False)
@@ -304,16 +304,15 @@ def main(args):
 def parse_args():
     # Parse commandline
     parser = ArgParseDefault()
+    parser.add_argument('--finetune_data', required=True, help='Finetune data folder sub path. Path has to be in gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}.\
+                    This folder includes a meta.json (containing meta info about the dataset), and a file label_mapping.json. \
+                    TFrecord files (train.tfrecords and dev.tfrecords) should be located in a \
+                    subfolder gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}/tfrecords/')
+    parser.add_argument('--tpu_ip', required=True, help='IP-address of the TPU')
     parser.add_argument('--run_prefix', help='Prefix to be added to all runs. Useful to group runs')
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
-    parser.add_argument('--finetune_data', default='maternal_vaccine_stance_lshtm', choices=['maternal_vaccine_stance_lshtm',\
-            'covid_worry', 'vaccine_sentiment_epfl', 'twitter_sentiment_semeval', 'SST-2', 'covid_category'],
-            help='Finetune data folder name. The folder has to be located in gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}.\
-                    TFrecord files (train.tfrecord and dev.tfrecord as well as meta.json) should be located in a \
-                    subfolder gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}/tfrecord/')
-    parser.add_argument('--tpu_ip', default='10.74.219.210', help='IP-address of the TPU')
     parser.add_argument('--not_use_tpu', action='store_true', default=False, help='Do not use TPUs')
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
     parser.add_argument('--init_checkpoint', default=None, help='Run name to initialize checkpoint from. Example: "run2/ctl_step_8000.ckpt-8". \
