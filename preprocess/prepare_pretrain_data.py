@@ -2,7 +2,7 @@ import sys
 sys.path.append('..')
 sys.path.append('../tensorflow_models')
 from utils.misc import ArgParseDefault, add_bool_arg
-from preprocess import preprocess_bert, segment_sentences
+from utils.preprocess import preprocess_bert, segment_sentences
 from config import PRETRAINED_MODELS
 
 import glob
@@ -26,12 +26,8 @@ def main(args):
     logger.info(f'Found {len(input_files):,} input text files')
     
     # preprocess fn
-    if 'bert' in args.model_class:
-        preprocess_fn = preprocess_bert
-    else:
-        raise ValueError(f'Model {args.model_class} is not yet supported.')
-    if PRETRAINED_MODELS[args.model_class]['lower_case'] != args.do_lower_case:
-        logger.warning(f"Pretrained model expects lower case option {PRETRAINED_MODELS[args.model_class]['lower_case']}")
+    preprocess_fn = preprocess_bert
+    do_lower_case = PRETRAINED_MODELS[args.model_class]['lower_case']
 
     # create run dirs
     ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M_%s')
@@ -55,6 +51,7 @@ def main(args):
         input_file,
         preprocess_fn,
         output_folder,
+        do_lower_case,
         args) for input_file in tqdm(input_files)))
     num_sentences = sum(r[0] for r in res)
     num_tokens = sum(r[1] for r in res)
@@ -65,7 +62,7 @@ def main(args):
     logger.info(f'Collected a total of {num_examples:,} examples, {num_examples_single_sentence:,} examples only contain a single sentence.')
     logger.info(f'All output files can be found under {output_folder}')
 
-def preprocess_file(input_file, preprocess_fn, output_folder, args):
+def preprocess_file(input_file, preprocess_fn, output_folder, do_lower_case, args):
     _type = os.path.basename(os.path.dirname(input_file))
     if _type in ['train', 'dev', 'test']:
         output_folder = os.path.join(output_folder, _type)
@@ -81,7 +78,7 @@ def preprocess_file(input_file, preprocess_fn, output_folder, args):
     with open(input_file, 'r') as f_in, open(output_filepath, 'w') as f_out:
         for i, line in enumerate(tqdm(f_in, total=num_lines)):
             # preprocess
-            text = preprocess_fn(line, args)
+            text = preprocess_fn(line, args, do_lower_case=do_lower_case)
             # segment sentences
             sentences, num_tokens = segment_sentences(text, args)
             if len(sentences) == 0:
@@ -116,7 +113,6 @@ def parse_args():
     parser.add_argument('--url_filler', default='twitterurl', type=str, help='URL filler (ignored when replace_urls option is false)')
     parser.add_argument('--num_logged_samples', default=10, type=int, help='Log first n samples to output')
     add_bool_arg(parser, 'run_in_parallel', default=True, help='Run script in parallel')
-    add_bool_arg(parser, 'do_lower_case', default=True, help='Do lower case')
     add_bool_arg(parser, 'replace_usernames', default=True, help='Replace usernames with filler')
     add_bool_arg(parser, 'replace_urls', default=True, help='Replace URLs with filler')
     add_bool_arg(parser, 'asciify_emojis', default=True, help='Asciifyi emojis')

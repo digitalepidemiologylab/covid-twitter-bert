@@ -32,7 +32,7 @@ transl_table = dict([(ord(x), ord(y)) for x, y in zip(u"‘’´“”–-",  u"
 html_parser = HTMLParser()
 
 
-def preprocess_bert(text, args):
+def preprocess_bert(text, args, do_lower_case=True):
     """Preprocesses tweet for BERT"""
     # standardize
     text = standardize_text(text)
@@ -43,7 +43,7 @@ def preprocess_bert(text, args):
         text = replace_urls(text, filler=args.url_filler)
     if args.asciify_emojis:
         text = asciify_emojis(text)
-    if args.do_lower_case:
+    if do_lower_case:
         text = text.lower()
     if args.replace_multiple_usernames:
         text = replace_multi_occurrences(text, args.username_filler)
