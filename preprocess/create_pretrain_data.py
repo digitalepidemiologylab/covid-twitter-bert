@@ -160,7 +160,7 @@ def parse_args():
     parser.add_argument('--masked_lm_prob', default=0.15, type=float, help='Masked LM probabibility')
     parser.add_argument('--gzipped', action='store_true', default=False, help='Create gzipped tfrecords files')
     parser.add_argument('--num_logged_samples', default=10, type=int, help='Log first n samples to output')
-    parser.add_argument('--max_num_cpus', default=20, type=int, help='Adapt this number based on the available memory/size of input files. \
+    parser.add_argument('--max_num_cpus', default=10, type=int, help='Adapt this number based on the available memory/size of input files. \
             This code was tested on a machine with a lot of memory (250GB). Decrease this number if you run into memory issues.')
     add_bool_arg(parser, 'run_in_parallel', default=True, help='Run script in parallel')
     return parser.parse_args()

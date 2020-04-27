@@ -16,6 +16,7 @@ import logging
 import tqdm
 import json
 import tensorflow as tf
+from config import PRETRAINED_MODELS
 from utils.misc import ArgParseDefault
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
@@ -24,10 +25,6 @@ logger = logging.getLogger(__name__)
 # remove duplicate logger (not sure why this is happening, possibly an issue with the imports in tf/tf_hub)
 tf_logger = tf.get_logger()
 tf_logger.handlers.pop()
-
-PRETRAINED_MODELS = {
-    'bert_large_uncased': 'pretrained_models/bert/keras_bert/uncased_L-24_H-1024_A-16'
-}
 
 def get_model_config(config_path):
     config = bert_configs.BertConfig.from_json_file(config_path)
@@ -93,15 +90,14 @@ def run(args, strategy):
     output_dir = f'gs://{args.bucket_name}/{args.project_name}/pretrain/runs/{run_name}'
 
     # pretrained model path
-    model_key = f'{args.model_class}_{args.model_type}'
     try:
-        pretrained_model_path = PRETRAINED_MODELS[model_key]
+        pretrained_model_path = PRETRAINED_MODELS[args.model_class]['location']
     except KeyError:
-        raise ValueError(f'Could not find a pretrained model matching the model class {args.model_class} and {args.model_type}')
+        raise ValueError(f'Could not find a pretrained model matching the model class {args.model_class}')
     pretrained_model_config_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_config.json'
     pretrained_model_checkpoint_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_model.ckpt'
 
-    # load model config based on model_class and model_type
+    # load model config based on model_class
     model_config = get_model_config(pretrained_model_config_path)
 
     # input data function
@@ -167,6 +163,7 @@ def parse_args():
     parser = ArgParseDefault()
     parser.add_argument('--run_prefix', help='Prefix to be added to all runs. Useful to group runs')
     parser.add_argument('--pretrain_data', default='v1', type=str, help='Folder which contains pretrain data. Should be located under gs://{bucket_name}/{project_name}/pretrain/pretrain_data/')
+    parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--tpu_ip', default='10.74.219.210', help='IP-address of the TPU')
@@ -182,8 +179,6 @@ def parse_args():
     parser.add_argument('--max_seq_length', default=96, type=int, help='Maximum sequence length. Sequences longer than this will be truncated, and sequences shorter than this will be padded.')
     parser.add_argument('--max_predictions_per_seq', default=14, type=int, help='Maximum predictions per sequence_output.')
     parser.add_argument('--dtype', default='fp32', choices=['fp32', 'bf16', 'fp16'], type=str, help='Data type')
-    parser.add_argument('--model_class', default='bert', type=str, choices=['bert'], help='Model class')
-    parser.add_argument('--model_type', default='large_uncased', choices=['large_uncased', 'base_uncased'], type=str, help='Model class to pretraining')
     parser.add_argument('--steps_per_loop', default=10, type=int, help='Steps per loop')
     parser.add_argument('--time_history_log_steps', default=1000, type=int, help='Frequency with which to log timing information with TimeHistory.')
     args = parser.parse_args()

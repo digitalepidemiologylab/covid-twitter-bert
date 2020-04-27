@@ -22,6 +22,7 @@ import json
 import tensorflow as tf
 from utils.misc import ArgParseDefault, append_to_csv, save_to_json
 from utils.finetune_helpers import Metrics
+from config import PRETRAINED_MODELS
 import pandas as pd
 
 
@@ -31,10 +32,6 @@ logger = logging.getLogger(__name__)
 # remove duplicate logger (not sure why this is happening, possibly an issue with the imports)
 tf_logger = tf.get_logger()
 tf_logger.handlers.pop()
-
-PRETRAINED_MODELS = {
-    'bert_large_uncased': 'pretrained_models/bert/keras_bert/uncased_L-24_H-1024_A-16'
-}
 
 def get_model_config(config_path):
     config = bert_configs.BertConfig.from_json_file(config_path)
@@ -115,11 +112,10 @@ def get_metrics():
     return [tf.keras.metrics.SparseCategoricalAccuracy('test_accuracy', dtype=tf.float32)]
 
 def get_pretrained_model_path(args):
-    model_key = f'{args.model_class}_{args.model_type}'
     try:
-        pretrained_model_path = PRETRAINED_MODELS[model_key]
+        pretrained_model_path = PRETRAINED_MODELS[args.model_class]['location']
     except KeyError:
-        raise ValueError(f'Could not find a pretrained model matching the model class {args.model_class} and {args.model_type}')
+        raise ValueError(f'Could not find a pretrained model matching the model class {args.model_class}')
     return pretrained_model_path
 
 def run(args):
@@ -311,6 +307,7 @@ def parse_args():
     parser.add_argument('--run_prefix', help='Prefix to be added to all runs. Useful to group runs')
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
+    parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
     parser.add_argument('--finetune_data', default='maternal_vaccine_stance_lshtm', choices=['maternal_vaccine_stance_lshtm',\
             'covid_worry', 'vaccine_sentiment_epfl', 'twitter_sentiment_semeval', 'SST-2', 'covid_category'],
             help='Finetune data folder name. The folder has to be located in gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}.\
@@ -333,14 +330,11 @@ def parse_args():
     parser.add_argument('--warmup_proportion', default=0.1, type=float, help='Learning rate warmup proportion')
     parser.add_argument('--max_seq_length', default=96, type=int, help='Maximum sequence length')
     parser.add_argument('--early_stopping_epochs', default=-1, type=int, help='Stop when loss hasn\'t decreased during n epochs')
-    parser.add_argument('--model_class', default='bert', type=str, choices=['bert'], help='Model class')
-    parser.add_argument('--model_type', default='large_uncased', choices=['large_uncased', 'base_uncased'], type=str, help='Model class')
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
     parser.add_argument('--dtype', default='fp32', choices=['fp32', 'bf16', 'fp16'], type=str, help='Data type')
     parser.add_argument('--steps_per_loop', default=10, type=int, help='Steps per loop')
     parser.add_argument('--time_history_log_steps', default=10, type=int, help='Frequency with which to log timing information with TimeHistory.')
-    parser.add_argument('--model_config_path', default=None, type=str, help='Path to model config file, by default \
-            try to infer from model_class/model_type args and fetch from gs://cloud-tpu-checkpoints')
+    parser.add_argument('--model_config_path', default=None, type=str, help='Path to model config file, by default fetch from PRETRAINED_MODELS["location"]')
     args = parser.parse_args()
     return args
 
