@@ -1,7 +1,7 @@
 import sys
 sys.path.append('../tensorflow_models')
 sys.path.append('..')
-from utils.misc import ArgParseDefault, add_bool_arg
+from utils.misc import ArgParseDefault, add_bool_arg, save_to_json
 from config import PRETRAINED_MODELS
 from official.nlp.data.create_pretraining_data import create_instances_from_document, write_instance_to_example_files
 from official.nlp.bert import tokenization
@@ -27,16 +27,16 @@ def get_tokenizer(model_class):
     tokenizer = tokenization.FullTokenizer(vocab_file=vocab_file, do_lower_case=model['lower_case'])
     return tokenizer
 
-def get_input_files(run_name):
-    data_folder = os.path.join(DATA_DIR, 'pretrain', run_name, 'preprocessed')
-    input_files = glob.glob(os.path.join(data_folder, '**', '*.txt'))
+def get_input_files(run_folder):
+    input_files = glob.glob(os.path.join(run_folder, 'preprocessed', '**', '*.txt'))
     if len(input_files) == 0:
-        raise ValueError(f'No txt files found in folder {data_folder}')
+        raise ValueError(f'No txt files found in folder {run_folder}/preprocessed')
     return input_files
 
 def main(args):
     rng = random.Random(args.random_seed)
-    input_files = get_input_files(args.run_name)
+    run_folder = os.path.join(DATA_DIR, 'pretrain', args.run_name)
+    input_files = get_input_files(run_folder)
 
     logger.info('Processing the following {len(input_files):,} input files:')
     for input_file in input_files:
@@ -59,7 +59,8 @@ def main(args):
         rng,
         args) for input_file in tqdm(input_files, desc='Processing input files')))
     t_e = time.time()
-    logger.info(f'Finished after {(t_e-t_s)/60:.1f} min')
+    time_taken_min = (t_e - t_s)/60
+    logger.info(f'Finished after {time_taken_min:.1f} min')
     counts = {}
     for _r in res:
         _type = _r[2]
@@ -71,6 +72,14 @@ def main(args):
         num_instances = c['num_instances']
         num_documents = c['num_documents']
         logger.info(f'Type {_type}: Generated a total of {num_instances:,} training examples from {num_documents:,} documents')
+    f_config = os.path.join(run_folder, 'create_pretrain_config.json')
+    logger.info(f'Saving config to {f_config}')
+    data = {
+            'counts': counts,
+            'time_taken_min': time_taken_min,
+            **vars(args)
+            }
+    save_to_json(data, f_config)
 
 def process(input_file, tokenizer, rng, args):
     # logging
@@ -108,7 +117,6 @@ def process(input_file, tokenizer, rng, args):
     vocab_words = list(tokenizer.vocab.keys())
     instances = []
     do_whole_word_masking = PRETRAINED_MODELS[args.model_class]['do_whole_word_masking']
-    num_logged_examples = 0
     for _ in range(args.dupe_factor):
         for document_index in trange(len(all_documents), desc='Generating training instances'):
             new_instances = create_instances_from_document(
@@ -122,12 +130,6 @@ def process(input_file, tokenizer, rng, args):
                     rng,
                     do_whole_word_masking)
             instances.extend(new_instances)
-            # if num_logged_examples < args.num_logged_samples:
-            #     for inst in new_instances:
-            #         print('**** Training instance example ****')
-            #         print(inst)
-            #         print('****')
-            #         num_logged_examples += 1
     all_documents = None # free memory
     num_instances = len(instances)
     logger.info(f'Collected a total of {num_instances:,} training instances')
