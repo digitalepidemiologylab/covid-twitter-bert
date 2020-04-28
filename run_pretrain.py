@@ -77,15 +77,20 @@ def get_loss_fn():
         return tf.reduce_mean(losses)
     return _bert_pretrain_loss_fn
 
+def get_run_name(args):
+    # Use timestamp to generate a unique run name
+    ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M-%S-%f')
+    if args.run_prefix:
+        run_name = f'run_{ts}_{args.run_prefix}'
+    else:
+        run_name = f'run_{ts}'
+    return run_name
+
 def run(args, strategy):
     """Pretrains model using TF2. Adapted from the tensorflow/models Github"""
     # CONFIG
     # Use timestamp to generate a unique run name
-    ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M_%s')
-    if args.run_prefix:
-        run_name = f'run_{args.run_prefix}_{ts}'
-    else:
-        run_name = f'run_{ts}'
+    run_name = get_run_name(args)
     logger.info(f'*** Starting run {run_name} ***')
     output_dir = f'gs://{args.bucket_name}/{args.project_name}/pretrain/runs/{run_name}'
 

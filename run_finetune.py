@@ -118,15 +118,19 @@ def get_pretrained_model_path(args):
         raise ValueError(f'Could not find a pretrained model matching the model class {args.model_class}')
     return pretrained_model_path
 
+def get_run_name(args):
+    # Use timestamp to generate a unique run name
+    ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M-%S-%f')
+    if args.run_prefix:
+        run_name = f'run_{ts}_{args.run_prefix}'
+    else:
+        run_name = f'run_{ts}'
+    return run_name
+
 def run(args):
     """Train using the Keras/TF 2.0. Adapted from the tensorflow/models Github"""
     # CONFIG
-    # Use timestamp to generate a unique run name
-    ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M_%s')
-    if args.run_prefix:
-        run_name = f'run_{args.run_prefix}_{ts}'
-    else:
-        run_name = f'run_{ts}'
+    run_name = get_run_name(args)
     logger.info(f'*** Starting run {run_name} ***')
     data_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/finetune_data/{args.finetune_data}'
     output_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/runs/{run_name}'

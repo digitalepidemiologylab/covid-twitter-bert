@@ -21,20 +21,25 @@ DATA_FOLDER = os.path.join('..', 'data')
 def get_input_files(input_folder):
     return glob.glob(os.path.join(input_folder, '**', '*.txt'))
 
+def get_run_name(args):
+    # Use timestamp to generate a unique run name
+    ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M-%S-%f')
+    if args.run_prefix:
+        run_name = f'run_{ts}_{args.run_prefix}'
+    else:
+        run_name = f'run_{ts}'
+    return run_name
+
 def main(args):
     input_files = get_input_files(args.input_data)
     logger.info(f'Found {len(input_files):,} input text files')
-    
+
     # preprocess fn
     preprocess_fn = preprocess_bert
     do_lower_case = PRETRAINED_MODELS[args.model_class]['lower_case']
 
     # create run dirs
-    ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M_%s')
-    if args.run_prefix:
-        run_name = f'run_{args.run_prefix}_{ts}'
-    else:
-        run_name = f'run_{ts}'
+    run_name = get_run_name(args)
     output_folder = os.path.join(DATA_FOLDER, 'pretrain', run_name, 'preprocessed')
     if not os.path.isdir(output_folder):
         os.makedirs(output_folder)

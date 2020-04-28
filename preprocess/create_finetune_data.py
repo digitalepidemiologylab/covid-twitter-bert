@@ -107,13 +107,18 @@ def read_data(sheet_name):
     df  = df.reindex(df.index.drop(0))
     return df
 
-def main(args):
-    # create run dirs
-    ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M_%s')
+def get_run_name(args):
+    # Use timestamp to generate a unique run name
+    ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M-%S-%f')
     if args.run_prefix:
-        run_name = f'run_{args.run_prefix}_{ts}'
+        run_name = f'run_{ts}_{args.run_prefix}'
     else:
         run_name = f'run_{ts}'
+    return run_name
+
+def main(args):
+    # create run dirs
+    run_name = get_run_name(args)
     run_dir = os.path.join(DATA_DIR, 'finetune', run_name)
     if not os.path.isdir(run_dir):
         os.makedirs(run_dir)
