@@ -111,6 +111,10 @@ def run(args, strategy):
     pretrained_model_config_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_config.json'
     pretrained_model_checkpoint_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_model.ckpt'
 
+    # some logging
+    logger.info(f'Running pretraining of model {args.model_class} on pretrain data {args.pretrain_data}')
+    logger.info(f'Initializing model from checkpoint {pretrained_model_checkpoint_path}')
+
     # load model config based on model_class
     model_config = get_model_config(pretrained_model_config_path)
 
@@ -119,6 +123,7 @@ def run(args, strategy):
     eval_input_fn = None
     eval_metric_fn = None
     if args.do_eval:
+        logger.info(f'Setting up evaluation dataset')
         eval_metric_fn = get_eval_metric_fn
         eval_input_fn = get_dataset_fn(args, _type='dev')
 

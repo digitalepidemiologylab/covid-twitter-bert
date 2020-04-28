@@ -159,6 +159,12 @@ def run(args):
         eval_steps = int(math.ceil(input_meta_data['eval_data_size'] / args.eval_batch_size))
     else:
         eval_steps = args.limit_eval_steps
+
+    # some logging
+    if args.init_checkpoint is None:
+        logger.info(f'Finetuning on datset {args.finetune_data} using default pretrained model {args.model_class}')
+    else:
+        logger.info(f'Finetuning on datset {args.finetune_data} using pretrained model in {args.init_checkpoint} of type {args.model_class}')
     logger.info(f'Running {args.num_epochs} epochs with {steps_per_epoch:,} steps per epoch')
     logger.info(f'Using warmup proportion of {args.warmup_proportion}, resulting in {warmup_steps:,} warmup steps')
     logger.info(f'Using learning rate: {args.learning_rate}, training batch size: {args.train_batch_size}, num_epochs: {args.num_epochs}')
