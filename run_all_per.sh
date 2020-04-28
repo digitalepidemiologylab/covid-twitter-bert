@@ -21,20 +21,18 @@ FINETUNE_DATA_V2=run_2020_04_27-23-57_1588024625
 #for FINETUNE_DATASET in maternal_vaccine_stance_lshtm covid_worry covid_category twitter_sentiment_semeval vaccine_sentiment_epfl SST-2
 for i in {1..5}
 do
-for FINETUNE_DATASET in maternal_vaccine_stance_lshtm
-do
-  python run_finetune.py --run_prefix base_lrtest --model_class bert_large_uncased --finetune_data ${FINETUNE_DATA_V1}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 0
+  for FINETUNE_DATASET in maternal_vaccine_stance_lshtm
+  do
+    python run_finetune.py --run_prefix base_lrtest --model_class bert_large_uncased --finetune_data ${FINETUNE_DATA_V1}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 0
 
     python run_finetune.py --run_prefix per_lrtest --model_class bert_large_uncased --finetune_data ${FINETUNE_DATA_V1}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 3 --init_checkpoint ${PRETRAIN_RUN_PER}/$INIT_CHECKPOINT_3
 
-  python run_finetune.py --run_prefix per_lrtest --model_class bert_large_uncased --finetune_data ${FINETUNE_DATA_V1}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 6 --init_checkpoint ${PRETRAIN_RUN_PER}/$INIT_CHECKPOINT_6
+    python run_finetune.py --run_prefix per_lrtest --model_class bert_large_uncased --finetune_data ${FINETUNE_DATA_V1}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 6 --init_checkpoint ${PRETRAIN_RUN_PER}/$INIT_CHECKPOINT_6
 
     python run_finetune.py --run_prefix martin_lrtest --model_class bert_large_uncased --finetune_data ${FINETUNE_DATA_V1}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 3 --init_checkpoint ${PRETRAIN_RUN_MARTIN}/$INIT_CHECKPOINT_3
 
-  py	thon run_finetune.py --run_prefix martin_lrtest --model_class bert_large_uncased --finetune_data ${FINETUNE_DATA_V1}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 6 --init_checkpoint ${PRETRAIN_RUN_MARTIN}/$INIT_CHECKPOINT_6
-
-
-done
+    python run_finetune.py --run_prefix martin_lrtest --model_class bert_large_uncased --finetune_data ${FINETUNE_DATA_V1}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 6 --init_checkpoint ${PRETRAIN_RUN_MARTIN}/$INIT_CHECKPOINT_6
+  done
 done
 
 # --finetune_data FINETUNE_DATA
