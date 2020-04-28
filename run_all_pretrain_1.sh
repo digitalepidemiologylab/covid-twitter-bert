@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TPU_IP=10.44.10.250
+TPU_IP=10.115.237.114
 pretrain_data=run_2020_04_28-14-32-05-465580_wwm_v1
 
 python run_pretrain.py \
