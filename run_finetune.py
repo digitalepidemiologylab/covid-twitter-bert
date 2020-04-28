@@ -117,7 +117,7 @@ def get_pretrained_model_path(args):
 
 def get_run_name(args):
     # Use timestamp to generate a unique run name
-    ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M-%S-%f')
+    ts = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S_%f')
     if args.run_prefix:
         run_name = f'run_{ts}_{args.run_prefix}'
     else:

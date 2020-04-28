@@ -85,12 +85,15 @@ def get_loss_fn():
 
 def get_run_name(args):
     # Use timestamp to generate a unique run name
-    ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M-%S-%f')
+    ts = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S_%f')
     if args.run_prefix:
         run_name = f'run_{ts}_{args.run_prefix}'
     else:
         run_name = f'run_{ts}'
     return run_name
+
+def get_eval_metric_fn():
+    return tf.keras.metrics.SparseCategoricalAccuracy('test_accuracy', dtype=tf.float32)
 
 def run(args, strategy):
     """Pretrains model using TF2. Adapted from the tensorflow/models Github"""
@@ -114,7 +117,9 @@ def run(args, strategy):
     # input data function
     train_input_fn = get_dataset_fn(args, _type='train')
     eval_input_fn = None
+    eval_metric_fn = None
     if args.do_eval:
+        eval_metric_fn = get_eval_metric_fn
         eval_input_fn = get_dataset_fn(args, _type='dev')
 
     # model_fn
@@ -150,8 +155,8 @@ def run(args, strategy):
         steps_per_loop=args.steps_per_loop,
         epochs=args.num_epochs,
         eval_input_fn=eval_input_fn,
-        eval_steps=1000,
-        metric_fn=None,
+        eval_steps=args.eval_steps,
+        metric_fn=eval_metric_fn,
         init_checkpoint=pretrained_model_checkpoint_path,
         custom_callbacks=custom_callbacks,
         run_eagerly=False,
@@ -182,6 +187,7 @@ def parse_args():
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
+    parser.add_argument('--eval_steps', default=1000, type=int, help='Number eval steps to run (only active when --do_eval flag is provided)')
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
     parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')
     parser.add_argument('--dev_batch_size', default=32, type=int, help='Eval batch size')
