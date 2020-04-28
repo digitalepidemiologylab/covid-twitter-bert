@@ -1,23 +1,25 @@
 #!/bin/sh
 
-TPU_IP=10.247.74.194
-# pretrain_data=v1
+TPU_IP=10.44.10.250
 pretrain_data=run_2020_04_28-14-32-05-465580_wwm_v1
 
 python run_pretrain.py \
   --pretrain_data $pretrain_data \
-  --run_prefix test \
+  --run_prefix wwm_v1 \
   --do_eval \
-  --eval_steps 50 \
+  --eval_steps 10000 \
   --model_class bert_large_uncased_wwm \
   --max_seq_length 96 \
   --max_predictions_per_seq 14 \
-  --num_epochs 10 \
+  --num_epochs 20 \
   --learning_rate 2e-5 \
-  --num_steps_per_epoch 100 \
+  --end_lr 2e-5 \
+  --num_steps_per_epoch 50000 \
   --train_batch_size 1024 \
+  --eval_batch_size 1024 \
   --tpu_ip $TPU_IP \
-  --steps_per_loop 10
+  --steps_per_loop 1000
+
 
 # optional arguments:
 #   -h, --help            show this help message and exit
@@ -37,11 +39,14 @@ python run_pretrain.py \
 #                         Name of subfolder in Google bucket (default: covid-
 #                         bert)
 #   --num_gpus NUM_GPUS   Number of GPUs to use (default: 1)
+#   --eval_steps EVAL_STEPS
+#                         Number eval steps to run (only active when --do_eval
+#                         flag is provided) (default: 1000)
 #   --optimizer_type {adamw,lamb}
 #                         Optimizer (default: adamw)
 #   --train_batch_size TRAIN_BATCH_SIZE
 #                         Training batch size (default: 32)
-#   --dev_batch_size DEV_BATCH_SIZE
+#   --eval_batch_size EVAL_BATCH_SIZE
 #                         Eval batch size (default: 32)
 #   --num_epochs NUM_EPOCHS
 #                         Number of epochs (default: 3)

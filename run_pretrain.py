@@ -36,7 +36,7 @@ def get_dataset_fn(args, _type='train'):
         batch_size = args.train_batch_size
         is_training = True
     elif _type == 'dev':
-        batch_size = args.dev_batch_size
+        batch_size = args.eval_batch_size
         is_training = False
     def _dataset_fn(ctx=None):
         """Returns tf.data.Dataset for distributed BERT pretraining."""
@@ -149,6 +149,7 @@ def run(args, strategy):
     custom_callbacks = [time_history_callback]
 
     # run training loop
+    logger.info(f'Run training for {args.num_epochs:,} epochs, {args.num_steps_per_epoch:,} steps each, processing {args.num_epochs*args.num_steps_per_epoch*args.train_batch_size:,} training examples in total...')
     model_training_utils.run_customized_training_loop(
         strategy=strategy,
         model_fn=_get_pretrained_model,
@@ -195,7 +196,7 @@ def parse_args():
     parser.add_argument('--eval_steps', default=1000, type=int, help='Number eval steps to run (only active when --do_eval flag is provided)')
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
     parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')
-    parser.add_argument('--dev_batch_size', default=32, type=int, help='Eval batch size')
+    parser.add_argument('--eval_batch_size', default=32, type=int, help='Eval batch size')
     parser.add_argument('--num_epochs', default=3, type=int, help='Number of epochs')
     parser.add_argument('--num_steps_per_epoch', default=1000, type=int, help='Number of steps per epoch')
     parser.add_argument('--warmup_steps', default=10000, type=int, help='Warmup steps')
