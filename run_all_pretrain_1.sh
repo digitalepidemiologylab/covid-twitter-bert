@@ -14,7 +14,7 @@ python run_pretrain.py \
   --num_epochs 20 \
   --learning_rate 2e-5 \
   --end_lr 2e-5 \
-  --num_steps_per_epoch 50000 \
+  --num_steps_per_epoch 25000 \
   --train_batch_size 1024 \
   --eval_batch_size 1024 \
   --tpu_ip $TPU_IP \
