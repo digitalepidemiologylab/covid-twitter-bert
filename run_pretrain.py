@@ -17,7 +17,7 @@ import tqdm
 import json
 import tensorflow as tf
 from config import PRETRAINED_MODELS
-from utils.misc import ArgParseDefault
+from utils.misc import ArgParseDefault, add_bool_arg
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
 logger = logging.getLogger(__name__)
@@ -30,20 +30,26 @@ def get_model_config(config_path):
     config = bert_configs.BertConfig.from_json_file(config_path)
     return config
 
-def get_dataset_fn(args):
+def get_dataset_fn(args, _type='train'):
     """Returns input dataset from input file string."""
+    if _type == 'train':
+        batch_size = args.train_batch_size
+        is_training = True
+    elif _type == 'dev':
+        batch_size = args.dev_batch_size
+        is_training = False
     def _dataset_fn(ctx=None):
         """Returns tf.data.Dataset for distributed BERT pretraining."""
-        input_data = [f'gs://{args.bucket_name}/{args.project_name}/pretrain/pretrain_data/{args.pretrain_data}/tfrecords/train/*.tfrecords']
-        batch_size = ctx.get_per_replica_batch_size(args.train_batch_size)
-        train_dataset = input_pipeline.create_pretrain_dataset(
+        input_data = [f'gs://{args.bucket_name}/{args.project_name}/pretrain/pretrain_data/{args.pretrain_data}/tfrecords/{_type}/*.tfrecords']
+        per_replica_batch_size = ctx.get_per_replica_batch_size(batch_size)
+        dataset = input_pipeline.create_pretrain_dataset(
             input_data,
             args.max_seq_length,
             args.max_predictions_per_seq,
-            batch_size,
-            is_training=True,
+            per_replica_batch_size,
+            is_training=is_training,
             input_pipeline_context=ctx)
-        return train_dataset
+        return dataset
     return _dataset_fn
 
 def set_mixed_precision_policy(args):
@@ -106,7 +112,10 @@ def run(args, strategy):
     model_config = get_model_config(pretrained_model_config_path)
 
     # input data function
-    train_input_fn = get_dataset_fn(args)
+    train_input_fn = get_dataset_fn(args, _type='train')
+    eval_input_fn = None
+    if args.do_eval:
+        eval_input_fn = get_dataset_fn(args, _type='dev')
 
     # model_fn
     def _get_pretrained_model(end_lr=0.0):
@@ -140,8 +149,8 @@ def run(args, strategy):
         steps_per_epoch=args.num_steps_per_epoch,
         steps_per_loop=args.steps_per_loop,
         epochs=args.num_epochs,
-        eval_input_fn=None,
-        eval_steps=None,
+        eval_input_fn=eval_input_fn,
+        eval_steps=1000,
         metric_fn=None,
         init_checkpoint=pretrained_model_checkpoint_path,
         custom_callbacks=custom_callbacks,
@@ -153,12 +162,12 @@ def run(args, strategy):
 
 def main(args):
     # Get distribution strategy
-    if args.not_use_tpu:
-        strategy = distribution_utils.get_distribution_strategy(distribution_strategy='mirrored', num_gpus=args.num_gpus)
-    else:
+    if args.use_tpu:
         logger.info(f'Intializing TPU on address {args.tpu_ip}...')
         tpu_address = f'grpc://{args.tpu_ip}:8470'
         strategy = distribution_utils.get_distribution_strategy(distribution_strategy='tpu', tpu_address=tpu_address, num_gpus=args.num_gpus)
+    else:
+        strategy = distribution_utils.get_distribution_strategy(distribution_strategy='mirrored', num_gpus=args.num_gpus)
     # set mixed precision
     set_mixed_precision_policy(args)
     run(args, strategy)
@@ -172,10 +181,10 @@ def parse_args():
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
-    parser.add_argument('--not_use_tpu', action='store_true', default=False, help='Do not use TPUs')
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
     parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')
+    parser.add_argument('--dev_batch_size', default=32, type=int, help='Eval batch size')
     parser.add_argument('--num_epochs', default=3, type=int, help='Number of epochs')
     parser.add_argument('--num_steps_per_epoch', default=1000, type=int, help='Number of steps per epoch')
     parser.add_argument('--warmup_steps', default=10000, type=int, help='Warmup steps')
@@ -186,6 +195,8 @@ def parse_args():
     parser.add_argument('--dtype', default='fp32', choices=['fp32', 'bf16', 'fp16'], type=str, help='Data type')
     parser.add_argument('--steps_per_loop', default=10, type=int, help='Steps per loop')
     parser.add_argument('--time_history_log_steps', default=1000, type=int, help='Frequency with which to log timing information with TimeHistory.')
+    add_bool_arg(parser, 'use_tpu', default=True, help='Use TPU')
+    add_bool_arg(parser, 'do_eval', default=False, help='Run evaluation (make sure eval data is present in tfrecords folder)')
     args = parser.parse_args()
     return args
 

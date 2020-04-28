@@ -92,7 +92,7 @@ def process(input_file, tokenizer, rng, args):
     num_lines = sum(1 for _ in open(input_file, 'r'))
     with open(input_file, 'r') as f:
         for i, line in enumerate(tqdm(f, total=num_lines, desc='Tokenization')):
-            line = tokenization.convert_to_unicode(line)
+            # line = tokenization.convert_to_unicode(line)
             line = line.strip()
             # Empty lines are used as document delimiters
             if not line:
@@ -106,6 +106,8 @@ def process(input_file, tokenizer, rng, args):
                     print(tokens)
                     print('****')
                     num_logged_examples += 1
+            if i > 1000:
+                break
     # shuffle
     logger.info('Shuffling documents...')
     all_documents = [x for x in all_documents if x]
@@ -146,6 +148,7 @@ def process(input_file, tokenizer, rng, args):
         os.makedirs(output_folder)
     input_file_name = os.path.basename(input_file)
     output_file = os.path.join(output_folder, f'{input_file_name}.tfrecords')
+    logger.info(f'Writing to {output_file}...')
     write_instance_to_example_files(instances, tokenizer, args.max_seq_length, args.max_predictions_per_seq, [output_file], args.gzipped)
     return num_documents, num_instances, _type
 

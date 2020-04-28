@@ -11,8 +11,6 @@ from official.utils.misc import keras_utils
 
 import os
 import datetime
-import pprint
-import uuid
 import time
 import argparse
 import math
@@ -20,10 +18,9 @@ import logging
 import tqdm
 import json
 import tensorflow as tf
-from utils.misc import ArgParseDefault, append_to_csv, save_to_json
+from utils.misc import ArgParseDefault, save_to_json, add_bool_arg
 from utils.finetune_helpers import Metrics
 from config import PRETRAINED_MODELS
-import pandas as pd
 
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
@@ -292,12 +289,12 @@ def set_mixed_precision_policy(args):
 
 def main(args):
     # Get distribution strategy
-    if args.not_use_tpu:
-        strategy = distribution_utils.get_distribution_strategy(distribution_strategy='mirrored', num_gpus=args.num_gpus)
-    else:
+    if args.use_tpu:
         logger.info(f'Intializing TPU on address {args.tpu_ip}...')
         tpu_address = f'grpc://{args.tpu_ip}:8470'
         strategy = distribution_utils.get_distribution_strategy(distribution_strategy='tpu', tpu_address=tpu_address, num_gpus=args.num_gpus)
+    else:
+        strategy = distribution_utils.get_distribution_strategy(distribution_strategy='mirrored', num_gpus=args.num_gpus)
     # set mixed precision
     set_mixed_precision_policy(args)
     # Run training
@@ -317,7 +314,6 @@ def parse_args():
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
-    parser.add_argument('--not_use_tpu', action='store_true', default=False, help='Do not use TPUs')
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
     parser.add_argument('--init_checkpoint', default=None, help='Run name to initialize checkpoint from. Example: "run2/ctl_step_8000.ckpt-8". \
             By default using a pretrained model from gs://{bucket_name}/pretrained_models/')
@@ -338,6 +334,7 @@ def parse_args():
     parser.add_argument('--steps_per_loop', default=10, type=int, help='Steps per loop')
     parser.add_argument('--time_history_log_steps', default=10, type=int, help='Frequency with which to log timing information with TimeHistory.')
     parser.add_argument('--model_config_path', default=None, type=str, help='Path to model config file, by default fetch from PRETRAINED_MODELS["location"]')
+    add_bool_arg(parser, 'use_tpu', default=True, help='Use TPU')
     args = parser.parse_args()
     return args
 
