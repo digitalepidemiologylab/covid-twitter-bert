@@ -154,7 +154,7 @@ def process(input_file, tokenizer, rng, args):
 
 def parse_args():
     parser = ArgParseDefault()
-    parser.add_argument('--run_name', default='run_2020_04_27-10-42_1587976935', help='Run name to create tf record files for. Run folder has to be located under \
+    parser.add_argument('--run_name', required=True, help='Run name to create tf record files for. Run folder has to be located under \
             data/pretrain/{run_name}/preprocessed/ and must contain one or multiple txt files. May also contain train and dev subfolders with txt files.')
     parser.add_argument('--max_seq_length', default=96, type=int, help='Maximum sequence length')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
