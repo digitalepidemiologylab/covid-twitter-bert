@@ -4,7 +4,9 @@ In the following document the ip to the newly created VM with Ubuntu is set to 1
 
 ## Connect
 >ssh user@1.1.1.1
+
 >sudo apt-get install ssh git tmux 
+
 >ssh-keygen -t rsa -C "me@me.com"
 
 
