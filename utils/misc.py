@@ -1,10 +1,7 @@
 import logging
 import json
 import os
-import csv
 import argparse
-import fcntl
-import pandas as pd
 import tensorflow as tf
 import numpy as np
 
@@ -13,22 +10,6 @@ logger = logging.getLogger(__name__)
 def save_to_json(data, f_name):
     with tf.io.gfile.GFile(f_name, 'w') as writer:
         writer.write(json.dumps(data, cls=JSONEncoder, indent=4))
-
-def append_to_csv(data, f_name_local, f_name_remote):
-    df = pd.DataFrame.from_dict({x: [y] for x, y in data.items()})
-    if os.path.isfile(f_name_local):
-        df_old = pd.read_csv(f_name_local)
-        df = pd.concat([df_old, df])
-        f = open(f_name_local)
-        fcntl.flock(f, fcntl.LOCK_EX)
-        df.to_csv(f_name_local, index=False)
-        fcntl.flock(f, fcntl.LOCK_UN)
-    else:
-        df.to_csv(f_name_local, index=False)
-    logger.info(f'Wrote log to csv {f_name_local}')
-    # write to cloud storage
-    df.to_csv(f_name_remote, index=False)
-    logger.info(f'Wrote log to csv {f_name_remote}')
 
 class JSONEncoder(json.JSONEncoder):
     def default(self, obj):

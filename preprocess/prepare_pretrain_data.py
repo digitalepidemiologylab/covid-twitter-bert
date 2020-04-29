@@ -1,13 +1,14 @@
 import sys
 sys.path.append('..')
 sys.path.append('../tensorflow_models')
-from utils.misc import ArgParseDefault, add_bool_arg
+from utils.misc import ArgParseDefault, add_bool_arg, save_to_json
 from utils.preprocess import preprocess_bert, segment_sentences
 from config import PRETRAINED_MODELS
 
 import glob
 import datetime
 import logging
+import time
 import os
 from tqdm import tqdm
 import joblib
@@ -21,20 +22,25 @@ DATA_FOLDER = os.path.join('..', 'data')
 def get_input_files(input_folder):
     return glob.glob(os.path.join(input_folder, '**', '*.txt'))
 
+def get_run_name(args):
+    # Use timestamp to generate a unique run name
+    ts = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S_%f')
+    if args.run_prefix:
+        run_name = f'run_{ts}_{args.run_prefix}'
+    else:
+        run_name = f'run_{ts}'
+    return run_name
+
 def main(args):
     input_files = get_input_files(args.input_data)
     logger.info(f'Found {len(input_files):,} input text files')
-    
+
     # preprocess fn
     preprocess_fn = preprocess_bert
     do_lower_case = PRETRAINED_MODELS[args.model_class]['lower_case']
 
     # create run dirs
-    ts = datetime.datetime.now().strftime('%Y_%m_%d-%H-%M_%s')
-    if args.run_prefix:
-        run_name = f'run_{args.run_prefix}_{ts}'
-    else:
-        run_name = f'run_{ts}'
+    run_name = get_run_name(args)
     output_folder = os.path.join(DATA_FOLDER, 'pretrain', run_name, 'preprocessed')
     if not os.path.isdir(output_folder):
         os.makedirs(output_folder)
@@ -47,12 +53,17 @@ def main(args):
     parallel = joblib.Parallel(n_jobs=num_cpus)
     preprocess_fn_delayed = joblib.delayed(preprocess_file)
 
+    # run
+    t_s = time.time()
     res = parallel((preprocess_fn_delayed(
         input_file,
         preprocess_fn,
         output_folder,
         do_lower_case,
         args) for input_file in tqdm(input_files)))
+    t_e = time.time()
+    time_taken_min = (t_e - t_s)/60
+    logger.info(f'Finished after {time_taken_min:.1f} min')
     num_sentences = sum(r[0] for r in res)
     num_tokens = sum(r[1] for r in res)
     num_tweets = sum(r[2] for r in res)
@@ -61,6 +72,19 @@ def main(args):
     logger.info(f'Collected a total of {num_sentences:,} sentences, {num_tokens:,} tokens from {num_tweets:,} tweets')
     logger.info(f'Collected a total of {num_examples:,} examples, {num_examples_single_sentence:,} examples only contain a single sentence.')
     logger.info(f'All output files can be found under {output_folder}')
+    # save config
+    f_config = os.path.join(output_folder, 'prepare_pretrain_config.json')
+    logger.info(f'Saving config to {f_config}')
+    data = {
+            'num_sentences': num_sentences,
+            'num_tokens': num_tokens,
+            'num_tweets': num_tweets,
+            'num_examples': num_examples,
+            'num_examples_single_sentence': num_examples_single_sentence,
+            'time_taken_min': time_taken_min,
+            **vars(args)
+            }
+    save_to_json(data, f_config)
 
 def preprocess_file(input_file, preprocess_fn, output_folder, do_lower_case, args):
     _type = os.path.basename(os.path.dirname(input_file))

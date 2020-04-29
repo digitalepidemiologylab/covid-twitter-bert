@@ -14,6 +14,7 @@ import multiprocessing
 from tqdm import tqdm, trange
 from collections import defaultdict
 import time
+import tensorflow as tf
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
 logger = logging.getLogger(__name__)
@@ -89,10 +90,15 @@ def process(input_file, tokenizer, rng, args):
     all_documents = [[]]
     logger.info('Tokenizing documents...')
     num_logged_examples = 0
-    num_lines = sum(1 for _ in open(input_file, 'r'))
-    with open(input_file, 'r') as f:
-        for i, line in enumerate(tqdm(f, total=num_lines, desc='Tokenization')):
-            line = tokenization.convert_to_unicode(line)
+    with tf.io.gfile.GFile(input_file, 'rb') as reader:
+        num_lines = sum(1 for _ in reader.readline())
+    pbar = tqdm(total=num_lines, desc='Tokenization')
+    with tf.io.gfile.GFile(input_file, 'rb') as reader:
+        i = 0
+        while True:
+            line = tokenization.convert_to_unicode(reader.readline())
+            if not line:
+                break
             line = line.strip()
             # Empty lines are used as document delimiters
             if not line:
@@ -106,6 +112,8 @@ def process(input_file, tokenizer, rng, args):
                     print(tokens)
                     print('****')
                     num_logged_examples += 1
+            i += 1
+            pbar.update(i)
     # shuffle
     logger.info('Shuffling documents...')
     all_documents = [x for x in all_documents if x]
@@ -119,7 +127,7 @@ def process(input_file, tokenizer, rng, args):
     do_whole_word_masking = PRETRAINED_MODELS[args.model_class]['do_whole_word_masking']
     for _ in range(args.dupe_factor):
         for document_index in trange(len(all_documents), desc='Generating training instances'):
-            new_instances = create_instances_from_document(
+            instances.extend(create_instances_from_document(
                     all_documents,
                     document_index,
                     args.max_seq_length,
@@ -128,8 +136,7 @@ def process(input_file, tokenizer, rng, args):
                     args.max_predictions_per_seq,
                     vocab_words,
                     rng,
-                    do_whole_word_masking)
-            instances.extend(new_instances)
+                    do_whole_word_masking))
     all_documents = None # free memory
     num_instances = len(instances)
     logger.info(f'Collected a total of {num_instances:,} training instances')
@@ -146,18 +153,19 @@ def process(input_file, tokenizer, rng, args):
         os.makedirs(output_folder)
     input_file_name = os.path.basename(input_file)
     output_file = os.path.join(output_folder, f'{input_file_name}.tfrecords')
+    logger.info(f'Writing to {output_file}...')
     write_instance_to_example_files(instances, tokenizer, args.max_seq_length, args.max_predictions_per_seq, [output_file], args.gzipped)
     return num_documents, num_instances, _type
 
 def parse_args():
     parser = ArgParseDefault()
-    parser.add_argument('--run_name', default='run_2020_04_27-10-42_1587976935', help='Run name to create tf record files for. Run folder has to be located under \
+    parser.add_argument('--run_name', required=True, help='Run name to create tf record files for. Run folder has to be located under \
             data/pretrain/{run_name}/preprocessed/ and must contain one or multiple txt files. May also contain train and dev subfolders with txt files.')
     parser.add_argument('--max_seq_length', default=96, type=int, help='Maximum sequence length')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
     parser.add_argument('--dupe_factor', default=10, type=int, help='Number of times to duplicate the input data (with different masks).')
     parser.add_argument('--short_seq_prob', default=0.1, type=float, help='Probability of creating sequences which are shorter than the maximum length.')
-    parser.add_argument('--max_predictions_per_seq', default=20, type=int, help='Maximum number of masked LM predictions per sequence.')
+    parser.add_argument('--max_predictions_per_seq', default=14, type=int, help='Maximum number of masked LM predictions per sequence.')
     parser.add_argument('--random_seed', default=42, type=int, help='Random seed')
     parser.add_argument('--masked_lm_prob', default=0.15, type=float, help='Masked LM probabibility')
     parser.add_argument('--gzipped', action='store_true', default=False, help='Create gzipped tfrecords files')
