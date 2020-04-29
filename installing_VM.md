@@ -29,7 +29,7 @@ Answer “yes” to the last question and close and reopen connection.
 ## Auto restart Conda environment (optional)
 > echo "conda activate python36" >> ~/.bashrc
 
-close and reopen connection.
+Close and reopen connection.
 
 ## Update environment
 > cd covid-bert
