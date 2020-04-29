@@ -4,7 +4,7 @@ TPU_IP=10.83.194.58
 
 NUM_EPOCHS=10
 
-PRETRAIN_RUN=pretrained/run_2020-04-28_22-28-41_891046_wwm_v1
+PRETRAIN_RUN=run_2020-04-28_22-28-41_891046_wwm_v1/pretrained
 
 
 INIT_CHECKPOINT=bert_model_step_25000.ckpt-1
@@ -31,12 +31,12 @@ MODEL_CLASS=bert_large_uncased_wwm
 
 
 for i in {1..5}
+do
+  for FINETUNE_DATASET in maternal_vaccine_stance_lshtm covid_worry covid_category twitter_sentiment_semeval vaccine_sentiment_epfl SST-2
   do
-    for FINETUNE_DATASET in maternal_vaccine_stance_lshtm covid_worry covid_category twitter_sentiment_semeval vaccine_sentiment_epfl SST-2
-      do
-        python run_finetune.py --run_prefix eval_wwm_v1 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index INIT_CHECKPOINT_INDEX --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT}
-      done
+    python run_finetune.py --run_prefix eval_wwm_v1 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index $INIT_CHECKPOINT_INDEX --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT}
   done
+done
 
 # --finetune_data FINETUNE_DATA
 #                       Finetune data folder sub path. Path has to be in gs://
