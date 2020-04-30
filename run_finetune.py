@@ -328,7 +328,7 @@ def parse_args():
                     subfolder gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}/tfrecords/')
     parser.add_argument('--tpu_ip', required=False, help='IP-address of the TPU')
     parser.add_argument('--preemptible_tpu', default=False, action='store_true', required=False, help='Dynamically create preemptible TPU (this requires you to have glcoud installed with suitable permissions)')
-    parser.add_argument('--preemptible_tpu_zone', default='europe-west4-a', type=str, required=False, help='Preemptible TPU zone (only if --preemptible_tpu flag is provided)')
+    parser.add_argument('--preemptible_tpu_zone', default='us-central1-f', type=str, required=False, help='Preemptible TPU zone (only if --preemptible_tpu flag is provided)')
     parser.add_argument('--preemptible_tpu_name', default=None, type=str, required=False, help='Preemptible TPU name (only if --preemptible_tpu flag is provided)')
     parser.add_argument('--run_prefix', help='Prefix to be added to all runs. Useful to group runs')
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
