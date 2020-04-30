@@ -49,6 +49,9 @@ def get_dataset_fn(args, _type='train'):
             per_replica_batch_size,
             is_training=is_training,
             input_pipeline_context=ctx)
+        if _type == 'dev':
+            # added here so that eval_steps can be arbitraily large
+            dataset = dataset.repeat()
         return dataset
     return _dataset_fn
 

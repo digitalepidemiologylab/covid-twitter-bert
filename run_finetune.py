@@ -18,7 +18,7 @@ import logging
 import tqdm
 import json
 import tensorflow as tf
-from utils.misc import ArgParseDefault, save_to_json, add_bool_arg
+from utils.misc import ArgParseDefault, save_to_json, add_bool_arg, create_tpu, destroy_tpu
 from utils.finetune_helpers import Metrics
 from config import PRETRAINED_MODELS
 
@@ -296,6 +296,14 @@ def set_mixed_precision_policy(args):
 def main(args):
     # Get distribution strategy
     if args.use_tpu:
+        if args.tpu_ip is None:
+            if not args.preemptible_tpu:
+                raise ValueError(f'Either specifiy a TPU IP with the --tpu_ip argument or provide the --preemptible_tpu flag')
+
+            if args.preemptible_tpu_name is None:
+                ts = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S_%f')
+                args.preemptible_tpu_name = f'auto_preempt_{ts}'
+            args.tpu_ip = create_tpu(args.preemptible_tpu_name, args.preemptible_tpu_zone)
         logger.info(f'Intializing TPU on address {args.tpu_ip}...')
         tpu_address = f'grpc://{args.tpu_ip}:8470'
         strategy = distribution_utils.get_distribution_strategy(distribution_strategy='tpu', tpu_address=tpu_address, num_gpus=args.num_gpus)
@@ -307,6 +315,9 @@ def main(args):
     for repeat in range(args.repeats):
         with strategy.scope():
             run(args)
+    if args.preemptible_tpu:
+        logger.info(f'Destroying preemptible TPU in zone {args.preemptible_tpu_zone} with name {args.preemptible_tpu_name}')
+        destroy_tpu(args.preemptible_tpu_name, args.preemptible_tpu_zone)
 
 def parse_args():
     # Parse commandline
@@ -315,7 +326,10 @@ def parse_args():
                     This folder includes a meta.json (containing meta info about the dataset), and a file label_mapping.json. \
                     TFrecord files (train.tfrecords and dev.tfrecords) should be located in a \
                     subfolder gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}/tfrecords/')
-    parser.add_argument('--tpu_ip', required=True, help='IP-address of the TPU')
+    parser.add_argument('--tpu_ip', required=False, help='IP-address of the TPU')
+    parser.add_argument('--preemptible_tpu', default=False, action='store_true', required=False, help='Dynamically create preemptible TPU (this requires you to have glcoud installed with suitable permissions)')
+    parser.add_argument('--preemptible_tpu_zone', default='europe-west4-a', type=str, required=False, help='Preemptible TPU zone (only if --preemptible_tpu flag is provided)')
+    parser.add_argument('--preemptible_tpu_name', default=None, type=str, required=False, help='Preemptible TPU name (only if --preemptible_tpu flag is provided)')
     parser.add_argument('--run_prefix', help='Prefix to be added to all runs. Useful to group runs')
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')

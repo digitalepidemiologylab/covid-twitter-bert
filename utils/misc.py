@@ -35,46 +35,36 @@ def add_bool_arg(parser, name, default=False, help=''):
     parser.set_defaults(**{name: default})
 
 def out(command):
+    """Run shell command"""
     result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
     return result
 
-def create_TPU(tpu_name, zone):
-    #Allocate a preemptible TPU
-    print(f"Starting to create a TPU in zone {zone} called \'{tpu_name}\'")
-    result = out(f"gcloud compute tpus create {tpu_name} --preemptible --zone={zone} --accelerator-type=v2-8 --version=nightly")
-
+def create_tpu(tpu_name, zone, tpu_type='v2-8'):
+    # Allocate a preemptible TPU
+    logger.info(f"Creating TPU of type {tpu_type} in zone {zone} called \'{tpu_name}\'")
+    result = out(f"gcloud compute tpus create {tpu_name} --preemptible --zone={zone} --accelerator-type={tpu_type} --version=nightly")
     if result.returncode == 1:
-        print(f"Failed creating the TPU with the message: {result}")
+        logger.info(f"Failed creating the TPU with the message: {result}")
         return False
     else:
-        print(f"Successfully created a new TPU called \'{tpu_name}\'")
-
-    #List ip address for TPU name
-    result = out(f"gcloud compute tpus describe {tpu_name} --zone=us-central1-f --format='get(ipAddress)'")
-
+        logger.info(f"Successfully created a new TPU called \'{tpu_name}\'")
+    # List ip address for TPU name
+    result = out(f"gcloud compute tpus describe {tpu_name} --zone={zone} --format='get(ipAddress)'")
     if result.returncode == 1:
-        print(f"Something went wrong when looking up the IP of the TPU. Following error was returned: {result.stderr}")
+        logger.info(f"Something went wrong when looking up the IP of the TPU. Following error was returned: {result.stderr}")
         return False
     else:
         tpu_ip = result.stdout
-        print(f"TPU ipAddress is {tpu_ip}")
+        logger.info(f"TPU ipAddress is {tpu_ip}")
     
     return tpu_ip
 
-def destroy_TPU(tpu_name):
-
-    #Destroy the TPU
-    print(f"Attempting to destroy TPU named {tpu_name}")
+def destroy_tpu(tpu_name, zone):
+    # Destroy the TPU
+    logger.info(f"Attempting to destroy TPU named {tpu_name}")
     result = out(f"gcloud compute tpus delete {tpu_name} --zone={zone} --quiet")
-
     if result.returncode == 1:
-        print(f"Something went wrong when trying to destroy the TPU. Following error was returned: {result.stderr}")
+        logger.info(f"Something went wrong when trying to destroy the TPU. Following error was returned: {result.stderr}")
         return False
     else:
-        print(f"The TPU called \'{tpu_name}\' is now destroyed")
-    
-
-
-
-
-
+        logger.info(f"The TPU called \'{tpu_name}\' is now destroyed")
