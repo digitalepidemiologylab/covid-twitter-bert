@@ -54,7 +54,7 @@ def create_tpu(tpu_name, zone, tpu_type='v2-8'):
         logger.info(f"Something went wrong when looking up the IP of the TPU. Following error was returned: {result.stderr}")
         return False
     else:
-        tpu_ip = result.stdout
+        tpu_ip = result.stdout.strip()
         logger.info(f"TPU ipAddress is {tpu_ip}")
     
     return tpu_ip
