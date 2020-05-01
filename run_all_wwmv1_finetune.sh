@@ -1,22 +1,13 @@
 #!/usr/bin/env sh
 
-TPU_IP=10.245.85.26
+#TPU_IP=10.245.85.26
 
-NUM_EPOCHS=5
+#NUM_EPOCHS=5
 PRETRAIN_RUN=run_2020-04-28_22-28-41_891046_wwm_v1/pretrained
 
 
-INIT_CHECKPOINT=bert_model_step_25000.ckpt-1
-INIT_CHECKPOINT_INDEX=1
-
-#INIT_CHECKPOINT=bert_model_step_50000.ckpt-2
-#INIT_CHECKPOINT_INDEX=2
-
-#INIT_CHECKPOINT=bert_model_step_75000.ckpt-3
-#INIT_CHECKPOINT_INDEX=3
-
-#INIT_CHECKPOINT=bert_model_step_100000.ckpt-4
-#INIT_CHECKPOINT_INDEX=4
+INIT_CHECKPOINT=bert_model_step_100000.ckpt-4
+INIT_CHECKPOINT_INDEX=4
 
 #INIT_CHECKPOINT=bert_model_step_125000.ckpt-5
 #INIT_CHECKPOINT_INDEX=5
@@ -33,11 +24,19 @@ MODEL_CLASS=bert_large_uncased_wwm
 # num_epochs_by_dataset=( ["maternal_vaccine_stance_lshtm"]=10 ["covid_worry"]=3 ["covid_category"]=3 ["twitter_sentiment_semeval"]=3 ["vaccine_sentiment_epfl"]=5 )
 
 
-for FINETUNE_DATASET in maternal_vaccine_stance_lshtm covid_worry covid_category twitter_sentiment_semeval vaccine_sentiment_epfl
-do
-  python run_finetune.py --run_prefix eval_wwm_v1 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 0
-  python run_finetune.py --run_prefix eval_wwm_v1 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index $INIT_CHECKPOINT_INDEX --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT}
-done
+#for FINETUNE_DATASET in maternal_vaccine_stance_lshtm covid_worry covid_category twitter_sentiment_semeval vaccine_sentiment_epfl
+  #python run_finetune.py --run_prefix eval_wwm_v1 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 0
+  python run_finetune.py --repeats 5 --run_prefix per_eval_wwm_v1 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/maternal_vaccine_stance --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --preemptible_tpu --preemptible_tpu_zone=us-central1-f  --num_epochs 10 --learning_rate $LR --init_checkpoint_index $INIT_CHECKPOINT_INDEX --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT}
+	
+  python run_finetune.py --repeats 5 --run_prefix per_eval_wwm_v1 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/covid_worry --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --preemptible_tpu --preemptible_tpu_zone=us-central1-f  --num_epochs 3 --learning_rate $LR --init_checkpoint_index $INIT_CHECKPOINT_INDEX --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT}
+
+  python run_finetune.py --repeats 5 --run_prefix per_eval_wwm_v1 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/covid_category --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --preemptible_tpu --preemptible_tpu_zone=us-central1-f  --num_epochs 3 --learning_rate $LR --init_checkpoint_index $INIT_CHECKPOINT_INDEX --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT}
+
+  python run_finetune.py --repeats 5 --run_prefix per_eval_wwm_v1 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/twitter-sentiment_semeval --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --preemptible_tpu --preemptible_tpu_zone=us-central1-f  --num_epochs 3 --learning_rate $LR --init_checkpoint_index $INIT_CHECKPOINT_INDEX --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT}
+
+  python run_finetune.py --repeats 5 --run_prefix per_eval_wwm_v1 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/vaccine_sentiment_epfl --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --preemptible_tpu --preemptible_tpu_zone=us-central1-f  --num_epochs 5 --learning_rate $LR --init_checkpoint_index $INIT_CHECKPOINT_INDEX --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT}
+
+
 
 # python run_finetune.py --run_prefix eval_wwm_v1 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/maternal_vaccine_stance_lshtm --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs 10 --learning_rate $LR --init_checkpoint_index $INIT_CHECKPOINT_INDEX --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT}
 #
