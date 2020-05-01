@@ -299,11 +299,12 @@ def main(args):
         if args.tpu_ip is None:
             if not args.preemptible_tpu:
                 raise ValueError(f'Either specifiy a TPU IP with the --tpu_ip argument or provide the --preemptible_tpu flag')
-
             if args.preemptible_tpu_name is None:
                 ts = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S_%f')
                 args.preemptible_tpu_name = f'auto_preempt_{ts}'
             args.tpu_ip = create_tpu(args.preemptible_tpu_name, args.preemptible_tpu_zone)
+            if not args.tpu_ip:
+                raise Exception('Failed to create TPU')
         logger.info(f'Intializing TPU on address {args.tpu_ip}...')
         tpu_address = f'grpc://{args.tpu_ip}:8470'
         strategy = distribution_utils.get_distribution_strategy(distribution_strategy='tpu', tpu_address=tpu_address, num_gpus=args.num_gpus)
