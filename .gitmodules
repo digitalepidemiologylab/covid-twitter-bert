@@ -3,4 +3,4 @@
 	url = https://github.com/tensorflow/models.git
 [submodule "tensorflow_models_tf21"]
 	path = tensorflow_models_tf21
-	url = git@github.com:digitalepidemiologylab/models.git
+	url = git@github.com:digitalepidemiologylab/tensorflow_models_tf21.git
