@@ -1,24 +1,24 @@
 #8!/bin/sh
 
-TPU_IP=10.143.216.242
+TPU_IP=10.14.157.122
 pretrain_data=run_2020_04_28-14-32-05-465580_wwm_v1
 
-python run_pretrain.py \
+python run_pretrain_tf21.py \
   --pretrain_data $pretrain_data \
-  --run_prefix wwm_v2 \
+  --run_prefix run_test \
   --do_eval \
   --eval_steps 1000 \
   --model_class bert_large_uncased_wwm \
   --max_seq_length 96 \
   --max_predictions_per_seq 14 \
-  --num_epochs 20 \
+  --num_epochs 1 \
   --learning_rate 2e-5 \
   --end_lr 2e-5 \
-  --num_steps_per_epoch 25000 \
+  --num_steps_per_epoch 1000 \
   --train_batch_size 1024 \
   --eval_batch_size 1024 \
   --tpu_ip $TPU_IP \
-  --steps_per_loop 1000
+  --steps_per_loop 100
 
 # optional arguments:
 #   -h, --help            show this help message and exit
