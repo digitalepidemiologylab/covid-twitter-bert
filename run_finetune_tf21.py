@@ -156,7 +156,7 @@ def run(args):
         steps_per_epoch = args.limit_train_steps
     warmup_steps = int(args.num_epochs * train_data_size * args.warmup_proportion/ args.train_batch_size)
     if args.limit_eval_steps is None:
-        eval_steps = int(math.ceil(input_meta_data['eval_data_size'] / args.eval_batch_size))
+        eval_steps = int(input_meta_data['eval_data_size'] / args.eval_batch_size)
     else:
         eval_steps = args.limit_eval_steps
 
