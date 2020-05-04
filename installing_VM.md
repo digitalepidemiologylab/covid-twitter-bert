@@ -10,7 +10,10 @@ In the following document the ip to the newly created VM with Ubuntu is set to 1
 > ssh-keygen -t rsa -C "me@me.com"
 
 
+
 ## Clone
+To be able to commit changes, add the public key to the git repository
+
 > git clone git@github.com:digitalepidemiologylab/covid-bert.git
 
 > cd covid-bert
