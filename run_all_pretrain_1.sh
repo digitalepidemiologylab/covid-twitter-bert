@@ -1,4 +1,4 @@
-#8!/bin/sh
+#!/bin/sh
 
 TPU_IP=10.14.157.122
 pretrain_data=run_2020_04_28-14-32-05-465580_wwm_v1
