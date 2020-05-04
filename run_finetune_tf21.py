@@ -301,7 +301,7 @@ def main(args):
             if args.preemptible_tpu_name is None:
                 ts = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S_%f')
                 args.preemptible_tpu_name = f'auto_preempt_{ts}'
-            args.tpu_ip = create_tpu(args.preemptible_tpu_name, args.preemptible_tpu_zone)
+            args.tpu_ip = create_tpu(args.preemptible_tpu_name, args.preemptible_tpu_zone, tpu_type='v2-8', version=args.preemptible_tpu_version)
             if not args.tpu_ip:
                 raise Exception('Failed to create TPU')
         logger.info(f'Intializing TPU on address {args.tpu_ip}...')
@@ -330,6 +330,7 @@ def parse_args():
     parser.add_argument('--preemptible_tpu', default=False, action='store_true', required=False, help='Dynamically create preemptible TPU (this requires you to have glcoud installed with suitable permissions)')
     parser.add_argument('--preemptible_tpu_zone', default='us-central1-f', type=str, required=False, help='Preemptible TPU zone (only if --preemptible_tpu flag is provided)')
     parser.add_argument('--preemptible_tpu_name', default=None, type=str, required=False, help='Preemptible TPU name (only if --preemptible_tpu flag is provided)')
+    parser.add_argument('--preemptible_tpu_version', default='2.1', choices=['nightly', '2.1'], type=str, required=False, help='Preemptible TPU version (only if --preemptible_tpu flag is provided)')
     parser.add_argument('--run_prefix', help='Prefix to be added to all runs. Useful to group runs')
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
