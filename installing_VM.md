@@ -24,17 +24,17 @@ In the following document the ip to the newly created VM with Ubuntu is set to 1
 
 Answer “yes” to the last question and close and reopen connection.
 
-> conda create -n python36 python=3.6
+> conda create -n covid-bert-tf21 python=3.6
 
 ## Auto restart Conda environment (optional)
-> echo "conda activate python36" >> ~/.bashrc
+> echo "conda activate covid-bert-tf21" >> ~/.bashrc
 
 Close and reopen connection.
 
 ## Update environment
 > cd covid-bert
 
-> pip install -r requirements.txt
+> pip install -r requirements_tf21.txt
 
 ## Set login credentials Gcloud
 > gcloud auth login
