@@ -46,7 +46,3 @@ Close and reopen connection.
 
 Open browser: http://localhost:8881. An alternative way of doing this is through the Google Console, and connect to the model-dirs in the bucket
 
-## Update tf-nightly 
-In this software we are running tf-nightly. In the future tensorflow 2.2 will most likely work. When using tf-nightly it is important that the VM and the TPUs are running the same versions. This command updates to latest version of tf-nighly on the VMs
-
-> pip install tf-nightly --upgrade
