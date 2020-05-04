@@ -39,10 +39,10 @@ def out(command):
     result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
     return result
 
-def create_tpu(tpu_name, zone, tpu_type='v2-8'):
+def create_tpu(tpu_name, zone, tpu_type='v2-8', version='2.1'):
     # Allocate a preemptible TPU
     logger.info(f"Creating TPU of type {tpu_type} in zone {zone} called \'{tpu_name}\'")
-    result = out(f"gcloud compute tpus create {tpu_name} --preemptible --zone={zone} --accelerator-type={tpu_type} --version=nightly")
+    result = out(f"gcloud compute tpus create {tpu_name} --preemptible --zone={zone} --accelerator-type={tpu_type} --version={version}")
     if result.returncode == 1:
         logger.info(f"Failed creating the TPU with the message: {result}")
         return False
