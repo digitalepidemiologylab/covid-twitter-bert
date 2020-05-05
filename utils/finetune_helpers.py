@@ -11,19 +11,21 @@ logger = logging.getLogger(__name__)
 class Metrics(tf.keras.callbacks.Callback):
     """Metrics to compute as a callback"""
 
-    def __init__(self, eval_data_fn, label_mapping, logdir):
+    def __init__(self, eval_data_fn, label_mapping, logdir, eval_steps, eval_batch_size):
         super().__init__()
         self.eval_data = eval_data_fn()
         self.label_mapping = label_mapping
         self.scores = []
         self.predictions = []
         self.logdir = logdir
+        self.eval_steps = eval_steps
+        self.eval_batch_size = eval_batch_size
 
     def on_epoch_end(self, epoch, logs):
         logger.info('Computing metrics on validation set...')
         t_s = time.time()
         y_true = np.concatenate([label.numpy() for _, label in self.eval_data])
-        preds = self.model.predict(self.eval_data)
+        preds = self.model.predict(self.eval_data, steps=self.eval_steps, batch_size=self.eval_batch_size)
         y_pred = tf.argmax(preds, axis=1).numpy()
         scores = self.performance_metrics(y_true, y_pred, label_mapping=self.label_mapping)
         # add to summary writer

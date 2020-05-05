@@ -11,3 +11,4 @@ google-cloud-storage
 spacy
 emoji
 unidecode
+cloud-tpu-client

@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 
-TPU_IP=10.14.157.122
+TPU_IP=10.247.78.106
 
-NUM_EPOCHS=5
+NUM_EPOCHS=1
 PRETRAIN_RUN=run_2020-04-29_11-14-08_711153_wwm_v2/pretrained
 
 
@@ -30,11 +30,16 @@ EVAL_BATCH_SIZE=8
 FINETUNE_DATA=run_2020-04-29_22-20-35_981382
 MODEL_CLASS=bert_large_uncased_wwm
 
-for FINETUNE_DATASET in maternal_vaccine_stance_lshtm covid_worry covid_category twitter_sentiment_semeval vaccine_sentiment_epfl
+for FINETUNE_DATASET in maternal_vaccine_stance_lshtm
 do
-  python run_finetune_tf21.py --run_prefix eval_wwm_v3 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 0
-  python run_finetune_tf21.py --run_prefix eval_wwm_v3 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index $INIT_CHECKPOINT_INDEX --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT}
+  python run_finetune.py --run_prefix test_run --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 0
 done
+
+# for FINETUNE_DATASET in maternal_vaccine_stance_lshtm covid_worry covid_category twitter_sentiment_semeval vaccine_sentiment_epfl
+# do
+#   python run_finetune_tf21.py --run_prefix eval_wwm_v3 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 0
+#   python run_finetune_tf21.py --run_prefix eval_wwm_v3 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --tpu_ip $TPU_IP  --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index $INIT_CHECKPOINT_INDEX --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT}
+# done
 
 # --finetune_data FINETUNE_DATA
 #                       Finetune data folder sub path. Path has to be in gs://

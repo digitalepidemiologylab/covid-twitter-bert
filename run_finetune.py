@@ -221,7 +221,12 @@ def run(args):
         is_training=False)
 
     # Add mertrics callback to calculate performance metrics at the end of epoch
-    performance_metrics_callback = Metrics(eval_input_fn, label_mapping, os.path.join(summary_dir, 'metrics'))
+    performance_metrics_callback = Metrics(
+            eval_input_fn,
+            label_mapping,
+            os.path.join(summary_dir, 'metrics'),
+            eval_steps,
+            args.eval_batch_size)
     custom_callbacks.append(performance_metrics_callback)
 
     # Run keras fit
