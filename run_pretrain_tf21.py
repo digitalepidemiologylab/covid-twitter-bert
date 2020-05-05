@@ -10,6 +10,7 @@ from official.nlp import optimization
 from official.utils.misc import keras_utils
 
 import os
+import time
 import datetime
 import argparse
 import logging
@@ -17,7 +18,7 @@ import tqdm
 import json
 import tensorflow as tf
 from config import PRETRAINED_MODELS
-from utils.misc import ArgParseDefault, add_bool_arg
+from utils.misc import ArgParseDefault, add_bool_arg, save_to_json
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
 logger = logging.getLogger(__name__)
@@ -153,6 +154,7 @@ def run(args, strategy):
 
     # run training loop
     logger.info(f'Run training for {args.num_epochs:,} epochs, {args.num_steps_per_epoch:,} steps each, processing {args.num_epochs*args.num_steps_per_epoch*args.train_batch_size:,} training examples in total...')
+    time_start = time.time()
     model_training_utils.run_customized_training_loop(
         strategy=strategy,
         model_fn=_get_pretrained_model,
@@ -173,6 +175,23 @@ def run(args, strategy):
         explicit_allreduce=False,
         pre_allreduce_callbacks=None,
         post_allreduce_callbacks=None)
+    time_end = time.time()
+    training_time_min = (time_end-time_start)/60
+    logger.info(f'Finished training after {training_time_min:.1f} min')
+    data = {
+            'created_at': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'run_name': run_name,
+            'num_train_steps': args.num_steps_per_epoch * args.num_epochs,
+            'eval_steps': eval_steps,
+            'model_dir': output_dir,
+            'training_time_min': training_time_min,
+            'output_dir': output_dir,
+            **vars(args),
+            }
+    # Write to run directory
+    f_path_training_log = os.path.join(output_dir, 'run_logs.json')
+    logger.info(f'Writing training log to {f_path_training_log}...')
+    save_to_json(data, f_path_training_log)
 
 def main(args):
     # Get distribution strategy
