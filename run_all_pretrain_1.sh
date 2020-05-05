@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TPU_IP=10.14.157.122
+TPU_IP=10.245.35.20
 pretrain_data=run_2020_04_28-14-32-05-465580_wwm_v1
 
 python run_pretrain_tf21.py \
