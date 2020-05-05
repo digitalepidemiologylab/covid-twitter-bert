@@ -5,6 +5,8 @@ pretrain_data=run_2020_04_28-14-32-05-465580_wwm_v1
 
 python run_pretrain_tf21.py \
   --pretrain_data $pretrain_data \
+  --tpu_name node-1 \
+  --tpu_name_project vacma-250010 \
   --run_prefix run_test \
   --do_eval \
   --eval_steps 1000 \

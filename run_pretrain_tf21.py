@@ -177,9 +177,18 @@ def run(args, strategy):
 def main(args):
     # Get distribution strategy
     if args.use_tpu:
-        logger.info(f'Intializing TPU on address {args.tpu_ip}...')
-        tpu_address = f'grpc://{args.tpu_ip}:8470'
-        strategy = distribution_utils.get_distribution_strategy(distribution_strategy='tpu', tpu_address=tpu_address, num_gpus=args.num_gpus)
+        if args.tpu_name is not None:
+            cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(
+                    tpu=args.tpu_name,
+                    zone='europe-west4-a',
+                    project=args.tpu_name_project)
+            tf.config.experimental_connect_to_cluster(cluster_resolver)
+            tf.tpu.experimental.initialize_tpu_system(cluster_resolver)
+            strategy = tf.distribute.experimental.TPUStrategy(cluster_resolver)
+        else:
+            logger.info(f'Intializing TPU on address {args.tpu_ip}...')
+            tpu_address = f'grpc://{args.tpu_ip}:8470'
+            strategy = distribution_utils.get_distribution_strategy(distribution_strategy='tpu', tpu_address=tpu_address, num_gpus=args.num_gpus)
     else:
         strategy = distribution_utils.get_distribution_strategy(distribution_strategy='mirrored', num_gpus=args.num_gpus)
     # set mixed precision
@@ -190,6 +199,8 @@ def parse_args():
     # Parse commandline
     parser = ArgParseDefault()
     parser.add_argument('--tpu_ip', required=True, help='IP-address of the TPU')
+    parser.add_argument('--tpu_name', required=False, help='Name of the TPU')
+    parser.add_argument('--tpu_name_project', required=False, help='Name of the TPU project')
     parser.add_argument('--pretrain_data', required=True, type=str, help='Folder which contains pretrain data. Should be located under gs://{bucket_name}/{project_name}/pretrain/pretrain_data/')
     parser.add_argument('--run_prefix', help='Prefix to be added to all runs. Useful to group runs')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
