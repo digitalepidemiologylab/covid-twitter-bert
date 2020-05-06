@@ -15,6 +15,7 @@ import time
 import argparse
 import math
 import logging
+from logging.handlers import RotatingFileHandler
 import tqdm
 import json
 import tensorflow as tf
@@ -23,7 +24,10 @@ from utils.finetune_helpers import Metrics
 from config import PRETRAINED_MODELS
 
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
+logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s',
+        handlers=[RotatingFileHandler('logs/finetune.log', maxBytes=100000, backupCount=10)])
 logger = logging.getLogger(__name__)
 
 # remove duplicate logger (not sure why this is happening, possibly an issue with the imports)
