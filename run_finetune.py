@@ -24,15 +24,16 @@ from utils.finetune_helpers import Metrics
 from config import PRETRAINED_MODELS
 
 
-logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s',
-        handlers=[RotatingFileHandler('logs/finetune.log', maxBytes=100000, backupCount=10)])
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
 logger = logging.getLogger(__name__)
 
 # remove duplicate logger (not sure why this is happening, possibly an issue with the imports)
 tf_logger = tf.get_logger()
 tf_logger.handlers.pop()
+
+# add file logging
+handler = RotatingFileHandler("logs/finetune.log", maxBytes=2000, backupCount=10)
+logger.addHandler(handler)
 
 def get_model_config(config_path):
     config = bert_configs.BertConfig.from_json_file(config_path)

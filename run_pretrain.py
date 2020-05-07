@@ -21,15 +21,16 @@ import tensorflow as tf
 from config import PRETRAINED_MODELS
 from utils.misc import ArgParseDefault, add_bool_arg, save_to_json
 
-logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s',
-        handlers=[RotatingFileHandler('logs/pretrain.log', maxBytes=100000, backupCount=10)])
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
 logger = logging.getLogger(__name__)
 
 # remove duplicate logger (not sure why this is happening, possibly an issue with the imports in tf/tf_hub)
 tf_logger = tf.get_logger()
 tf_logger.handlers.pop()
+
+# add file logging
+handler = RotatingFileHandler("logs/pretrain.log", maxBytes=2000, backupCount=10)
+logger.addHandler(handler)
 
 def get_model_config(config_path):
     config = bert_configs.BertConfig.from_json_file(config_path)
