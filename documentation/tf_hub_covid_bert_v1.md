@@ -39,6 +39,20 @@ bert_layer = hub.KerasLayer("https://tfhub.dev/<publisher>/covid-twitter-bert>/1
 pooled_output, sequence_output = bert_layer([input_word_ids, input_mask, segment_ids])
 ```
 
+From there you can create a classifier model the following way:
+```python
+num_labels = 3
+initializer = tf.keras.initializers.TruncatedNormal(stddev=0.2)
+output = tf.keras.layers.Dropout(rate=0.1)(pooled_output)
+output = tf.keras.layers.Dense(num_labels, kernel_initializer=initializer, name='output')(output)
+classifier_model = tf.keras.Model(
+  inputs={
+          'input_word_ids': input_word_ids,
+          'input_mask': input_mask,
+          'input_type_ids': input_type_ids}, 
+  outputs=output)
+```
+
 You can load the tokenizer the following way. The vocab is equivalent to the official bert-large-uncased vocab:
 ```python
 vocab_file = bert_layer.resolved_object.vocab_file.asset_path.numpy()
