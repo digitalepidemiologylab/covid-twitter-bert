@@ -103,8 +103,10 @@ def main(args):
         if not os.path.isdir(export_path):
             os.makedirs(export_path)
         vocab_path = os.path.join('vocabs', PRETRAINED_MODELS[args.model_class]['vocab_file'])
+        logger.info(f'Adding {vocab_path} as asset')
         core_model.vocab_file = tf.saved_model.Asset(vocab_path)
         core_model.do_lower_case = tf.Variable(PRETRAINED_MODELS[args.model_class]['lower_case'], trainable=False)
+        logger.info(f'Saving SavedModel to {export_path}')
         core_model.save(export_path, include_optimizer=False, save_format="tf")
 
 def parse_args():
@@ -112,9 +114,7 @@ def parse_args():
     parser = ArgParseDefault()
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
-    parser.add_argument('--init_checkpoint', default=None, help='Path to checkpoint')
-    # parser.add_argument('--init_checkpoint', default='run_2020-04-29_11-14-08_711153_wwm_v2/pretrained/bert_model.ckpt-21', help='Path to checkpoint')
-    # parser.add_argument('--init_checkpoint', default='run_2020-04-29_11-14-08_711153_wwm_v2/ctl_step_150000.ckpt-6', help='Path to checkpoint')
+    parser.add_argument('--init_checkpoint', default='run_2020-04-29_11-14-08_711153_wwm_v2/pretrained/bert_model.ckpt-21', help='Path to checkpoint')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--output', default=['tf_hub', 'huggingface'], choices=['tf_hub', 'huggingface'], nargs='+', help='Name of subfolder in Google bucket')
     args = parser.parse_args()
