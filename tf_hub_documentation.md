@@ -1,7 +1,7 @@
 # Module <publisher>/covid-twitter-bert//1
 BERT-large-uncased model, pretrained on a corpus of messages from Twitter about COVID-19
 
-<!-- asset-path: https://path/to/text-embedding-model/model.tar.gz -->
+<!-- asset-path: https://storage.cloud.google.com/cb-tpu-projects/releases/v1/twitter-covid-bert-v1.tar.gz -->
 <!-- module-type: text-embedding -->
 <!-- network-architecture: Transformer -->
 <!-- dataset: Twitter -->
