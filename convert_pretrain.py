@@ -57,7 +57,7 @@ def main(args):
 
     # prepare keras model
     logger.info(f'Building model')
-    _, core_model = create_bert_model(model_config)
+    core_model, encoder = create_bert_model(model_config)
 
     # restore checkpoint
     if args.init_checkpoint:
@@ -68,7 +68,7 @@ def main(args):
         checkpoint_path = os.path.join(pretrained_model_path, 'bert_model.ckpt')
 
     logger.info(f'Restoring checkpoint from {checkpoint_path}')
-    checkpoint = tf.train.Checkpoint(model=core_model)
+    checkpoint = tf.train.Checkpoint(model=encoder)
     checkpoint.restore(checkpoint_path).assert_existing_objects_matched()
     logger.info(f'... sucessfully restored model')
 
