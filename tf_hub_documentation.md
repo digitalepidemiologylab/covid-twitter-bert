@@ -1,0 +1,41 @@
+# Module <publisher>/covid-twitter-bert//1
+BERT-large-uncased model, pretrained on a corpus of messages from Twitter about COVID-19
+
+<!-- asset-path: https://path/to/text-embedding-model/model.tar.gz -->
+<!-- module-type: text-embedding -->
+<!-- network-architecture: Transformer -->
+<!-- dataset: Twitter -->
+<!-- language: en -->
+<!-- fine-tunable: true -->
+<!-- format: saved_model_2 -->
+
+## Overview
+
+This model was trained on 160M tweets collected between January 12 and April 16, 2020 containing at least one of the keywords "wuhan", "ncov", "coronavirus", "covid", or "sars-cov-2". These tweets were filtered and preprocessed to reach a final sample of 22.5M tweets (containing 40.7M sentences and 633M tokens) which were used for training.
+
+This model was evaluated based on downstream classification tasks, but it could be used for any other NLP task which can leverage contextual embeddings. 
+
+In order to achieve best results, make sure to use the same text preprocessing as we did for pretraining. This involves replacing user mentions, urls and emojis. You can find a script on our projects [GitHub repo](https://github.com/digitalepidemiologylab/covid-bert).
+
+
+#### Example use
+The saved model can be loaded directly:
+
+```
+max_seq_length = 128  # Your choice here.
+input_word_ids = tf.keras.layers.Input(shape=(max_seq_length,), dtype=tf.int32, name="input_word_ids")
+input_mask = tf.keras.layers.Input(shape=(max_seq_length,), dtype=tf.int32, name="input_mask")
+segment_ids = tf.keras.layers.Input(shape=(max_seq_length,), dtype=tf.int32, name="segment_ids")
+bert_layer = hub.KerasLayer("https://tfhub.dev/tensorflow/bert_en_wwm_uncased_L-24_H-1024_A-16/2", trainable=True)
+pooled_output, sequence_output = bert_layer([input_word_ids, input_mask, segment_ids])
+```
+
+You can load the tokenizer the following way. The vocab is equivalent to the official bert-large-uncased vocab:
+```
+vocab_file = bert_layer.resolved_object.vocab_file.asset_path.numpy()
+do_lower_case = bert_layer.resolved_object.do_lower_case.numpy()
+tokenizer = tokenization.FullTokenizer(vocab_file, do_lower_case)
+```
+
+#### References
+[1] (to be added)
