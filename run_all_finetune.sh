@@ -7,6 +7,8 @@ EVAL_BATCH_SIZE=8
 FINETUNE_DATA=run_2020-04-29_22-20-35_981382
 MODEL_CLASS=bert_large_uncased_wwm
 NUM_REPEATS=5
+BUCKET_NAME=cb-tpu-projects
+RUN_PREFIX=eval_wwm_v4
 
 declare -A num_epochs_by_dataset
 num_epochs_by_dataset=( ["maternal_vaccine_stance_lshtm"]=10 ["covid_worry"]=3 ["covid_category"]=3 ["twitter_sentiment_semeval"]=3 ["vaccine_sentiment_epfl"]=5 ["SST-2"]=3 )
@@ -29,12 +31,12 @@ do
   NUM_EPOCHS=${num_epochs_by_dataset[$FINETUNE_DATASET]}
   for i in $(seq 1 $NUM_REPEATS)
   do
-    python run_finetune_tf21.py --run_prefix eval_wwm_v4 --bucket_name cb-tpu-projects-us --tpu_ip $TPU_1 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 0 &
-    python run_finetune_tf21.py --run_prefix eval_wwm_v4 --bucket_name cb-tpu-projects-us --tpu_ip $TPU_2 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 4 --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT_04} &
-    python run_finetune_tf21.py --run_prefix eval_wwm_v4 --bucket_name cb-tpu-projects-us --tpu_ip $TPU_3 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 8 --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT_08} &
-    python run_finetune_tf21.py --run_prefix eval_wwm_v4 --bucket_name cb-tpu-projects-us --tpu_ip $TPU_4 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 12 --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT_12} &
-    python run_finetune_tf21.py --run_prefix eval_wwm_v4 --bucket_name cb-tpu-projects-us --tpu_ip $TPU_5 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 16 --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT_16} &
-    python run_finetune_tf21.py --run_prefix eval_wwm_v4 --bucket_name cb-tpu-projects-us --tpu_ip $TPU_6 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 20 --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT_20} &
+    python run_finetune.py --run_prefix $RUN_PREFIX --bucket_name $BUCKET_NAME --tpu_ip $TPU_1 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 0 &
+    python run_finetune.py --run_prefix $RUN_PREFIX --bucket_name $BUCKET_NAME --tpu_ip $TPU_2 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 4 --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT_04} &
+    python run_finetune.py --run_prefix $RUN_PREFIX --bucket_name $BUCKET_NAME --tpu_ip $TPU_3 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 8 --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT_08} &
+    python run_finetune.py --run_prefix $RUN_PREFIX --bucket_name $BUCKET_NAME --tpu_ip $TPU_4 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 12 --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT_12} &
+    python run_finetune.py --run_prefix $RUN_PREFIX --bucket_name $BUCKET_NAME --tpu_ip $TPU_5 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 16 --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT_16} &
+    python run_finetune.py --run_prefix $RUN_PREFIX --bucket_name $BUCKET_NAME --tpu_ip $TPU_6 --model_class $MODEL_CLASS --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} --train_batch_size $TRAIN_BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --num_epochs $NUM_EPOCHS --learning_rate $LR --init_checkpoint_index 20 --init_checkpoint ${PRETRAIN_RUN}/${INIT_CHECKPOINT_20} &
     wait
   done
 done
