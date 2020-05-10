@@ -7,7 +7,7 @@ Pretrained BERT-large language model on Twitter data related to COVID-19.
 # Pretrained models
 | Version  | Training data | Model | Language | Download |
 | -------- | ------------- | ----- | -------- | -------- |
-| v1  | 22.5M tweets (633M tokens) | BERT-large-uncased | en | [TF2 Checkpoint]() \| [HuggingFace]() |
+| v1  | 22.5M tweets (633M tokens) | BERT-large-uncased | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) \| [HuggingFace](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/huggingface/covid-twitter-bert-v1.tar.gz) |
 
 # Usage
 
@@ -30,7 +30,7 @@ input_type_ids = tf.keras.layers.Input(
   shape=(max_seq_length,),
   dtype=tf.int32,
   name="input_type_ids")
-bert_layer = hub.KerasLayer("https://tfhub.dev/<publisher>/covid-twitter-bert>/1", trainable=True)
+bert_layer = hub.KerasLayer("https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1", trainable=True)
 pooled_output, sequence_output = bert_layer([input_word_ids, input_mask, input_type_ids])
 # create classifier model
 num_labels = 3
