@@ -1,7 +1,7 @@
-# Module publisher/covid-twitter-bert/1
+# Module digitalepidemiologylab/covid-twitter-bert/1
 BERT-large-uncased model, pretrained on a corpus of messages from Twitter about COVID-19
 
-<!-- asset-path: https://storage.cloud.google.com/cb-tpu-projects/releases/v1/twitter-covid-bert-v1.tar.gz -->
+<!-- asset-path: https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/tfhub/covid-twitter-bert-v1.tar.gz -->
 <!-- module-type: text-embedding -->
 <!-- network-architecture: Transformer -->
 <!-- dataset: Twitter -->
@@ -15,10 +15,10 @@ This model was trained on 160M tweets collected between January 12 and April 16,
 
 This model was evaluated based on downstream classification tasks, but it could be used for any other NLP task which can leverage contextual embeddings. 
 
-In order to achieve best results, make sure to use the same text preprocessing as we did for pretraining. This involves replacing user mentions, urls and emojis. You can find a script on our projects [GitHub repo](https://github.com/digitalepidemiologylab/covid-bert).
+In order to achieve best results, make sure to use the same text preprocessing as we did for pretraining. This involves replacing user mentions, urls and emojis. You can find a script on our projects [GitHub repo](https://github.com/digitalepidemiologylab/covid-twitter-bert).
 
 
-#### Example use
+## Example use
 The saved model can be loaded directly:
 
 ```python
@@ -60,5 +60,5 @@ do_lower_case = bert_layer.resolved_object.do_lower_case.numpy()
 tokenizer = tokenization.FullTokenizer(vocab_file, do_lower_case)
 ```
 
-#### References
+## References
 [1] (to be added)
