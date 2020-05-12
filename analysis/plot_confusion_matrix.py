@@ -2,7 +2,7 @@ import os
 import logging
 import sklearn.metrics
 import pandas as pd
-from utils.analysis_helpers import get_train_logs, save_fig, plot
+from utils.analysis_helpers import get_run_logs, save_fig, plot
 import seaborn as sns
 import matplotlib.pyplot as plt
 import sys; sys.path.append('..')
@@ -16,8 +16,7 @@ logger = logging.getLogger(__name__)
 @plot
 def main(args):
     raise NotImplementedError
-    df = get_train_logs()
-    df = df[df['run_name'] == args.run_name]
+    df = get_run_logs(pattern=args.run_name)
     # label_mapping = get_label_mapping(f_path)
     # labels = list(label_mapping.keys())
     cnf_matrix = sklearn.metrics.confusion_matrix(df.label, df.prediction)

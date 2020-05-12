@@ -1,11 +1,13 @@
 import matplotlib.colors
 import matplotlib.cm
 import matplotlib.pyplot as plt
+import json
 import os
 from functools import wraps
 from matplotlib.ticker import FormatStrFormatter
 import matplotlib.dates as mdates
 import logging
+import glob
 import pandas as pd
 
 
@@ -24,9 +26,15 @@ def add_colorbar(fig, ax, label='sentiment', cmap='RdYlBu', vmin=-1, vmax=1, x=0
     cbar.set_label(label)
     cbar.outline.set_visible(False)
 
-def get_train_logs():
-    f_path = os.path.join(find_project_root(), 'traininglog.csv')
-    return pd.read_csv(f_path)
+def get_run_logs(pattern=None, run_type='finetune', bucket_name='cb-tpu-projects', project_name='covid-bert'):
+    f_names = glob.glob(os.path.join(find_project_root(), 'data', bucket_name, project_name, run_type, '*', 'run_logs.json'))
+    df = []
+    for f_name in f_names:
+        if pattern is None or pattern in f_name.split('/')[-2]:
+            with open(f_name, 'r') as f:
+                df.append(json.load(f))
+    df = pd.DataFrame(df)
+    return df
 
 def find_project_root():
     return os.path.abspath(os.path.join(os.path.abspath(__file__), '..', '..', '..'))

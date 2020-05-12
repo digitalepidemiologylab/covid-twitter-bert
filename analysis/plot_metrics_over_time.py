@@ -1,7 +1,7 @@
 import os
 import logging
 import pandas as pd
-from utils.analysis_helpers import get_train_logs, save_fig, plot
+from utils.analysis_helpers import get_run_logs, save_fig, plot
 import seaborn as sns
 import matplotlib.pyplot as plt
 import sys; sys.path.append('..')
@@ -16,11 +16,8 @@ logger = logging.getLogger(__name__)
 
 @plot
 def main(args):
-    df = get_train_logs()
-    df = df[df.run_name.str.contains(args.run_prefix)]
-
+    df = get_run_logs(pattern=args.run_prefix)
     # transform to dict
-    df['all_scores'] = df.all_scores.apply(ast.literal_eval)
     _df = pd.DataFrame(df.all_scores.tolist(), index=df.index)
     score_cols = []
     for col in _df:
@@ -41,9 +38,9 @@ def main(args):
 def parse_args():
     # Parse commandline
     parser = ArgParseDefault()
-    parser.add_argument('--run_prefix', default='eval_wwm_v4', help='Prefix to plot heatmap')
+    parser.add_argument('--run_prefix', default='eval_wwm_v2', help='Prefix to plot heatmap')
     parser.add_argument('--metric', default='f1_macro', help='Metric to plot')
-    parser.add_argument('-v', '--version', type=int, default=8, help='Plot version')
+    parser.add_argument('-v', '--version', type=int, default=9, help='Plot version')
     args = parser.parse_args()
     return args
 
