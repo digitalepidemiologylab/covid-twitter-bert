@@ -157,6 +157,20 @@ def run(args, strategy):
         logdir=summary_dir)
     custom_callbacks = [time_history_callback]
 
+    # Save an initial version of the log file
+    data = {
+            'created_at': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'run_name': run_name,
+            'num_train_steps': args.num_steps_per_epoch * args.num_epochs,
+            'eval_steps': eval_steps,
+            'model_dir': output_dir,
+            'output_dir': output_dir,
+            **vars(args),
+            }
+    f_path_training_log = os.path.join(output_dir, 'run_logs.json')
+    logger.info(f'Writing training preliminary log to {f_path_training_log}...')
+    save_to_json(data, f_path_training_log)
+
     # run training loop
     logger.info(f'Run training for {args.num_epochs:,} epochs, {args.num_steps_per_epoch:,} steps each, processing {args.num_epochs*args.num_steps_per_epoch*args.train_batch_size:,} training examples in total...')
     time_start = time.time()
@@ -183,19 +197,9 @@ def run(args, strategy):
     time_end = time.time()
     training_time_min = (time_end-time_start)/60
     logger.info(f'Finished training after {training_time_min:.1f} min')
-    data = {
-            'created_at': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'run_name': run_name,
-            'num_train_steps': args.num_steps_per_epoch * args.num_epochs,
-            'eval_steps': eval_steps,
-            'model_dir': output_dir,
-            'training_time_min': training_time_min,
-            'output_dir': output_dir,
-            **vars(args),
-            }
     # Write to run directory
-    f_path_training_log = os.path.join(output_dir, 'run_logs.json')
-    logger.info(f'Writing training log to {f_path_training_log}...')
+    data['training_time_min'] = training_time_min
+    logger.info(f'Writing final log to {f_path_training_log}...')
     save_to_json(data, f_path_training_log)
 
 def main(args):

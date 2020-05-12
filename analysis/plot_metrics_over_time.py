@@ -8,6 +8,7 @@ import sys; sys.path.append('..')
 from utils.misc import ArgParseDefault
 from matplotlib.ticker import MaxNLocator
 import ast
+import numpy as np
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
 logger = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ def main(args):
     score_cols = []
     for col in _df:
         score_col = int(col)
-        df[score_col] = _df[col].apply(lambda s: s[args.metric])
+        df[score_col] = _df[col].apply(lambda s: s[args.metric] if args.metric in s else np.nan)
         score_cols.append(score_col)
     df = df[score_cols + ['finetune_data', 'init_checkpoint_index']]
     df = df.groupby(['finetune_data', 'init_checkpoint_index']).mean().reset_index()
@@ -40,9 +41,9 @@ def main(args):
 def parse_args():
     # Parse commandline
     parser = ArgParseDefault()
-    parser.add_argument('--run_prefix', default='v1', help='Prefix to plot heatmap')
+    parser.add_argument('--run_prefix', default='eval_wwm_v4', help='Prefix to plot heatmap')
     parser.add_argument('--metric', default='f1_macro', help='Metric to plot')
-    parser.add_argument('-v', '--version', type=int, default=4, help='Plot version')
+    parser.add_argument('-v', '--version', type=int, default=8, help='Plot version')
     args = parser.parse_args()
     return args
 
