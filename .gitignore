@@ -130,3 +130,9 @@ dmypy.json
 
 traininglog.csv
 analysis/plots
+
+# latex
+*.aux
+*.fdb_latexmk
+*.fls
+*.xdv

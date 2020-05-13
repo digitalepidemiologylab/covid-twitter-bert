@@ -1,0 +1,67 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{array}
+\usepackage{tikz}
+\title{tables}
+\date{May 2020}
+\begin{document}
+\maketitle
+\section{Tables}
+\begin{table}[]
+  \def\arraystretch{1.4} % vertical stretch factor
+  \centering
+  \begin{tabular}{lcrrrp{10mm}}
+  \toprule
+    Dataset                               & Classes & Train       & Dev    & \multicolumn{1}{c}{Labels} \\
+    \midrule
+    COVID-19 Category (CC)                & 2       & \num{3094}  & 1031 &
+    \begin{tikzpicture}[baseline=-10]
+      \draw (0,0) rectangle (1.67,-0.5) node[midway] {Personal};
+      \draw (1.67,0) rectangle (5,-0.5) node[midway] {News} ;
+    \end{tikzpicture}   \\
+    Vaccine Sentiment (VC)                & 3       & \num{5000}  & 3000 &
+    \begin{tikzpicture}[baseline=-10]
+      \draw (0,0) rectangle (0.356,-0.5) node[midway] {N};
+      \draw (0.356,0) rectangle (2.952,-0.5) node[midway] {Neutral} ;
+      \draw (2.952,0) rectangle (5,-0.5) node[midway] {Positive} ;
+    \end{tikzpicture}   \\
+    Maternal Vaccine Stance (MVS)         & 4       & \num{1361}  & 817  &
+    \begin{tikzpicture}[baseline=-10]
+      \draw (0,0) rectangle (1.267,-0.5) node[midway] {Disc};
+      \draw (1.267,0) rectangle (1.982,-0.5) node[midway] {A} ;
+      \draw (1.982,0) rectangle (2.267,-0.5) node[midway] {N} ;
+      \draw (2.267,0) rectangle (5,-0.5) node[midway] {Promotional} ;
+    \end{tikzpicture}   \\
+    Stanford Sentiment Treebank 2 (SST-2) & 2       & \num{67349} & 872  &
+    \begin{tikzpicture}[baseline=-10]
+      \draw (0,0) rectangle (2.214,-0.5) node[midway] {Negative};
+      \draw (2.214,0) rectangle (5,-0.5) node[midway] {Positive} ;
+    \end{tikzpicture}   \\
+    Twitter Sentiment SemEval (SE)        & 3       & \num{6000}  & 817  &
+    \begin{tikzpicture}[baseline=-10]
+      \draw (0,0) rectangle (0.783,-0.5) node[midway] {Neg};
+      \draw (0.783,0) rectangle (3.080,-0.5) node[midway] {Neutral} ;
+      \draw (3.080,0) rectangle (5,-0.5) node[midway] {Positive} ;
+    \end{tikzpicture}   \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[]
+  \centering
+  \begin{tabular}{lrrr}
+    \toprule
+    Dataset  & \sc{BERT-Large} & \sc{CT-BERT} & $\Delta$MP  \\
+    \midrule
+    COVID-19 Category (CC) & 0.931 & 0.949 & 25.88\%  \\
+    Vaccine Sentiment (VC)& 0.824 & 0.869 & 25.27\% \\
+    Maternal Vaccine Stance (MVS)&0.696& 0.748& 17.07\%  \\
+    Stanford Sentiment Treebank 2 (SST-2) & 0.937 &  0.944 & 10.67\%  \\
+    Twitter Sentiment SemEval (SE)& 0.620& 0.654 & 8.97\% \\
+    \bottomrule
+    Average &  0.802 & 0.833 & 17.57\% \\
+  \end{tabular}
+\end{table}
+\end{document}
