@@ -34,7 +34,18 @@ def get_run_logs(pattern=None, run_type='finetune', bucket_name='cb-tpu-projects
             with open(f_name, 'r') as f:
                 df.append(json.load(f))
     df = pd.DataFrame(df)
+    if len(df) > 0:
+        df['created_at'] = pd.to_datetime(df.created_at)
+        df.sort_values('created_at', inplace=True, ascending=True)
     return df
+
+def get_summary_files(pattern=None, run_type='pretrain', bucket_name='cb-tpu-projects', project_name='covid-bert'):
+    f_names = glob.glob(os.path.join(find_project_root(), 'data', bucket_name, project_name, run_type, '*', 'summaries', 'train', '*'))
+    files = []
+    for f_name in f_names:
+        if pattern is None or pattern in f_name.split('/')[-4]:
+            files.append(f_name)
+    return files
 
 def find_project_root():
     return os.path.abspath(os.path.join(os.path.abspath(__file__), '..', '..', '..'))

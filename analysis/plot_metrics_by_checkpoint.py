@@ -26,7 +26,6 @@ def main(args):
     save_fig(fig, 'metrics_by_checkpoint', version=args.version, plot_formats=['png'])
 
 def parse_args():
-    # Parse commandline
     parser = ArgParseDefault()
     parser.add_argument('--run_prefix', default='eval_wwm_v2', help='Prefix to plot heatmap')
     parser.add_argument('--metric', default='accuracy', help='Metric to plot')

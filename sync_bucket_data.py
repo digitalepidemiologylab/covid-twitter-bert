@@ -29,9 +29,9 @@ def sync(run_type, bucket, args):
                     logger.info(f'Downloading file {blob.name} to {f_out}')
                     blob.download_to_filename(f_out)
                     count += 1
-        elif 'events' in blob.name:
+        elif not args.exclude_summaries and 'events' in blob.name:
             _type = blob.name.split('/')[-2]
-            if _type in ['metrics', 'train', 'validation']:
+            if _type in ['metrics', 'train', 'eval']:
                 folder = os.path.join(dest_folder, run_name, 'summaries', _type)
             else:
                 folder = os.path.join(dest_folder, run_name, 'summaries')
@@ -63,6 +63,7 @@ def parse_args():
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--types', default=['pretrain', 'finetune'], choices=['pretrain', 'finetune'], help='Types of training logs')
+    parser.add_argument('--exclude_summaries', action='store_true', help='Exclude summaries')
     args = parser.parse_args()
     return args
 
