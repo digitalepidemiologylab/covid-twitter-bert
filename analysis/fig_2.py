@@ -52,7 +52,7 @@ def main(args):
     ax.set_xlabel('Pretraining step')
 
     # plotting
-    save_fig(plt.gcf(), 'fig2', version=args.version, plot_formats=['png'])
+    save_fig(plt.gcf(), 'fig2', version=args.version, plot_formats=['png', 'pdf'])
 
 
 def parse_args():

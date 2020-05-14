@@ -1,0 +1,82 @@
+\begin{thebibliography}{10}
+
+\bibitem{vaswani2017attention}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
+  Aidan~N Gomez, {\L}ukasz Kaiser, and Illia Polosukhin.
+\newblock Attention is all you need.
+\newblock In {\em Advances in neural information processing systems}, pages
+  5998--6008, 2017.
+
+\bibitem{devlin2018bert}
+Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova.
+\newblock Bert: Pre-training of deep bidirectional transformers for language
+  understanding.
+\newblock {\em arXiv preprint arXiv:1810.04805}, 2018.
+
+\bibitem{liu2019roberta}
+Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Mandar Joshi, Danqi Chen, Omer
+  Levy, Mike Lewis, Luke Zettlemoyer, and Veselin Stoyanov.
+\newblock Roberta: A robustly optimized bert pretraining approach.
+\newblock {\em arXiv preprint arXiv:1907.11692}, 2019.
+
+\bibitem{lan2019albert}
+Zhenzhong Lan, Mingda Chen, Sebastian Goodman, Kevin Gimpel, Piyush Sharma, and
+  Radu Soricut.
+\newblock Albert: A lite bert for self-supervised learning of language
+  representations.
+\newblock {\em arXiv preprint arXiv:1909.11942}, 2019.
+
+\bibitem{lee2020biobert}
+Jinhyuk Lee, Wonjin Yoon, Sungdong Kim, Donghyeon Kim, Sunkyu Kim, Chan~Ho So,
+  and Jaewoo Kang.
+\newblock Biobert: a pre-trained biomedical language representation model for
+  biomedical text mining.
+\newblock {\em Bioinformatics}, 36(4):1234--1240, 2020.
+
+\bibitem{beltagy2019scibert}
+Iz~Beltagy, Arman Cohan, and Kyle Lo.
+\newblock Scibert: Pretrained contextualized embeddings for scientific text.
+\newblock {\em arXiv preprint arXiv:1903.10676}, 2019.
+
+\bibitem{muller2019crowdbreaks}
+Martin~M M{\"u}ller and Marcel Salath{\'e}.
+\newblock Crowdbreaks: Tracking health trends using public social media data
+  and crowdsourcing.
+\newblock {\em Frontiers in public health}, 7, 2019.
+
+\bibitem{honnibal2017spacy}
+Matthew Honnibal and Ines Montani.
+\newblock spacy 2: Natural language understanding with bloom embeddings,
+  convolutional neural networks and incremental parsing.
+\newblock {\em To appear}, 7(1), 2017.
+
+\bibitem{pananos2017critical}
+A~Demetri Pananos, Thomas~M Bury, Clara Wang, Justin Schonfeld, Sharada~P
+  Mohanty, Brendan Nyhan, Marcel Salath{\'e}, and Chris~T Bauch.
+\newblock Critical dynamics in population vaccinating behavior.
+\newblock {\em Proceedings of the National Academy of Sciences},
+  114(52):13762--13767, 2017.
+
+\bibitem{nakov2019semeval}
+Preslav Nakov, Alan Ritter, Sara Rosenthal, Fabrizio Sebastiani, and Veselin
+  Stoyanov.
+\newblock Semeval-2016 task 4: Sentiment analysis in twitter.
+\newblock {\em arXiv preprint arXiv:1912.01973}, 2019.
+
+\bibitem{socher2013recursive}
+Richard Socher, Alex Perelygin, Jean Wu, Jason Chuang, Christopher~D Manning,
+  Andrew~Y Ng, and Christopher Potts.
+\newblock Recursive deep models for semantic compositionality over a sentiment
+  treebank.
+\newblock In {\em Proceedings of the 2013 conference on empirical methods in
+  natural language processing}, pages 1631--1642, 2013.
+
+\bibitem{pang2005seeing}
+Bo~Pang and Lillian Lee.
+\newblock Seeing stars: Exploiting class relationships for sentiment
+  categorization with respect to rating scales.
+\newblock In {\em Proceedings of the 43rd annual meeting on association for
+  computational linguistics}, pages 115--124. Association for Computational
+  Linguistics, 2005.
+
+\end{thebibliography}

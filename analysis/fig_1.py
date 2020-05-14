@@ -39,16 +39,20 @@ def main(args):
         ax_acc.set_ylabel(acc_label, color='C1')
         ax_loss.set_xlabel('Pretraining step')
         if acc_label == 'NSP accuracy':
-            ax_acc.yaxis.set_ticks(np.arange(0.9, 1, .025))
-            ax_loss.yaxis.set_ticks(np.arange(0.0, .4, .2))
-            ax_acc.grid()
+            ax_acc.yaxis.set_ticks(np.arange(0.9, 1.025, .025))
+            ax_loss.yaxis.set_ticks(np.arange(0.0, .5, .2))
+            ax_loss.set_ylim([None, .4])
+            ax_acc.set_ylim([.925, 1])
+            ax_loss.grid()
             ax_loss.tick_params(axis='x', which='major', pad=5)
         elif acc_label == 'MLM accuracy':
-            ax_acc.yaxis.set_ticks(np.arange(0.65, .725, .025))
+            ax_acc.yaxis.set_ticks(np.arange(0.625, .725, .025))
             ax_loss.yaxis.set_ticks(np.arange(1.5, 2, 0.2))
+            # ax_loss.set_ylim([None, .2])
+            ax_acc.set_ylim([.625, None])
             ax_loss.grid()
     # save
-    save_fig(fig, 'fig1', version=args.version, plot_formats=['png'])
+    save_fig(fig, 'fig1', version=args.version, plot_formats=['png', 'eps', 'pdf'])
 
 
 def parse_args():
