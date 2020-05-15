@@ -135,4 +135,7 @@ analysis/plots
 *.aux
 *.fdb_latexmk
 *.fls
+*.out
+*.blg
+*.bbl
 *.xdv

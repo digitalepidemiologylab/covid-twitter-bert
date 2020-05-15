@@ -12,6 +12,7 @@
 \usepackage{siunitx}
 \usepackage{array}
 \usepackage{tikz}
+\usepackage{multicol}
 
 \sisetup{range-phrase = \text{--}}
 
@@ -40,16 +41,18 @@
 \maketitle
 
 \begin{abstract}
-  In this study, we develop COVID-Twitter-BERT (\textsc{CT-BERT}), a transformer-based model pretrained on a large corpus of Twitter messages on the topic of COVID-19.
-  Our model shows a \numrange{10}{30}\% marginal performance increase on five different evaluation datasets, with the largest improvements on datasets from the target domain.
-  \textsc{CT-BERT} may be used as a base model for training downstream machine learning models with the goal of better analysing, summarising or classifying COVID-19 content from Twitter.
+  In this work, we release COVID-Twitter-BERT (\textsc{CT-BERT}), a transformer-based model, pretrained on a large corpus of Twitter messages on the topic of COVID-19.
+  Our model shows a \numrange{10}{30}\% marginal improvement compared to its base model, \textsc{BERT-Large}, on five different classification datasets.
+  The largest improvements are on the target domain.
+  Pretrained transformer models, such as \textsc{CT-BERT}, are trained on a specific target domain and can be used for a wide variety of natural language processing tasks, including classification, question-answering and chatbots.
+  \textsc{CT-BERT} is optimised to be used on COVID-19 content, in particular social media posts from Twitter.
 \end{abstract}
 
 
 % keywords can be removed
 \keywords{Natural Language Processing \and COVID-19 \and Language Model \and BERT}
 
-
+\begin{multicols}{2}
 \section{Introduction}
 \label{sec:introduction}
 Twitter has been a valuable source of news and a public medium for expression during the COVID-19 pandemic.
@@ -66,7 +69,7 @@ Our model is based on the \textsc{BERT-Large} (English, uncased, whole word mask
 \textsc{BERT-Large} is trained mainly on raw text data from Wikipedia (3.5B words) and a free book corpus (0.8B words)~\cite{devlin2018bert}.
 Whilst this is an impressive amount of text, it still contains little information about any specific subdomain.
 To improve performance in subdomains, we have seen numerous transformer-based models trained on specialised corpuses.
-Some of the most popular ones are BioBERT~\cite{lee2020biobert} and SciBERT~\cite{beltagy2019scibert}.
+  Some of the most popular ones are \textsc{BioBERT}~\cite{lee2020biobert} and \textsc{SciBERT}~\cite{beltagy2019scibert}.
 These models are trained using the exact same unsupervised training techniques as the main models (MLM/NSP/SOP).
 They can be trained from scratch, but this requires a very large corpus, so a more common approach is to start with the trained weights from a general model.
 In this study, this process is called domain-specific pretraining.
@@ -122,14 +125,20 @@ We make a small adjustment to this dataset by fully anonymising links and userna
 SST-2 is a public dataset consisting of binary sentiment labels, negative (44.3\%) and positive (55.7\%), within sentences~\cite{socher2013recursive}.
 Sentences were extracted from a dataset of movie reviews~\cite{pang2005seeing} and did not originate from Twitter, making SST-2 our only non-Twitter dataset.
 
-\begin{table}[h!]
+The dataset split size is predefined for the SST-2 and SE datasets.
+For the SST-2 dataset, the test dataset is not released.
+For the other datasets, we aimed at a split of around 50\%-30\% between the training and development sets, leaving a test set of 20\% which was not used in this work.
+Our intention was not to optimise the finetuned models but to thoroughly evaluate the performance of the domain-specific \textsc{CT-BERT}-model.
+We experimented with different numbers of epochs for each training dataset for \textsc{BERT-Large} (i.e.\ checkpoint 0 of \textsc{CT-BERT}) and selected the optimal one.
+We then used this number in subsequent experiments on the respective dataset.
+We ended with three epochs for SST-2, CC and SE, five epochs for VC and 10 epochs for MVC, all with a learning rate of 2e-05.
+The number of epochs was dependent on both the size and balance of the categories.
+Larger and unbalanced sets require more epochs.
+
+\end{multicols}
+\begin{table}
   \def\arraystretch{1.6} % vertical stretch factor
   \centering
-  \caption{
-    Overview of the evaluation datasets.
-    All five evaluation datasets are multi-class datasets with sometimes strong label imbalance, visualised by the proportional bar width in the label column.
-    N and Neg stand for negative; Disc and A stand for discouraging and ambiguous, respectively.
-  }
   \begin{tabular}{lcrrrp{10mm}}
   \toprule
     Dataset                               & Classes & Train       & Dev    & \multicolumn{1}{c}{Labels} \\
@@ -163,19 +172,16 @@ Sentences were extracted from a dataset of movie reviews~\cite{pang2005seeing} a
       \draw (0.783,0) rectangle (3.080,-0.5) node[midway] {Neutral} ;
       \draw (3.080,0) rectangle (5,-0.5) node[midway] {Positive} ;
     \end{tikzpicture}   \\
-    \bottomrule
+    \bottomrule \\
   \end{tabular}
+  \caption{
+    Overview of the evaluation datasets.
+    All five evaluation datasets are multi-class datasets with sometimes strong label imbalance, visualised by the proportional bar width in the label column.
+    N and Neg stand for negative; Disc and A stand for discouraging and ambiguous, respectively.
+  }
+  \label{tab:tab1}
 \end{table}
-
-The dataset split size is predefined for the SST-2 and SE datasets.
-For the SST-2 dataset, the test dataset is not released.
-For the other datasets, we aimed at a split of around 50\%-30\% between the training and development sets, leaving a test set of 20\% which was not used in this work.
-Our intention was not to optimise the finetuned models but to thoroughly evaluate the performance of the domain-specific \textsc{CT-BERT}-model.
-We experimented with different numbers of epochs for each training dataset for \textsc{BERT-Large} (i.e.\ checkpoint 0 of \textsc{CT-BERT}) and selected the optimal one.
-We then used this number in subsequent experiments on the respective dataset.
-We ended with three epochs for SST-2, CC and SE, five epochs for VC and 10 epochs for MVC, all with a learning rate of 2e-05.
-The number of epochs was dependent on both the size and balance of the categories.
-Larger and unbalanced sets require more epochs.
+\begin{multicols}{2}
 
 \section{Results}
 \label{sec:results}
@@ -188,26 +194,27 @@ The improvement on the MLM loss task is most notable and yields a final value of
 The NSP task improves only marginally, as it already performs very well initially.
 Training was stopped at \num{500000}, an equivalent of \num{512}M training examples, which we consider as our final model.
 This corresponds to roughly 1.8 training epochs.
+All metrics for the MLM and NLM tasks improve steadily throughout training.
+However, using loss/metrics for these tasks to evaluate the correct time to stop training is difficult.
 
-\begin{figure}[h!]
+\end{multicols}
+\begin{figure}
   \centering
   \includegraphics[]{figures/fig1.pdf}
   \caption{
-    evaluation metrics for the domain-specific pretraining of ct-bert.
-    shown are the loss and accuracy of masked language modelling (mlm) and next sentence prediction (nsp) tasks.
+    Evaluation metrics for the domain-specific pretraining of \textsc{CT-BERT}.
+    Shown are the loss and accuracy of masked language modelling (MLM) and next sentence prediction (NSP) tasks.
   }
   \label{fig:fig1}
 \end{figure}
-
-All metrics for the MLM and NLM tasks improve steadily throughout training.
-Using loss/metrics for these tasks to evaluate the correct time to stop training is difficult, however.
+\begin{multicols}{2}
 
 \subsection{Evaluation on classification datasets}
 \label{sec:evaluation_classification}
 
 To assess the performance of our model properly, we compared the mean F1 score of \textsc{CT-BERT} with that of \textsc{BERT-Large} on five different classification datasets.
 We adapted the number of training epochs for each dataset according to its size in order to have a similar number of training steps for each dataset.
-Our final model shows higher performance on all datasets (a mean F1 score of \num{0.833}) compared with BERT large (a mean F1 score of \num{0.802}).
+  Our final model shows higher performance on all datasets (a mean F1 score of \num{0.833}) compared with \textsc{BERT-Large} (a mean F1 score of \num{0.802}).
 As the initial performance varies widely across datasets, we compute the relative improvement in marginal performance ($\Delta$MP) for each dataset.
 $\Delta$MP is calculated as follows:
 
@@ -217,13 +224,9 @@ From this metric, we can observe the largest improvement of our model on the COV
 The marginal improvement is also high on the Twitter datasets related to vaccine sentiment (MVS).
 Our model likewise shows some improvements on the SST-2 and SemEval datasets, but to a smaller extent.
 
-\begin{table}[h!]
+\end{multicols}
+\begin{table}
   \centering
-  \caption{
-    Comparison of the final model performance with \textsc{BERT-Large}.
-    \textsc{CT-BERT} shows improvements on all datasets.
-    The marginal improvement is the highest on the COVID-19-related dataset (CC) and lowest on the SST-2 and SemEval datasets.
-  }
   \begin{tabular}{lrrr}
     \toprule
     Dataset  & \textsc{BERT-Large} & \textsc{CT-BERT} & $\Delta\text{MP}$  \\
@@ -235,14 +238,21 @@ Our model likewise shows some improvements on the SST-2 and SemEval datasets, bu
     Twitter Sentiment SemEval (SE)            & 0.620 & 0.654 & 8.97\%   \\
     \midrule
     Average &  0.802 & 0.833 & 17.57\% \\
-    \bottomrule
+    \bottomrule \\
   \end{tabular}
+  \caption{
+    Comparison of the final model performance with \textsc{BERT-Large}.
+    \textsc{CT-BERT} shows improvements on all datasets.
+    The marginal improvement is the highest on the COVID-19-related dataset (CC) and lowest on the SST-2 and SemEval datasets.
+  }
+  \label{tab:tab2}
 \end{table}
+\begin{multicols}{2}
 
 \subsection{Evaluation on intermediary pretraining checkpoints}
 \label{sec:evaluation_checkpoints}
 So far, we have seen improvements in the final \textsc{CT-BERT} model on all evaluated datasets.
-To understand whether the observed decrease in loss during pretraining linearly translates into performance on downstream classification tasks, we evaluated CT-BERT on five intermediary versions (checkpoints) of the model and on the zero checkpoint, which corresponds to the original \textsc{BERT-Large} model.
+  To understand whether the observed decrease in loss during pretraining linearly translates into performance on downstream classification tasks, we evaluated \textsc{CT-BERT} on five intermediary versions (checkpoints) of the model and on the zero checkpoint, which corresponds to the original \textsc{BERT-Large} model.
 At each intermediary checkpoint, 10 repeated training runs (finetunings) for each of the five datasets were performed, and the mean F1 score was recorded.
 Figure~\ref{fig:fig2} shows the marginal performance increase ($\Delta$MP) at specific pretraining steps.
 Our experiments show that downstream performance increases fast up to step \num{200}k in the pretraining and only demonstrates marginal improvement afterwards.
@@ -255,9 +265,8 @@ This variance is mostly driven by runs with a particularly low performance.
 We observe that the variance is dataset dependent, but it does not increase throughout different pretraining checkpoints and is comparable to the variance observed on \textsc{BERT-Large} (pretraining step zero).
 The most stable training seems to be on the SemEval training set, and the least stable one is on SST-2, but most of this difference is within the error margins.
 
-
-
-\begin{figure}
+\end{multicols}
+\begin{figure}[h!]
   \centering
   \includegraphics[]{figures/fig2.pdf}
   \caption{
@@ -268,13 +277,12 @@ The most stable training seems to be on the SemEval training set, and the least 
   }
   \label{fig:fig2}
 \end{figure}
-
+\begin{multicols}{2}
 
 \section{Discussion}
 \label{sec:discussion}
-
 The most accurate way to evaluate the performance of a domain-specific model is to apply it on specific downstream tasks.
-CT-Bert is evaluated on five different Twitter-based datasets.
+\textsc{CT-BERT} is evaluated on five different Twitter-based datasets.
 Compared to \textsc{BERT-Large}, it improves significantly on all datasets.
 However, the improvement is largest in datasets related to health, particularly in datasets related to COVID-19.
 We therefore expect \textsc{CT-BERT} to perform similarly well on other classification problems on COVID-19-related data sources, but particularly on text derived from social media platforms.
@@ -309,18 +317,19 @@ This means that there is still great room for optimisation on the downstream tas
 
 
 \section{Data Availability}
-The model, code and public datasets are available in our public GitHub repository: \url{https://github.com/digitalepidemiologylab/covid-twitter-bert}.
+The model, code and public datasets are available in our GitHub repository: \url{https://github.com/digitalepidemiologylab/covid-twitter-bert}.
 
 \section{Funding}
 PK received funding from the European Commission for the call H2020-MSCA-IF-2017 and the funding scheme MSCA-IF-EF-ST for the VACMA project (grant agreement ID: 797876).
 
-MM received funding through the Versatile Emerging infectious disease Observatory grant as a part of the European Commission’s Horizon 2020 framework programme (grant agreement ID: 874735).
+MM and MS received funding through the Versatile Emerging infectious disease Observatory grant as a part of the European Commission’s Horizon 2020 framework programme (grant agreement ID: 874735).
 
 The research was supported with Cloud TPUs from Google's TensorFlow Research Cloud and Google Cloud credits in the context of COVID-19-related research.
 
 \section{Conflicts of Interest}
 The authors have no conflicts of interest to declare.
 
+\end{multicols}
 
 \bibliographystyle{unsrt}
 \bibliography{bib/main}
