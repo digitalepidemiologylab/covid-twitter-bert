@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @plot
 def main(args):
-    folder = os.path.join(find_project_root(), 'data', 'cb-tpu-projects', 'covid-bert', 'pretrain', 'run_2020-04-29_11-14-08_711153_wwm_v2')
+    folder = os.path.join(find_project_root(), 'data', args.bucket_name, args.project_name, 'pretrain', 'run_2020-04-29_11-14-08_711153_wwm_v2')
     data = {}
     for metric in ['loss', 'masked_lm_accuracy', 'next_sentence_accuracy', 'next_sentence_loss']:
         with open(os.path.join(folder, f'{metric}.json'), 'r') as f:
@@ -58,6 +58,8 @@ def main(args):
 def parse_args():
     # Parse commandline
     parser = ArgParseDefault()
+    parser.add_argument('--bucket_name', required=True, help='Bucket name')
+    parser.add_argument('--project_name', default='covid-bert', help='Project name')
     parser.add_argument('--run_prefix', default='wwm_v2', help='Prefix to plot heatmap')
     parser.add_argument('-v', '--version', type=int, default=2, help='Plot version')
     args = parser.parse_args()

@@ -227,12 +227,12 @@ def parse_args():
     # Parse commandline
     parser = ArgParseDefault()
     parser.add_argument('--tpu_ip', required=True, help='IP-address of the TPU')
+    parser.add_argument('--bucket_name', required=True, help='Bucket name')
     parser.add_argument('--tpu_name', required=False, help='Name of the TPU')
     parser.add_argument('--tpu_name_project', required=False, help='Name of the TPU project')
     parser.add_argument('--pretrain_data', required=True, type=str, help='Folder which contains pretrain data. Should be located under gs://{bucket_name}/{project_name}/pretrain/pretrain_data/')
     parser.add_argument('--run_prefix', help='Prefix to be added to all runs. Useful to group runs')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
-    parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
     parser.add_argument('--eval_steps', default=1000, type=int, help='Number eval steps to run (only active when --do_eval flag is provided)')

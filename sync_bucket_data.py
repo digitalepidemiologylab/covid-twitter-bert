@@ -60,8 +60,8 @@ def main(args):
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--bucket_name', required=True, help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
-    parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--types', default=['pretrain', 'finetune'], choices=['pretrain', 'finetune'], help='Types of training logs')
     parser.add_argument('--exclude_summaries', action='store_true', help='Exclude summaries')
     args = parser.parse_args()

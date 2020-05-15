@@ -112,11 +112,11 @@ def main(args):
 def parse_args():
     # Parse commandline
     parser = ArgParseDefault()
-    parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
+    parser.add_argument('--bucket_name', required=True, help='Bucket name')
+    parser.add_argument('--init_checkpoint', help='Path to checkpoint')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
-    parser.add_argument('--init_checkpoint', default='run_2020-04-29_11-14-08_711153_wwm_v2/pretrained/bert_model.ckpt-21', help='Path to checkpoint')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
-    parser.add_argument('--output', default=['tf_hub', 'huggingface'], choices=['tf_hub', 'huggingface'], nargs='+', help='Name of subfolder in Google bucket')
+    parser.add_argument('--output', default=['tf_hub', 'huggingface'], choices=['tf_hub', 'huggingface'], nargs='+', help='Generate output for those model types')
     args = parser.parse_args()
     return args
 

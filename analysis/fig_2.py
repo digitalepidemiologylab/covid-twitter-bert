@@ -57,8 +57,9 @@ def main(args):
 
 def parse_args():
     parser = ArgParseDefault()
+    parser.add_argument('--bucket_name', required=True, help='Bucket name')
+    parser.add_argument('--project_name', default='covid-bert', help='Project name')
     parser.add_argument('--run_prefix', default='eval_wwm_v4', help='Run prefix')
-    parser.add_argument('--bucket_name', default='cb-tpu-projects-us', help='Bucket name')
     parser.add_argument('--metric', default='f1_macro', help='Metric to plot')
     parser.add_argument('-v', '--version', type=int, default=2, help='Plot version')
     args = parser.parse_args()

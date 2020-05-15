@@ -139,3 +139,4 @@ analysis/plots
 *.blg
 *.bbl
 *.xdv
+.DS_Store

@@ -26,7 +26,7 @@ def add_colorbar(fig, ax, label='sentiment', cmap='RdYlBu', vmin=-1, vmax=1, x=0
     cbar.set_label(label)
     cbar.outline.set_visible(False)
 
-def get_run_logs(pattern=None, run_type='finetune', bucket_name='cb-tpu-projects', project_name='covid-bert'):
+def get_run_logs(pattern=None, run_type='finetune', bucket_name='my-bucket', project_name='covid-bert'):
     f_names = glob.glob(os.path.join(find_project_root(), 'data', bucket_name, project_name, run_type, '*', 'run_logs.json'))
     df = []
     for f_name in f_names:
@@ -39,7 +39,7 @@ def get_run_logs(pattern=None, run_type='finetune', bucket_name='cb-tpu-projects
         df.sort_values('created_at', inplace=True, ascending=True)
     return df
 
-def get_summary_files(pattern=None, run_type='pretrain', bucket_name='cb-tpu-projects', project_name='covid-bert'):
+def get_summary_files(pattern=None, run_type='pretrain', bucket_name='my-bucket', project_name='covid-bert'):
     f_names = glob.glob(os.path.join(find_project_root(), 'data', bucket_name, project_name, run_type, '*', 'summaries', 'train', '*'))
     files = []
     for f_name in f_names:

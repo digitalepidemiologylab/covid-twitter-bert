@@ -7,8 +7,8 @@ EVAL_BATCH_SIZE=8
 FINETUNE_DATA=run_2020-04-29_22-20-35_981382
 MODEL_CLASS=bert_large_uncased_wwm
 NUM_REPEATS=5
-BUCKET_NAME=cb-tpu-projects
-RUN_PREFIX=eval_wwm_v4
+BUCKET_NAME=MY-BUCKET-NAME
+RUN_PREFIX=testrun
 
 declare -A num_epochs_by_dataset
 num_epochs_by_dataset=( ["maternal_vaccine_stance_lshtm"]=10 ["covid_worry"]=3 ["covid_category"]=3 ["twitter_sentiment_semeval"]=3 ["vaccine_sentiment_epfl"]=5 ["SST-2"]=3 )
@@ -69,7 +69,7 @@ done
 #                         Prefix to be added to all runs. Useful to group runs
 #                         (default: None)
 #   --bucket_name BUCKET_NAME
-#                         Bucket name (default: cb-tpu-projects)
+#                         Bucket name
 #   --project_name PROJECT_NAME
 #                         Name of subfolder in Google bucket (default: covid-
 #                         bert)

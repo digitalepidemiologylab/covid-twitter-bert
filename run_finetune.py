@@ -337,13 +337,13 @@ def parse_args():
                     This folder includes a meta.json (containing meta info about the dataset), and a file label_mapping.json. \
                     TFrecord files (train.tfrecords and dev.tfrecords) should be located in a \
                     subfolder gs://{bucket_name}/{project_name}/finetune/finetune_data/{finetune_data}/tfrecords/')
+    parser.add_argument('--bucket_name', required=True, help='Bucket name')
     parser.add_argument('--tpu_ip', required=False, help='IP-address of the TPU')
     parser.add_argument('--preemptible_tpu', default=False, action='store_true', required=False, help='Dynamically create preemptible TPU (this requires you to have glcoud installed with suitable permissions)')
     parser.add_argument('--preemptible_tpu_zone', default='us-central1-f', type=str, required=False, help='Preemptible TPU zone (only if --preemptible_tpu flag is provided)')
     parser.add_argument('--preemptible_tpu_name', default=None, type=str, required=False, help='Preemptible TPU name (only if --preemptible_tpu flag is provided)')
     parser.add_argument('--preemptible_tpu_version', default='nightly', choices=['nightly', '2.1'], type=str, required=False, help='Preemptible TPU version (only if --preemptible_tpu flag is provided)')
     parser.add_argument('--run_prefix', help='Prefix to be added to all runs. Useful to group runs')
-    parser.add_argument('--bucket_name', default='cb-tpu-projects', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')

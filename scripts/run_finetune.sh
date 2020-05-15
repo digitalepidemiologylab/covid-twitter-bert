@@ -1,10 +1,11 @@
 #!/bin/sh
 
-PROJECT_BUCKET=gs://cb-tpu-projects/covid-bert
+BUCKET_NAME=MY-BUCKET-NAME
+PROJECT_BUCKET=gs://${BUCKET_NAME}/covid-bert
 SHEET=run_2020-04-29_22-20-35_981382/maternal_vaccine_stance_lshtm
 RUN_NAME=run_test
 TPU_ADDRESS=10.14.157.122
-BERT_DIR=gs://cb-tpu-projects/pretrained_models/bert/keras_bert/wwm_uncased_L-24_H-1024_A-16
+BERT_DIR=gs://$BUCKET_NAME/pretrained_models/bert/keras_bert/wwm_uncased_L-24_H-1024_A-16
 
 gsutil rm -r ${PROJECT_BUCKET}/finetune/runs/${SHEET}/${RUN_NAME}
 

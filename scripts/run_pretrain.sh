@@ -1,8 +1,9 @@
 #!/bin/sh
 
+BUCKET_NAME=MY-BUCKET-NAME
+PROJECT_BUCKET=gs://${BUCKET_NAME}/covid-bert
 TPU_ADDRESS=10.74.219.210
 RUN_NAME=run2
-PROJECT_BUCKET=gs://cb-tpu-projects/covid-bert
 PRETRAINED_MODEL=gs://cloud-tpu-checkpoints/bert/uncased_L-24_H-1024_A-16
 
 gsutil rm -r $PROJECT_BUCKET/pretrain/runs/${RUN_NAME}
