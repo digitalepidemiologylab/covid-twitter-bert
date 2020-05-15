@@ -2,8 +2,9 @@
 # COVID-Twitter-BERT
 Pretrained BERT-large language model on Twitter data related to COVID-19 
 
-
-| v1  | 22.5M tweets (633M tokens) | BERT-large-uncased | en | <img src="images/COVID-Twitter-BERT-medium.png"> |
+| Version  | Training data | 
+| -------- | ------------- | 
+| en | <img src="images/COVID-Twitter-BERT-medium.png"> |
 
 
 # Pretrained models
