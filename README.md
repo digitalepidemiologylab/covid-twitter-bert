@@ -68,3 +68,6 @@ If your goal is to train (finetune) a classifier, you can use the code in this r
 # Authors
 * Martin Müller (martin.muller@epfl.ch)
 * Per Egil Kummervold (per@capia.no)
+
+# Acknowledgement
+* Thanks to Aksel Kummervold for creating the COVID-Twitter-Bert logo
