@@ -65,9 +65,11 @@ outputs = model(input_ids)
 ## Use our own scripts
 If your goal is to train (finetune) a classifier, you can use the code in this repo. For this you will need to download the checkpoint file.
 
+
+## Acknowledgement
+* Thanks to Aksel Kummervold for creating the COVID-Twitter-Bert logo
+
 # Authors
 * Martin Müller (martin.muller@epfl.ch)
 * Per Egil Kummervold (per@capia.no)
 
-# Acknowledgement
-* Thanks to Aksel Kummervold for creating the COVID-Twitter-Bert logo
