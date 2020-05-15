@@ -1,6 +1,6 @@
 # COVID-Twitter-BERT :bird:
 
-<img style="display: none;position: absolute;float: right;" src="images/COVID-Twitter-BERT-medium.png">
+<img align="right" style="display: none;position: absolute;float: right;" src="images/COVID-Twitter-BERT-medium.png">
 Pretrained BERT-large language model on Twitter data related to COVID-19.
 
 
