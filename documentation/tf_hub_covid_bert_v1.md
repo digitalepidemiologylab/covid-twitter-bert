@@ -22,7 +22,7 @@ In order to achieve best results, make sure to use the same text preprocessing a
 The saved model can be loaded directly:
 
 ```python
-max_seq_length = 128  # Your choice here.
+max_seq_length = 96  # Your choice here.
 input_word_ids = tf.keras.layers.Input(
   shape=(max_seq_length,),
   dtype=tf.int32,
