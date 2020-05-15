@@ -3,11 +3,9 @@
 Pretrained BERT-large language model on Twitter data related to COVID-19 
 <img align="center" src="images/COVID-Twitter-BERT-medium.png">
 
-COVID-Twitter-BERT (CT-BERT) is a transformer-based model pretrained on a large corpus of Twitter messages on the topic of COVID-19. When used on datasets from the target domain (COVID-19-related Tweets) our evaluation shows a marginal performane increase of 10%–30% compared to the base model. Detailed results are provided in our article "COVID-TWITTER-BERT: A NATURAL LANGUAGE PROCESSING MODEL TO ANALYSE COVID-19 CONTENT ON TWITTER".
+COVID-Twitter-BERT (CT-BERT) is a transformer-based model pretrained on a large corpus of Twitter messages on the topic of COVID-19. When used on datasets from the target domain (COVID-19-related Tweets) our evaluation shows a marginal performane increase of 10%–30% compared to the base model. Detailed results are provided in our article "COVID-Twitter-BERT: A Natural Language Prosessing Model to Aanalyse COVID-19 Content on Twitter".
 
 The model can be finetuned for specific language processing tasks, such as classification, question-answering models, and chatbots. This repository contains the basic Python code for making such finetuning, as well as the pretrained model both as a Huggingface and TF 2 checkpoint. 
-
-
 
 
 # Pretrained models
