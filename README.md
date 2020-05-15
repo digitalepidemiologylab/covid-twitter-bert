@@ -1,5 +1,5 @@
 # COVID-Twitter-BERT :bird:
-![COVID-Twitter-Bert-image](/images/COVID-Twitter-BERT-small.png)
+![COVID-Twitter-Bert-image](images/COVID-Twitter-BERT_small.png)
 Pretrained BERT-large language model on Twitter data related to COVID-19.
 
 
