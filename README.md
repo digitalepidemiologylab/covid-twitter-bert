@@ -4,7 +4,7 @@ Pretrained BERT-large language model on Twitter data related to COVID-19
 
 | -------- | -------- |
 | Version  | ssssssss | 
-| -------- | -------- |
+
 
 # Pretrained models
 | Version  | Training data | Model | Language | Download |
