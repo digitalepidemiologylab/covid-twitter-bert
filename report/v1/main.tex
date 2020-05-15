@@ -1,6 +1,7 @@
 \documentclass{article}
+% \usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage{wasysym}
 \usepackage{arxiv}
-\usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
 \usepackage{hyperref}       % hyperlinks
 \usepackage{url}            % simple URL typesetting
@@ -24,7 +25,7 @@
   Geneva, Switzerland \\
   \texttt{martin.muller@epfl.ch}
     \And
-  Marcel Salathé \\
+  Marcel Salath\'e \\
   Digital Epidemiology Lab \\
   EPFL \\
   Geneva, Switzerland \\
@@ -45,7 +46,7 @@
   Our model shows a \numrange{10}{30}\% marginal improvement compared to its base model, \textsc{BERT-Large}, on five different classification datasets.
   The largest improvements are on the target domain.
   Pretrained transformer models, such as \textsc{CT-BERT}, are trained on a specific target domain and can be used for a wide variety of natural language processing tasks, including classification, question-answering and chatbots.
-  \textsc{CT-BERT} is optimised to be used on COVID-19 content, in particular social media posts from Twitter.
+  \textsc{CT-BERT} is optimised to be used on COVID-19 content, in particular from social media.
 \end{abstract}
 
 
@@ -60,7 +61,7 @@ However, manually classifying, filtering and summarising the large amount of inf
 To improve our understanding of Twitter messages related to COVID-19 content as well as the analysis of this content, we have therefore developed a model called COVID-Twitter-BERT (\textsc{CT-BERT})\footnote{\url{https://github.com/digitalepidemiologylab/covid-twitter-bert}}.
 
 Transformer-based models have changed the landscape of NLP.
-Models such as BERT, RoBERTa and ALBERT are all based on the same principle—training bi-directional transformer models on huge unlabelled text corpuses~\cite{vaswani2017attention,devlin2018bert,liu2019roberta,lan2019albert}.
+Models such as BERT, RoBERTa and ALBERT are all based on the same principle -- training bi-directional transformer models on huge unlabelled text corpuses~\cite{vaswani2017attention,devlin2018bert,liu2019roberta,lan2019albert}.
 This process is done using methods such as mask language modelling (MLM), next sentence prediction (NSP) and sentence order prediction (SOP).
 Different models vary slightly in how these methods are applied, but in general, all training is done in a fully unsupervised manner.
 This process generates a general language model that is then used as input for a supervised finetuning for specific language processing tasks, such as classification, question-answering models, and chatbots.\par
@@ -76,13 +77,13 @@ In this study, this process is called domain-specific pretraining.
 When trained, such models can be used as replacements for general language models and be trained for downstream tasks.
 
 \section{Method}
-\label{sec:introduction}
+\label{sec:method}
 The \textsc{CT-BERT} model is trained on a corpus of \num{160}M tweets about the coronavirus collected through the Crowdbreaks platform~\cite{muller2019crowdbreaks} during the period from January 12 to April 16, 2020.
 Crowdbreaks uses the Twitter filter stream API to listen to a set of COVID-19-related keywords\footnote{wuhan, ncov, coronavirus, covid, sars-cov-2} in the English language.
 Prior to training, the original corpus was cleaned for retweet tags.
 Each tweet was pseudonymised by replacing all Twitter usernames with a common text token.
 A similar procedure was performed on all URLs to web pages.
-We also replaced all unicode emoticons with textual ASCII representations (e.g.\ :thumbs\_up: for 👍) using the Python emoji library\footnote{\url{https://pypi.org/project/emoji/}}.
+  We also replaced all unicode emoticons with textual ASCII representations (e.g.\ \texttt{:smile:} for \smiley) using the Python emoji library\footnote{\url{https://pypi.org/project/emoji/}}.
 In the end, all retweets, duplicates and close duplicates were removed from the dataset, resulting in a final corpus of 22.5M tweets that comprise a total of 0.6B words.
 The domain-specific pretraining dataset therefore consists of 1/7th the size of what is used for training the main base model.
 Tweets were treated as individual documents and segmented into sentences using the spaCy library~\cite{honnibal2017spacy}.
@@ -200,7 +201,7 @@ However, using loss/metrics for these tasks to evaluate the correct time to stop
 \end{multicols}
 \begin{figure}
   \centering
-  \includegraphics[]{figures/fig1.pdf}
+  \includegraphics[]{fig1.pdf}
   \caption{
     Evaluation metrics for the domain-specific pretraining of \textsc{CT-BERT}.
     Shown are the loss and accuracy of masked language modelling (MLM) and next sentence prediction (NSP) tasks.
@@ -268,7 +269,7 @@ The most stable training seems to be on the SemEval training set, and the least 
 \end{multicols}
 \begin{figure}[h!]
   \centering
-  \includegraphics[]{figures/fig2.pdf}
+  \includegraphics[]{fig2.pdf}
   \caption{
     Marginal performance increase in the F1 score ($\Delta$MP) on finetuning on various classification tasks at increasing steps of pretraining.
     Zero on the x-axis corresponds to the base model, which is \textsc{BERT-Large} in this case.
@@ -332,5 +333,5 @@ The authors have no conflicts of interest to declare.
 \end{multicols}
 
 \bibliographystyle{unsrt}
-\bibliography{bib/main}
+\bibliography{refs}
 \end{document}
