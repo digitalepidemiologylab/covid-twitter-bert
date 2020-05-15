@@ -10,7 +10,7 @@ COVID-Twitter-BERT (CT-BERT) is a transformer-based model pretrained on a large 
 This repository contains all code used in the paper as well as notebooks to fintetune CT-BERT on your own datasets. We are in the process of making our model available on TFHub and Huggingface.
 
 # Pretrained models
-| Version  | Training data | Model | Language | Download |
+| Version  | Training data | Base model | Language | Download |
 | -------- | ------------- | ----- | -------- | -------- |
 | v1  | 22.5M tweets (633M tokens) | BERT-large-uncased | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) \| [HuggingFace](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/huggingface/covid-twitter-bert-v1.tar.gz) |
 
