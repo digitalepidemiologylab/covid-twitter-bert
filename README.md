@@ -2,9 +2,14 @@
 # COVID-Twitter-BERT
 Pretrained BERT-large language model on Twitter data related to COVID-19 
 
+<style>.table-nocaption table { width: 50%;  }</style>
+
+<div class="ox-hugo-table table-nocaption">
+<div></div>
+| Version  | ssssssss | 
 | -------- | -------- |
 | Version  | ssssssss | 
-
+ </div>
 
 # Pretrained models
 | Version  | Training data | Model | Language | Download |
