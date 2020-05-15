@@ -1,8 +1,10 @@
 
 # COVID-Twitter-BERT
-<img align="right" width="50%" src="images/COVID-Twitter-BERT-medium.png">
+
 
 COVID-Twitter-BERT (CT-BERT) is a transformer-based model pretrained on a large corpus of Twitter messages on the topic of COVID-19. When used on domain specific datasets our evaluation shows a marginal performane increase of 10%–30% compared to the base model.
+
+<img align="right" width="50%" src="images/COVID-Twitter-BERT-medium.png">
 
 This repository contains all code used in the paper as well as notebooks to fintetune CT-BERT on your own dataset. We are in the process of making our model available on TFHub and Huggingface.
 
