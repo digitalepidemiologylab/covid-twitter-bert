@@ -7,7 +7,7 @@ Pretrained BERT-large language model on Twitter data related to COVID-19
 <div class="ox-hugo-table table-nocaption">
 <div></div>
 | -------- | -------- |
-| Version  | <img align="center" src="images/COVID-Twitter-BERT-medium.png"> | 
+| Version  | ssssssss | 
 | -------- | -------- |
 </div>
 
