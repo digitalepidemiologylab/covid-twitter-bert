@@ -7,7 +7,7 @@ A Pretrained BERT-large language model on Twitter data related to COVID-19
 
 COVID-Twitter-BERT (CT-BERT) is a transformer-based model pretrained on a large corpus of Twitter messages on the topic of COVID-19. When used on domain specific datasets our evaluation shows a marginal performane increase of 10–30% compared to the base model.
 
-This repository contains all code used in the paper as well as notebooks to fintetune CT-BERT on your own datasets. We are in the process of making our model available on TFHub and Huggingface.
+This repository contains all code used in the paper as well as notebooks to fintetune CT-BERT on your own datasets. 
 
 # Pretrained models
 | Version  | Training data | Base model | Language | Download |
@@ -16,13 +16,15 @@ This repository contains all code used in the paper as well as notebooks to fint
 
 # Usage
 
+:construction: We are in the process of making our model available on TFHub and Huggingface. :construction:
+
 ## With Tensorflow 2/Keras/TFHub
-We have made our model available through [TFHub](). You can directly use the model by providing the URL to the TF hub module.
+_Some instructions soon to follow_
 ```python
 import tensorflow as tf
 import tensorflow_hub as hub
 
-max_seq_length = 128  # Your choice here.
+max_seq_length = 96  # Your choice here.
 input_word_ids = tf.keras.layers.Input(
   shape=(max_seq_length,),
   dtype=tf.int32,
@@ -51,7 +53,8 @@ classifier_model = tf.keras.Model(
 ```
 
 ## Use Huggingface transformers
-You can use our model with the [transformers](https://github.com/huggingface/transformers) library by huggingface. Note: We couldn't yet validate this model.
+_Some instructions soon to follow_
+
 ```python
 from transformers import TFBertForPreTraining, BertTokenizer, TFBertForSequenceClassification
 import tensorflow as tf
@@ -64,6 +67,8 @@ outputs = model(input_ids)
 ```
 
 ## Use our own scripts
+_Some instructions soon to follow_
+
 If your goal is to train (finetune) a classifier, you can use the code in this repo. For this you will need to download the checkpoint file.
 
 
