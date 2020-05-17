@@ -129,7 +129,7 @@ def preprocess_file(input_file, preprocess_fn, output_folder, do_lower_case, arg
 
 def parse_args():
     parser = ArgParseDefault()
-    parser.add_argument('--input_data', default='/drives/sde/wuhan_project/preprocess/data/other/pretrain/run_2020_04_26-15-25_1587907545', help='Path to folder with txt files. \
+    parser.add_argument('--input_data', required=True, help='Path to folder with txt files. \
             Folder may contain train/dev/test subfolders. Each txt file contains the text of a single tweet per line.')
     parser.add_argument('--run_prefix', help='Prefix to be added to all runs. Useful to identify runs')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class')
