@@ -79,6 +79,7 @@ Please cite the Arxiv paper(https://arxiv.org/abs/2005.07503):
   author={Müller, Martin and Salathé, Marcel and Kummervold, Per E},
   journal={arXiv preprint arXiv:2005.07502},
   year={2020}
+  }
   ```
 
 ## Acknowledgement
