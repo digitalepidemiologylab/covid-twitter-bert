@@ -35,7 +35,7 @@ input_type_ids = tf.keras.layers.Input(
   shape=(max_seq_length,),
   dtype=tf.int32,
   name="input_type_ids")
-bert_layer = hub.KerasLayer("https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert>/1", trainable=True)
+bert_layer = hub.KerasLayer("https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1", trainable=True)
 pooled_output, sequence_output = bert_layer([input_word_ids, input_mask, input_type_ids])
 ```
 
@@ -61,4 +61,4 @@ tokenizer = tokenization.FullTokenizer(vocab_file, do_lower_case)
 ```
 
 ## References
-[1] (to be added)
+[1] Martin Müller, Marcel Salaté, Per E Kummervold. "COVID-Twitter-BERT: A Natural Language Processing Model to Analyse COVID-19 Content on Twitter" arXiv preprint arXiv:2005.07503 (2020).
