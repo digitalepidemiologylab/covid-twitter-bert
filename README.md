@@ -59,11 +59,11 @@ _Some instructions soon to follow_
 from transformers import TFBertForPreTraining, BertTokenizer, TFBertForSequenceClassification
 import tensorflow as tf
 
-input_path = '/path/to/h5-model-folder'
-tokenizer = BertTokenizer.from_pretrained(input_path)
-model = TFBertForSequenceClassification.from_pretrained(input_path, num_labels=3)
+tokenizer = BertTokenizer.from_pretrained('digitalepidemiologylab/covid-twitter-bert')
+model = TFBertForSequenceClassification.from_pretrained('digitalepidemiologylab/covid-twitter-bert', num_labels=3)
 input_ids = tf.constant(tokenizer.encode("Oh, when will this lockdown ever end?", add_special_tokens=True))[None, :]  # Batch size 1
-outputs = model(input_ids)
+model(input_ids)
+# (<tf.Tensor: shape=(1, 3), dtype=float32, numpy=array([[ 0.17217427, -0.31084645, -0.47540542]], dtype=float32)>,)
 ```
 
 ## Use our own scripts
