@@ -73,13 +73,17 @@ If your goal is to train (finetune) a classifier, you can use the code in this r
 
 ## How do I cite COVID-Twitter-BERT?
 You can cite our [preprint](https://arxiv.org/abs/2005.07503):
-```
+```bibtex
 @article{mueller2020covid,
-  title={COVID-Twitter-BERT: A Natural Language Processing Model to Analyse COVID-19 Content on Twitter},
+  title={{COVID-Twitter-BERT: A Natural Language Processing Model to Analyse COVID-19 Content on Twitter}},
   author={M\"uller, Martin and Salath\'e, Marcel and Kummervold, Per E},
   journal={arXiv preprint arXiv:2005.07502},
   year={2020}
 }
+```
+or
+```
+Martin Müller, Marcel Salathé, and Per E Kummervold. COVID-Twitter-BERT: A Natural Language Processing Model to Analyse COVID-19 Content on Twitter. arXiv preprint arXiv:2005.07502, 2020.
 ```
 
 ## Acknowledgement
