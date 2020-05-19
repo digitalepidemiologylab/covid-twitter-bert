@@ -4,7 +4,6 @@ sys.path.append('tensorflow_models')
 from official.nlp.bert import bert_models
 from official.utils.misc import distribution_utils
 from official.nlp.bert import configs as bert_configs
-from official.nlp import optimization
 from official.modeling import performance
 from official.nlp.bert import input_pipeline
 from official.utils.misc import keras_utils
@@ -21,6 +20,7 @@ import json
 import tensorflow as tf
 from utils.misc import ArgParseDefault, save_to_json, add_bool_arg, create_tpu, destroy_tpu
 from utils.finetune_helpers import Metrics
+import utils.optimizer
 from config import PRETRAINED_MODELS
 
 
@@ -65,7 +65,7 @@ def get_model(args, model_config, steps_per_epoch, warmup_steps, num_labels, max
             hub_module_url=None,
             hub_module_trainable=False)
     # Optimizer
-    optimizer = optimization.create_optimizer(
+    optimizer = utils.optimizer.create_optimizer(
             args.learning_rate,
             steps_per_epoch * args.num_epochs,
             warmup_steps,
@@ -194,8 +194,7 @@ def run(args):
     classifier_model.compile(
         optimizer=optimizer,
         loss=loss_fn,
-        metrics=get_metrics(),
-        experimental_steps_per_execution=args.steps_per_loop)
+        metrics=get_metrics())
     logger.info(f'... done')
 
     # Create all custom callbacks
@@ -363,7 +362,7 @@ def parse_args():
     parser.add_argument('--early_stopping_epochs', default=-1, type=int, help='Stop when loss hasn\'t decreased during n epochs')
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
     parser.add_argument('--dtype', default='fp32', choices=['fp32', 'bf16', 'fp16'], type=str, help='Data type')
-    parser.add_argument('--steps_per_loop', default=10, type=int, help='Steps per loop')
+    parser.add_argument('--steps_per_loop', default=10, type=int, help='Steps per loop (unavailable for Keras fit in TF 2.2, will be added in later version)')
     parser.add_argument('--time_history_log_steps', default=10, type=int, help='Frequency with which to log timing information with TimeHistory.')
     parser.add_argument('--model_config_path', default=None, type=str, help='Path to model config file, by default fetch from PRETRAINED_MODELS["location"]')
     add_bool_arg(parser, 'use_tpu', default=True, help='Use TPU')

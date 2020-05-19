@@ -140,3 +140,4 @@ analysis/plots
 *.bbl
 *.xdv
 .DS_Store
+test_*.sh
