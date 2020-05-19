@@ -94,9 +94,57 @@ pip install -r requirements.txt
 ```
 
 ### Finetune
-_Some instructions soon to follow_
+You may finetune CT-BERT on your own classification dataset.
 #### Prepare data
+Place your training dataset with name `<dataset_name>` to a `data/finetune/originals/<dataset_name>/train.tsv` and a validation dataset with the name `dev.tsv` to the same folder. You can then run
+```bash
+cd preprocess
+python create_finetune_data.py \
+  --run_prefix test_run \
+  --finetune_datasets <dataset_name> \
+  --model_class bert_large_uncased_wwm \
+  --max_seq_length 96 \
+  --asciify_emojis \
+  --username_filler twitteruser \
+  --url_filler twitterurl \
+  --replace_multiple_usernames \
+  --replace_multiple_urls \
+  --remove_unicode_symbols
+```
+This will generate TF record files in `data/finetune/run_2020-05-19_14-14-53_517063_test_run/<dataset_name>/tfrecords`.
+
+You can now upload the data to your bucket:
+```bash
+cd data
+gsutil -m rsync -r finetune/ gs://<bucket_name>/covid-bert/finetune/finetune_data/
+```
+
 #### Train
+You can now train on this data using the following command
+```bash
+RUN_PREFIX=testrun                                  # Name your run
+BUCKET_NAME=                                        # Fill in your buckets name here (without the gs:// prefix)
+TPU_IP=XX.XX.XXX.X                                  # Fill in your TPUs IP here
+FINETUNE_DATASET=<dataset_name>                     # Your dataset name
+FINETUNE_DATA=<dataset_run>                         # Fill in dataset run name (e.g. run_2020-05-19_14-14-53_517063_test_run)
+MODEL_CLASS=bert_large_uncased_wwm
+TRAIN_BATCH_SIZE=32
+EVAL_BATCH_SIZE=8
+LR=2e-5
+NUM_EPOCHS=1
+
+python run_finetune.py \
+  --run_prefix $RUN_PREFIX \
+  --bucket_name $BUCKET_NAME \
+  --tpu_ip $TPU_IP \
+  --model_class $MODEL_CLASS \
+  --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} \
+  --train_batch_size $TRAIN_BATCH_SIZE \
+  --eval_batch_size $EVAL_BATCH_SIZE \
+  --num_epochs $NUM_EPOCHS \
+  --learning_rate $LR
+```
+Training logs, run configs, etc are then stored to `gs://<bucket_name>/covid-bert/finetune/runs/run_2020-04-29_21-20-52_656110_<run_prefix>/`
 
 ### Pretrain
 _Some instructions soon to follow_
