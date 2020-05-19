@@ -59,7 +59,7 @@ def configure_optimizer(optimizer, use_float16=False, use_graph_rewrite=False, l
 def get_model(args, model_config, steps_per_epoch, warmup_steps, num_labels, max_seq_length, is_hub_module=False):
     # Get classifier and core model (used to initialize from checkpoint)
     if PRETRAINED_MODELS[args.model_class]['is_tfhub_model']:
-        hub_module_url = PRETRAINED_MODELS[args.model_class]['location']
+        hub_module_url = f"https://tfhub.dev/{PRETRAINED_MODELS[args.model_class]['hub_url']}"
         hub_module_trainable = True
     else:
         hub_module_url = None
@@ -183,7 +183,7 @@ def run(args):
     # Restore checkpoint
     if not PRETRAINED_MODELS[args.model_class]['is_tfhub_model']:
         if args.init_checkpoint is None:
-            pretrained_model_path = get_pretrained_model_path(args)
+            pretrained_model_path = PRETRAINED_MODELS[args.model_class]['bucket_location']
             checkpoint_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_model.ckpt'
         else:
             checkpoint_path = f'gs://{args.bucket_name}/{args.project_name}/pretrain/runs/{args.init_checkpoint}'
@@ -366,7 +366,6 @@ def parse_args():
     parser.add_argument('--dtype', default='fp32', choices=['fp32', 'bf16', 'fp16'], type=str, help='Data type')
     parser.add_argument('--steps_per_loop', default=10, type=int, help='Steps per loop (unavailable for Keras fit in TF 2.2, will be added in later version)')
     parser.add_argument('--time_history_log_steps', default=10, type=int, help='Frequency with which to log timing information with TimeHistory.')
-    parser.add_argument('--model_config_path', default=None, type=str, help='Path to model config file, by default fetch from PRETRAINED_MODELS["location"]')
     add_bool_arg(parser, 'use_tpu', default=True, help='Use TPU')
     args = parser.parse_args()
     return args
