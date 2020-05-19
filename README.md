@@ -144,10 +144,34 @@ python run_finetune.py \
   --num_epochs $NUM_EPOCHS \
   --learning_rate $LR
 ```
-Training logs, run configs, etc are then stored to `gs://<bucket_name>/covid-bert/finetune/runs/run_2020-04-29_21-20-52_656110_<run_prefix>/`
+Training logs, run configs, etc are then stored to `gs://<bucket_name>/covid-bert/finetune/runs/run_2020-04-29_21-20-52_656110_<run_prefix>/`. Among tensorflow logs you will find a file called `run_logs.json` containing all relevant training information
+```json
+{
+    "created_at": "2020-04-29 20:58:23",
+    "run_name": "run_2020-04-29_20-51-10_405727_test_run",
+    "final_loss": 0.19747886061668396,
+    "max_seq_length": 96,
+    "num_train_steps": 210,
+    "eval_steps": 103,
+    "steps_per_epoch": 42,
+    "training_time_min": 6.77958079179128,
+    "f1_macro": 0.7216383309465823,
+    "scores_by_label": {
+      ...
+    },
+    ...
+}
+```
+
+#### Sync results
+Syncronize all training logs with your local repository by running
+```bash
+python sync_bucket_data.py --bucket_name <bucket_name>
+```
+Which will pull down all logs from that bucket and store them to `data/<bucket_name>/covid-bert/finetune/<run_names>`.
 
 ### Pretrain
-_Some instructions soon to follow_
+
 #### Prepare data
 #### Train
 
