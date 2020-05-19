@@ -103,7 +103,9 @@ id      label   text
 1224380447930683394     label_a       Example text 2
 1220843980633661443     label_b       Example text 3
 ```
-Place these files into a local folder `data/finetune/originals/<dataset_name>/(train.tsv|dev.tsv)`. You can then run
+Place these files into the folder `data/finetune/originals/<dataset_name>/(train|dev).tsv` (using your own `dataset_name`).
+
+You can then run
 ```bash
 cd preprocess
 python create_finetune_data.py \
