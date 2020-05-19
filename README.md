@@ -32,19 +32,15 @@ from transformers import (
     BertTokenizer,
     TFBertForSequenceClassification,
 )
-
 import tensorflow as tf
 
 tokenizer = BertTokenizer.from_pretrained("digitalepidemiologylab/covid-twitter-bert")
-
 model = TFBertForSequenceClassification.from_pretrained(
     "digitalepidemiologylab/covid-twitter-bert", num_labels=3
 )
-
 input_ids = tf.constant(
     tokenizer.encode("Oh, when will this lockdown ever end?", add_special_tokens=True)
 )
-
 model(input_ids[None, :])  # Batch size 1
 # (<tf.Tensor: shape=(1, 3), dtype=float32, numpy=array([[ 0.17217427, -0.31084645, -0.47540542]], dtype=float32)>,)
 ```
@@ -59,33 +55,26 @@ max_seq_length = 96  # Your choice here.
 input_word_ids = tf.keras.layers.Input(
     shape=(max_seq_length,), dtype=tf.int32, name="input_word_ids"
 )
-
 input_mask = tf.keras.layers.Input(
     shape=(max_seq_length,), dtype=tf.int32, name="input_mask"
 )
-
 input_type_ids = tf.keras.layers.Input(
     shape=(max_seq_length,), dtype=tf.int32, name="input_type_ids"
 )
-
 bert_layer = hub.KerasLayer(
     "https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1", trainable=True
 )
-
 pooled_output, sequence_output = bert_layer(
     [input_word_ids, input_mask, input_type_ids]
 )
 
 # Create classifier model
-
 num_labels = 3
-
 initializer = tf.keras.initializers.TruncatedNormal(stddev=0.2)
 output = tf.keras.layers.Dropout(rate=0.1)(pooled_output)
 output = tf.keras.layers.Dense(
     num_labels, kernel_initializer=initializer, name="output"
 )(output)
-
 classifier_model = tf.keras.Model(
     inputs={
         "input_word_ids": input_word_ids,
