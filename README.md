@@ -120,14 +120,14 @@ gsutil -m rsync -r finetune/ gs://<bucket_name>/covid-bert/finetune/finetune_dat
 ```
 
 #### Train
-You can now train on this data using the following command
+You can now finetune CT-BERT on this data using the following command
 ```bash
 RUN_PREFIX=testrun                                  # Name your run
 BUCKET_NAME=                                        # Fill in your buckets name here (without the gs:// prefix)
 TPU_IP=XX.XX.XXX.X                                  # Fill in your TPUs IP here
 FINETUNE_DATASET=<dataset_name>                     # Your dataset name
 FINETUNE_DATA=<dataset_run>                         # Fill in dataset run name (e.g. run_2020-05-19_14-14-53_517063_test_run)
-MODEL_CLASS=bert_large_uncased_wwm
+MODEL_CLASS=covid-twitter-bert
 TRAIN_BATCH_SIZE=32
 EVAL_BATCH_SIZE=8
 LR=2e-5
@@ -145,7 +145,7 @@ python run_finetune.py \
   --learning_rate $LR
 ```
 Training logs, run configs, etc are then stored to `gs://<bucket_name>/covid-bert/finetune/runs/run_2020-04-29_21-20-52_656110_<run_prefix>/`. Among tensorflow logs you will find a file called `run_logs.json` containing all relevant training information
-```json
+```
 {
     "created_at": "2020-04-29 20:58:23",
     "run_name": "run_2020-04-29_20-51-10_405727_test_run",
