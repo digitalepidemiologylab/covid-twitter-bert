@@ -67,16 +67,42 @@ classifier_model = tf.keras.Model(
 ```
 
 ## Use our own scripts
+Our code can be used for the domain specific pretraining of a transformer model (`run_pretrain.py`) and/or the training of a classifier (`run_finetune.py`).
 
+Our code depends on the official [tensorflow/models](https://github.com/tensorflow/models) implementation of BERT under tensorflow 2.2/Keras. This code is therefore not compatible with TF 1.4 trained models using the [google-research/bert](https://github.com/google-research/bert) repository.
 
-### Install dependencies
-Our code has been tested with the tensorflow version `tf-nightly==2.2.0.dev20200505`. 
+In order to use our code you need to set up:
+* A personal bucket
+* A Google Cloud VM
+* A TPU in the same zone as the VM, version 2.2
+
+If you are a researcher you may [apply for access to TPUs](https://www.tensorflow.org/tfrc) and/or [Google Cloud credits](https://edu.google.com/programs/credits/research/?modal_active=none).
+
+### Install
+Clone the repository recursively
+```bash
+git clone https://github.com/digitalepidemiologylab/covid-twitter-bert.git --recursive && cd covid-twitter-bert
+```
+Our code was developed using `tf-nightly` but we made it backwards compatible to run with tensorflow 2.2. We recommend using Anaconda to manage the Python version:
+```bash
+conda create -n covid-twitter-bert python=3.8
+conda activate covid-twitter-bert
+```
+Install dependencies
+```bash
+pip install -r requirements.txt
+```
 
 ### Finetune
 _Some instructions soon to follow_
+#### Prepare data
+#### Train
 
 ### Pretrain
 _Some instructions soon to follow_
+#### Prepare data
+#### Train
+
 
 ## How do I cite COVID-Twitter-BERT?
 You can cite our [preprint](https://arxiv.org/abs/2005.07503):
