@@ -65,6 +65,17 @@ classifier_model = tf.keras.Model(
           'input_type_ids': input_type_ids}, 
   outputs=output)
 ```
+# Datasets
+In our preliminary study we have evaluated our model on five different classification datasets
+| Dataset name  | Num classes | Reference |
+| ------------- | ----------- | ----------|
+| COVID Category (CC)  | 2 | [Read more](datasets/covid_category) |
+| Vaccine Sentiment (VS)  | 3 | [See :arrow_right:](https://github.com/digitalepidemiologylab/crowdbreaks-paper) |
+| Maternal vaccine Sentiment (MVS)  | 4 | [not yet public] |
+| Stanford Sentiment Treebank 2 (SST-2) | 2 | [See :arrow_right:](https://gluebenchmark.com/tasks) | 
+| Twitter Sentiment SemEval (SE) | 3 | [See :arrow_right:](http://alt.qcri.org/semeval2016/task4/index.php?id=data-and-tools) | 
+
+If you end up using these datasets, please make sure to properly cite them.
 
 # Our code
 Our code can be used for the domain specific pretraining of a transformer model (`run_pretrain.py`) and/or the training of a classifier (`run_finetune.py`).
