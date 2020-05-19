@@ -72,8 +72,7 @@ Our code can be used for the domain specific pretraining of a transformer model 
 Our code depends on the official [tensorflow/models](https://github.com/tensorflow/models) implementation of BERT under tensorflow 2.2/Keras. This code is therefore not compatible with TF 1.4 trained models using the [google-research/bert](https://github.com/google-research/bert) repository.
 
 In order to use our code you need to set up:
-
-* A personal bucket
+* A personal bucket
 * A Google Cloud VM
 * A TPU in the same zone as the VM, version 2.2
 
