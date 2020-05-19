@@ -56,14 +56,20 @@ def configure_optimizer(optimizer, use_float16=False, use_graph_rewrite=False, l
         optimizer = tf.train.experimental.enable_mixed_precision_graph_rewrite(optimizer)
     return optimizer
 
-def get_model(args, model_config, steps_per_epoch, warmup_steps, num_labels, max_seq_length):
+def get_model(args, model_config, steps_per_epoch, warmup_steps, num_labels, max_seq_length, is_hub_module=False):
     # Get classifier and core model (used to initialize from checkpoint)
+    if PRETRAINED_MODELS[args.model_class]['is_tfhub_model']:
+        hub_module_url = PRETRAINED_MODELS[args.model_class]['location']
+        hub_module_trainable = True
+    else:
+        hub_module_url = None
+        hub_module_trainable = False
     classifier_model, core_model = bert_models.classifier_model(
             model_config,
             num_labels,
             max_seq_length,
-            hub_module_url=None,
-            hub_module_trainable=False)
+            hub_module_url=hub_module_url,
+            hub_module_trainable=hub_module_trainable)
     # Optimizer
     optimizer = optimization.create_optimizer(
             args.learning_rate,
@@ -113,12 +119,12 @@ def get_label_mapping(data_dir):
 def get_metrics():
     return [tf.keras.metrics.SparseCategoricalAccuracy('test_accuracy', dtype=tf.float32)]
 
-def get_pretrained_model_path(args):
+def get_model_config_path(args):
     try:
-        pretrained_model_path = PRETRAINED_MODELS[args.model_class]['location']
+        config_path = PRETRAINED_MODELS[args.model_class]['config']
     except KeyError:
         raise ValueError(f'Could not find a pretrained model matching the model class {args.model_class}')
-    return pretrained_model_path
+    return os.path.join('configs', config_path)
 
 def get_run_name(args):
     # Use timestamp to generate a unique run name
@@ -137,16 +143,11 @@ def run(args):
     data_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/finetune_data/{args.finetune_data}'
     output_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/runs/{run_name}'
 
-    # model config path
-    if args.model_config_path is None:
-        # use config path from pretrained model
-        pretrained_model_path = get_pretrained_model_path(args)
-        pretrained_model_config_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_config.json'
-    else:
-        pretrained_model_config_path = args.model_config_path
-
     # Get configs
+    pretrained_model_config_path = get_model_config_path(args)
     model_config = get_model_config(pretrained_model_config_path)
+
+    # Meta data/label mapping
     input_meta_data = get_input_meta_data(data_dir)
     label_mapping = get_label_mapping(data_dir)
     logger.info(f'Loaded training data meta.json file: {input_meta_data}')
@@ -180,14 +181,15 @@ def run(args):
     loss_fn = get_loss_fn(num_labels)
 
     # Restore checkpoint
-    if args.init_checkpoint is None:
-        pretrained_model_path = get_pretrained_model_path(args)
-        checkpoint_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_model.ckpt'
-    else:
-        checkpoint_path = f'gs://{args.bucket_name}/{args.project_name}/pretrain/runs/{args.init_checkpoint}'
-    checkpoint = tf.train.Checkpoint(model=core_model)
-    checkpoint.restore(checkpoint_path).assert_existing_objects_matched()
-    logger.info(f'Successfully restored checkpoint from {checkpoint_path}')
+    if not PRETRAINED_MODELS[args.model_class]['is_tfhub_model']:
+        if args.init_checkpoint is None:
+            pretrained_model_path = get_pretrained_model_path(args)
+            checkpoint_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_model.ckpt'
+        else:
+            checkpoint_path = f'gs://{args.bucket_name}/{args.project_name}/pretrain/runs/{args.init_checkpoint}'
+        checkpoint = tf.train.Checkpoint(model=core_model)
+        checkpoint.restore(checkpoint_path).assert_existing_objects_matched()
+        logger.info(f'Successfully restored checkpoint from {checkpoint_path}')
 
     # Run keras compile
     logger.info(f'Compiling keras model...')
