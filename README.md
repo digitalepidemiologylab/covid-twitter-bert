@@ -96,7 +96,14 @@ pip install -r requirements.txt
 ### Finetune
 You may finetune CT-BERT on your own classification dataset.
 #### Prepare data
-Place your training dataset with name `<dataset_name>` to a `data/finetune/originals/<dataset_name>/train.tsv` and a validation dataset with the name `dev.tsv` to the same folder. You can then run
+Split your data into a training set `train.tsv` and a validation set `dev.tsv` with the following format:
+```
+id      label   text
+1224380447930683394     label_a       Example text 1
+1224380447930683394     label_a       Example text 2
+1220843980633661443     label_b       Example text 3
+```
+Place these files into a local folder `data/finetune/originals/<dataset_name>/(train.tsv|dev.tsv)`. You can then run
 ```bash
 cd preprocess
 python create_finetune_data.py \
