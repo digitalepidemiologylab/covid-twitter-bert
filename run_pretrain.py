@@ -5,7 +5,7 @@ from official.utils.misc import distribution_utils
 from official.nlp.bert import input_pipeline
 from official.nlp.bert import bert_models
 from official.nlp.bert import configs as bert_configs
-from official.nlp.bert import model_training_utils
+from official.modeling import model_training_utils
 from official.nlp import optimization
 from official.utils.misc import keras_utils
 
@@ -20,6 +20,7 @@ import json
 import tensorflow as tf
 from config import PRETRAINED_MODELS
 from utils.misc import ArgParseDefault, add_bool_arg, save_to_json
+import utils.optimizer
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
 logger = logging.getLogger(__name__)
@@ -140,10 +141,10 @@ def run(args, strategy):
     def _get_pretrained_model(end_lr=0.0):
         """Gets a pretraining model."""
         pretrain_model, core_model = bert_models.pretrain_model(model_config, args.max_seq_length, args.max_predictions_per_seq)
-        optimizer = optimization.create_optimizer(
+        optimizer = utils.optimizer.create_optimizer(
                 args.learning_rate,
-                args.num_steps_per_epoch * args.num_epochs,
-                args.warmup_steps,
+                steps_per_epoch * args.num_epochs,
+                warmup_steps,
                 args.end_lr,
                 args.optimizer_type)
         pretrain_model.optimizer = configure_optimizer(optimizer, use_float16=args.dtype == 'fp16', use_graph_rewrite=False)
@@ -162,7 +163,7 @@ def run(args, strategy):
             'created_at': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'run_name': run_name,
             'num_train_steps': args.num_steps_per_epoch * args.num_epochs,
-            'eval_steps': eval_steps,
+            'eval_steps': args.eval_steps,
             'model_dir': output_dir,
             'output_dir': output_dir,
             **vars(args),

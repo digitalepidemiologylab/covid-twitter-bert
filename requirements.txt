@@ -1,4 +1,4 @@
-tf-nightly
+tensorflow==2.2.0
 gin-config
 tensorflow_hub
 tensorflow_addons

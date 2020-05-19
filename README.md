@@ -15,11 +15,25 @@ This repository contains all code used in the paper as well as notebooks to fint
 | v1  | 22.5M tweets (633M tokens) | BERT-large-uncased | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) \| [HuggingFace](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/huggingface/covid-twitter-bert-v1.tar.gz) |
 
 # Usage
+You can either download the above checkpoints or pull the models from [Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert) or [TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1) (see examples below). The hosted models include the tokenizer. If you are downloading the checkpoints, make sure to use the official `bert-large-uncased` vocabulary.
 
-:construction: We are in the process of making our model available on TFHub and Huggingface. :construction:
+## Huggingface transformers
+You can create a classifier model with Huggingface by simply providing `digitalepidemiologylab/covid-twitter-bert`
+with the `from_pretrained()` syntax:
 
-## With Tensorflow 2/Keras/TFHub
-_Some instructions soon to follow_
+```python
+from transformers import TFBertForPreTraining, BertTokenizer, TFBertForSequenceClassification
+import tensorflow as tf
+
+tokenizer = BertTokenizer.from_pretrained('digitalepidemiologylab/covid-twitter-bert')
+model = TFBertForSequenceClassification.from_pretrained('digitalepidemiologylab/covid-twitter-bert', num_labels=3)
+input_ids = tf.constant(tokenizer.encode("Oh, when will this lockdown ever end?", add_special_tokens=True))[None, :]  # Batch size 1
+model(input_ids)
+# (<tf.Tensor: shape=(1, 3), dtype=float32, numpy=array([[ 0.17217427, -0.31084645, -0.47540542]], dtype=float32)>,)
+```
+
+## TFHub
+Make sure to have `tensorflow 2.x` and `tensorflow_hub` installed. You can then instantiate a `KerasLayer` with our TFHub URL `https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1` and build a classifier model like so: 
 ```python
 import tensorflow as tf
 import tensorflow_hub as hub
@@ -52,24 +66,91 @@ classifier_model = tf.keras.Model(
   outputs=output)
 ```
 
-## Use Huggingface transformers
-_Some instructions soon to follow_
+## Use our own scripts
+Our code can be used for the domain specific pretraining of a transformer model (`run_pretrain.py`) and/or the training of a classifier (`run_finetune.py`).
 
-```python
-from transformers import TFBertForPreTraining, BertTokenizer, TFBertForSequenceClassification
-import tensorflow as tf
+Our code depends on the official [tensorflow/models](https://github.com/tensorflow/models) implementation of BERT under tensorflow 2.2/Keras. This code is therefore not compatible with TF 1.4 trained models using the [google-research/bert](https://github.com/google-research/bert) repository.
 
-tokenizer = BertTokenizer.from_pretrained('digitalepidemiologylab/covid-twitter-bert')
-model = TFBertForSequenceClassification.from_pretrained('digitalepidemiologylab/covid-twitter-bert', num_labels=3)
-input_ids = tf.constant(tokenizer.encode("Oh, when will this lockdown ever end?", add_special_tokens=True))[None, :]  # Batch size 1
-model(input_ids)
-# (<tf.Tensor: shape=(1, 3), dtype=float32, numpy=array([[ 0.17217427, -0.31084645, -0.47540542]], dtype=float32)>,)
+In order to use our code you need to set up:
+* A Google Cloud bucket
+* A Google Cloud VM
+* A TPU in the same zone as the VM, version 2.2
+
+If you are a researcher you may [apply for access to TPUs](https://www.tensorflow.org/tfrc) and/or [Google Cloud credits](https://edu.google.com/programs/credits/research/?modal_active=none).
+
+### Install
+Clone the repository recursively
+```bash
+git clone https://github.com/digitalepidemiologylab/covid-twitter-bert.git --recursive && cd covid-twitter-bert
+```
+Our code was developed using `tf-nightly` but we made it backwards compatible to run with tensorflow 2.2. We recommend using Anaconda to manage the Python version:
+```bash
+conda create -n covid-twitter-bert python=3.8
+conda activate covid-twitter-bert
+```
+Install dependencies
+```bash
+pip install -r requirements.txt
 ```
 
-## Use our own scripts
-_Some instructions soon to follow_
+### Finetune
+You may finetune CT-BERT on your own classification dataset.
+#### Prepare data
+Place your training dataset with name `<dataset_name>` to a `data/finetune/originals/<dataset_name>/train.tsv` and a validation dataset with the name `dev.tsv` to the same folder. You can then run
+```bash
+cd preprocess
+python create_finetune_data.py \
+  --run_prefix test_run \
+  --finetune_datasets <dataset_name> \
+  --model_class bert_large_uncased_wwm \
+  --max_seq_length 96 \
+  --asciify_emojis \
+  --username_filler twitteruser \
+  --url_filler twitterurl \
+  --replace_multiple_usernames \
+  --replace_multiple_urls \
+  --remove_unicode_symbols
+```
+This will generate TF record files in `data/finetune/run_2020-05-19_14-14-53_517063_test_run/<dataset_name>/tfrecords`.
 
-If your goal is to train (finetune) a classifier, you can use the code in this repo. For this you will need to download the checkpoint file.
+You can now upload the data to your bucket:
+```bash
+cd data
+gsutil -m rsync -r finetune/ gs://<bucket_name>/covid-bert/finetune/finetune_data/
+```
+
+#### Train
+You can now train on this data using the following command
+```bash
+RUN_PREFIX=testrun                                  # Name your run
+BUCKET_NAME=                                        # Fill in your buckets name here (without the gs:// prefix)
+TPU_IP=XX.XX.XXX.X                                  # Fill in your TPUs IP here
+FINETUNE_DATASET=<dataset_name>                     # Your dataset name
+FINETUNE_DATA=<dataset_run>                         # Fill in dataset run name (e.g. run_2020-05-19_14-14-53_517063_test_run)
+MODEL_CLASS=bert_large_uncased_wwm
+TRAIN_BATCH_SIZE=32
+EVAL_BATCH_SIZE=8
+LR=2e-5
+NUM_EPOCHS=1
+
+python run_finetune.py \
+  --run_prefix $RUN_PREFIX \
+  --bucket_name $BUCKET_NAME \
+  --tpu_ip $TPU_IP \
+  --model_class $MODEL_CLASS \
+  --finetune_data ${FINETUNE_DATA}/${FINETUNE_DATASET} \
+  --train_batch_size $TRAIN_BATCH_SIZE \
+  --eval_batch_size $EVAL_BATCH_SIZE \
+  --num_epochs $NUM_EPOCHS \
+  --learning_rate $LR
+```
+Training logs, run configs, etc are then stored to `gs://<bucket_name>/covid-bert/finetune/runs/run_2020-04-29_21-20-52_656110_<run_prefix>/`
+
+### Pretrain
+_Some instructions soon to follow_
+#### Prepare data
+#### Train
+
 
 ## How do I cite COVID-Twitter-BERT?
 You can cite our [preprint](https://arxiv.org/abs/2005.07503):
