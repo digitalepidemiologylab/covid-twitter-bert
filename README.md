@@ -128,7 +128,7 @@ cd data
 gsutil -m rsync -r finetune/ gs://<bucket_name>/covid-bert/finetune/finetune_data/
 ```
 
-### Train
+### Run finetuning
 You can now finetune CT-BERT on this data using the following command
 ```bash
 RUN_PREFIX=testrun                                  # Name your run
@@ -203,7 +203,7 @@ python prepare_pretrain_data.py \
 ```
 This results in preprocessed data stored in `data/pretrain/<run_name>/preprocessed/`.
 
-**2. Generate TFrecord files to be used for pretraining **
+**2. Generate TFrecord files to be used for pretraining**
 
 ```bash
 cd preprocess
@@ -224,7 +224,7 @@ cd data
 gsutil -m rsync -u -r -x ".*.*/.*.txt$|.*<run name>/train/.*.tfrecords$" pretrain/ gs://<bucket name>/covid-bert/pretrain/pretrain_data/
 ```
 
-### Train
+### Run pretraining
 Before you pretrain the models make sure to untar and copy the pretrained BERT-large model under `gs://cloud-tpu-checkpoints/bert/keras_bert/wwm_uncased_L-24_H-1024_A-16.tar.gz` to `gs://<bucket_name>/pretrained_models/bert/keras_bert/wwm_uncased_L-24_H-1024_A-16/`.
 
 After the model and TFrecord files are present on the bucket, the following pretrain script can be run on a Google cloud VM with access to a TPU & bucket (same zone).
