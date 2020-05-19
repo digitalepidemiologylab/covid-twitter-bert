@@ -305,6 +305,8 @@ def set_mixed_precision_policy(args):
         raise ValueError(f'Unknown dtype {args.dtype}')
 
 def main(args):
+    # Set TF Hub caching to bucket
+    os.environ['TFHUB_CACHE_DIR'] = os.path.join(f'gs://{args.bucket_name}/tmp')
     # Get distribution strategy
     if args.use_tpu:
         if args.tpu_ip is None:
