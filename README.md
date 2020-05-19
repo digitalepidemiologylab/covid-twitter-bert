@@ -14,7 +14,7 @@ This repository contains all code used in the paper as well as notebooks to fint
 | -------- | ------------- | ----- | -------- | -------- |
 | v1  | 22.5M tweets (633M tokens) | BERT-large-uncased | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) \| [HuggingFace](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/huggingface/covid-twitter-bert-v1.tar.gz) |
 
-# Usage
+# Quick start
 You can either download the above checkpoints or pull the models from [Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert) or [TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1) (see examples below). The hosted models include the tokenizer. If you are downloading the checkpoints, make sure to use the official `bert-large-uncased` vocabulary.
 
 ## Huggingface transformers
@@ -66,7 +66,7 @@ classifier_model = tf.keras.Model(
   outputs=output)
 ```
 
-## Use our own scripts
+# Our code
 Our code can be used for the domain specific pretraining of a transformer model (`run_pretrain.py`) and/or the training of a classifier (`run_finetune.py`).
 
 Our code depends on the official [tensorflow/models](https://github.com/tensorflow/models) implementation of BERT under tensorflow 2.2/Keras. This code is therefore not compatible with TF 1.4 trained models using the [google-research/bert](https://github.com/google-research/bert) repository.
@@ -78,7 +78,7 @@ In order to use our code you need to set up:
 
 If you are a researcher you may [apply for access to TPUs](https://www.tensorflow.org/tfrc) and/or [Google Cloud credits](https://edu.google.com/programs/credits/research/?modal_active=none).
 
-### Install
+## Install
 Clone the repository recursively
 ```bash
 git clone https://github.com/digitalepidemiologylab/covid-twitter-bert.git --recursive && cd covid-twitter-bert
@@ -93,9 +93,9 @@ Install dependencies
 pip install -r requirements.txt
 ```
 
-### Finetune
+## Finetune
 You may finetune CT-BERT on your own classification dataset.
-#### Prepare data
+### Prepare data
 Split your data into a training set `train.tsv` and a validation set `dev.tsv` with the following format:
 ```
 id      label   text
@@ -128,7 +128,7 @@ cd data
 gsutil -m rsync -r finetune/ gs://<bucket_name>/covid-bert/finetune/finetune_data/
 ```
 
-#### Train
+### Train
 You can now finetune CT-BERT on this data using the following command
 ```bash
 RUN_PREFIX=testrun                                  # Name your run
@@ -172,17 +172,17 @@ Training logs, run configs, etc are then stored to `gs://<bucket_name>/covid-ber
 }
 ```
 
-#### Sync results
+### Sync results
 Syncronize all training logs with your local repository by running
 ```bash
 python sync_bucket_data.py --bucket_name <bucket_name>
 ```
 Which will pull down all logs from that bucket and store them to `data/<bucket_name>/covid-bert/finetune/<run_names>`.
 
-### Pretrain
-
-#### Prepare data
-#### Train
+## Pretrain
+_Some more information soon to follow_
+### Prepare data
+### Train
 
 
 ## How do I cite COVID-Twitter-BERT?
