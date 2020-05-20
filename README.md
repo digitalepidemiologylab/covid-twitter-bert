@@ -16,7 +16,7 @@ arXiv preprint arXiv:2005.07502, 2020.
 
 
 # Colaboratory
-For a demo on how to train a classifier on top of our model, please take a look at this Collaboratory. It finetunes a model on the SST-2 dataset, however it can easily be modified for finetuning on your own data as well.Please check it out:  <a href="https://colab.research.google.com/drive/1cIDAz19ASnQD4OeaYzZo6s2LLzSWLH_7?usp=sharing" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+For a demo on how to train a classifier on top of our model, please take a look at this Collaboratory. It finetunes a model on the SST-2 dataset, however it can easily be modified for finetuning on your own data as well. Please check it out:  <a href="https://colab.research.google.com/drive/1cIDAz19ASnQD4OeaYzZo6s2LLzSWLH_7?usp=sharing" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 
 # Load the pretrained model directly
@@ -91,39 +91,14 @@ tokenizer = tokenization.FullTokenizer(vocab_file, do_lower_case)
 
 </details>
 
-# Quick start
-You can either download the above checkpoints or pull the models from  or  (see examples below). The hosted models include the tokenizer. If you are downloading the checkpoints, make sure to use the official `bert-large-uncased` vocabulary.
 
-## Huggingface transformers
-You can create a classifier model with Huggingface by simply providing `digitalepidemiologylab/covid-twitter-bert`
-with the `from_pretrained()` syntax:
-
-
-
-## TFHub
-Our model can be loaded from TFHub using the TFHub URL [`https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1`](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1).
-
-# Datasets
-In our preliminary study we have evaluated our model on five different classification datasets
-| Dataset name  | Num classes | Reference |
-| ------------- | ----------- | ----------|
-| COVID Category (CC)  | 2 | [Read more](datasets/covid_category) |
-| Vaccine Sentiment (VS)  | 3 | [See :arrow_right:](https://github.com/digitalepidemiologylab/crowdbreaks-paper) |
-| Maternal vaccine Sentiment (MVS)  | 4 | [not yet public] |
-| Stanford Sentiment Treebank 2 (SST-2) | 2 | [See :arrow_right:](https://gluebenchmark.com/tasks) | 
-| Twitter Sentiment SemEval (SE) | 3 | [See :arrow_right:](http://alt.qcri.org/semeval2016/task4/index.php?id=data-and-tools) | 
-
-If you end up using these datasets, please make sure to properly cite them.
-
-# Our code
-Our code can be used for the domain specific pretraining of a transformer model (`run_pretrain.py`) and/or the training of a classifier (`run_finetune.py`).
-
-Our code depends on the official [tensorflow/models](https://github.com/tensorflow/models) implementation of BERT under tensorflow 2.2/Keras.
+# Finetune COVID-Twitter-BERT
+The script `run_finetune.py` can be used for training a classifier. This code depends on the official [tensorflow/models](https://github.com/tensorflow/models) implementation of BERT under tensorflow 2.2/Keras.
 
 In order to use our code you need to set up:
 * A Google Cloud bucket
-* A Google Cloud VM
-* A TPU in the same zone as the VM, version 2.2
+* A Google Cloud VM running Tensorflow 2.2
+* A TPU in the same zone as the VM also running Tensorflow 2.2
 
 If you are a researcher you may [apply for access to TPUs](https://www.tensorflow.org/tfrc) and/or [Google Cloud credits](https://edu.google.com/programs/credits/research/?modal_active=none).
 
@@ -142,9 +117,7 @@ Install dependencies
 pip install -r requirements.txt
 ```
 
-## Finetune
-You may finetune CT-BERT on your own classification dataset.
-### Prepare data
+## Prepare the data
 Split your data into a training set `train.tsv` and a validation set `dev.tsv` with the following format:
 ```
 id      label   text
@@ -177,7 +150,7 @@ cd data
 gsutil -m rsync -r finetune/ gs://<bucket_name>/covid-bert/finetune/finetune_data/
 ```
 
-### Run finetuning
+## Start finetuning
 You can now finetune CT-BERT on this data using the following command
 ```bash
 RUN_PREFIX=testrun                                  # Name your run
@@ -221,17 +194,29 @@ Training logs, run configs, etc are then stored to `gs://<bucket_name>/covid-ber
 }
 ```
 
-### Sync results
-Syncronize all training logs with your local repository by running
+Run the script 'sync_bucket_data.py' from your local computer to download all the training logs to `data/<bucket_name>/covid-bert/finetune/<run_names>`
+
 ```bash
 python sync_bucket_data.py --bucket_name <bucket_name>
 ```
-Which will pull down all logs from that bucket and store them to `data/<bucket_name>/covid-bert/finetune/<run_names>`. There are some plotting scripts under `analysis/` which you might find useful.
 
-## Pretrain
+# Datasets
+In our preliminary study we have evaluated our model on five different classification datasets
+| Dataset name  | Num classes | Reference |
+| ------------- | ----------- | ----------|
+| COVID Category (CC)  | 2 | [Read more](datasets/covid_category) |
+| Vaccine Sentiment (VS)  | 3 | [See :arrow_right:](https://github.com/digitalepidemiologylab/crowdbreaks-paper) |
+| Maternal vaccine Sentiment (MVS)  | 4 | [not yet public] |
+| Stanford Sentiment Treebank 2 (SST-2) | 2 | [See :arrow_right:](https://gluebenchmark.com/tasks) | 
+| Twitter Sentiment SemEval (SE) | 3 | [See :arrow_right:](http://alt.qcri.org/semeval2016/task4/index.php?id=data-and-tools) | 
+If you end up using these datasets, please make sure to properly cite them.
+
+
+
+# Pretrain
 A documentation of how we created CT-BERT can be found [here](README_pretrain.md).
 
-## How do I cite COVID-Twitter-BERT?
+# How do I cite COVID-Twitter-BERT?
 You can cite our [preprint](https://arxiv.org/abs/2005.07503):
 ```bibtex
 @article{mueller2020covid,
@@ -248,7 +233,7 @@ COVID-Twitter-BERT: A Natural Language Processing Model to Analyse COVID-19 Cont
 arXiv preprint arXiv:2005.07502, 2020.
 ```
 
-## Acknowledgement
+# Acknowledgement
 * Thanks to Aksel Kummervold for creating the COVID-Twitter-Bert logo
 
 # Authors
