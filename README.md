@@ -14,15 +14,21 @@ COVID-Twitter-BERT: A Natural Language Processing Model to Analyse COVID-19 Cont
 arXiv preprint arXiv:2005.07502, 2020.
 ```
 
-# Pretrained models
-| Version  | Training data | Base model | Language | Download |
-| -------- | ------------- | ----- | -------- | -------- |
-| COVID-Twitter-BERT v1  | 22.5M tweets (633M tokens) | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) |
 
 # Colaboratory
 For a demo on how to train a classifier on top of our model, please take a look at this Collaboratory. It finetunes a model on the SST-2 dataset, however it can easily be modified for finetuning on your own data as well.Please check it out:  <a href="https://colab.research.google.com/drive/1cIDAz19ASnQD4OeaYzZo6s2LLzSWLH_7?usp=sharing" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
-# A collapsible section with markdown
+# Load the pretrained model directly
+If you are familiar with finetuning Transformer-models, the CT-BERT-model is available both as an downloadable archive, in TFHub and as a module in Huggingface.
+
+| Version  | Training data | Base model | Language | Download |
+| -------- | ------------- | ----- | -------- | -------- |
+| COVID-Twitter-BERT v1  | 22.5M tweets (633M tokens) | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) 
+[Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert)
+[TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1)
+|
+
+Example code
 <details>
   <summary>Click to expand!</summary>
   
@@ -35,7 +41,7 @@ For a demo on how to train a classifier on top of our model, please take a look 
 
 
 # Quick start
-You can either download the above checkpoints or pull the models from [Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert) or [TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1) (see examples below). The hosted models include the tokenizer. If you are downloading the checkpoints, make sure to use the official `bert-large-uncased` vocabulary.
+You can either download the above checkpoints or pull the models from  or  (see examples below). The hosted models include the tokenizer. If you are downloading the checkpoints, make sure to use the official `bert-large-uncased` vocabulary.
 
 ## Huggingface transformers
 You can create a classifier model with Huggingface by simply providing `digitalepidemiologylab/covid-twitter-bert`
