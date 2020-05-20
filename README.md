@@ -3,9 +3,9 @@
 
 <img align="right" width="350px" src="images/COVID-Twitter-BERT-medium.png">
 
-COVID-Twitter-BERT (CT-BERT) is a transformer-based model pretrained on a large corpus of Twitter messages on the topic of COVID-19. 
+COVID-Twitter-BERT (CT-BERT) is a transformer-based model pretrained on a large corpus of Twitter messages on the topic of COVID-19. The model is trained on 22.5M tweets (633M tokens).
 
-When used on domain specific datasets our evaluation shows that this model will get a marginal performance increase of 10–30% compared to the standard BERT-Large-model. Most improvements are shown on COVID-19 related and on Twitter-like messages.
+When used on domain specific datasets our evaluation shows that this model will get a marginal performance increase of 10–30% compared to the standard BERT-Large-model. Most improvements are shown on COVID-19 related and on Twitter-like messages. 
 
 This repository contains all code and references to models and datasets used in [our paper](https://arxiv.org/pdf/2005.07503.pdf) as well as notebooks to finetune CT-BERT on your own datasets. If you end up using our work, please cite it:
 ```
@@ -21,12 +21,11 @@ For a demo on how to train a classifier on top of our model, please take a look 
 # Load the pretrained model directly
 If you are familiar with finetuning Transformer-models, the CT-BERT-model is available both as an downloadable archive, in TFHub and as a module in Huggingface.
 
-| Version  | Training data | Base model | Language | Download |
-| -------- | ------------- | ----- | -------- | -------- |
-| COVID-Twitter-BERT v1  | 22.5M tweets (633M tokens) | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) 
-[Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert)
-[TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1)
-|
+| Version  |  Base model | Language | TF2 | Huggingfase | TFHub |
+| -------- |  ----- | -------- | -------- |------------- |------------- |
+| COVID-Twitter-BERT v1  | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) |
+[Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert)|
+[TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1)|
 
 Example code
 <details>
