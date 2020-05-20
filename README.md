@@ -18,6 +18,7 @@ arXiv preprint arXiv:2005.07502, 2020.
 # Colaboratory
 For a demo on how to train a classifier on top of our model, please take a look at this Collaboratory. It finetunes a model on the SST-2 dataset, however it can easily be modified for finetuning on your own data as well.Please check it out:  <a href="https://colab.research.google.com/drive/1cIDAz19ASnQD4OeaYzZo6s2LLzSWLH_7?usp=sharing" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
+
 # Load the pretrained model directly
 If you are familiar with finetuning Transformer-models, the CT-BERT-model is available both as an downloadable archive, in TFHub and as a module in Huggingface.
 
@@ -49,7 +50,29 @@ model(input_ids[None, :])  # Batch size 1
 ```
 
 </details>
+<details>
+  <summary>TFHub code example</summary>
+  
+ ```python
+from transformers import (
+    TFBertForPreTraining,
+    BertTokenizer,
+    TFBertForSequenceClassification,
+)
+import tensorflow as tf
 
+tokenizer = BertTokenizer.from_pretrained("digitalepidemiologylab/covid-twitter-bert")
+model = TFBertForSequenceClassification.from_pretrained(
+    "digitalepidemiologylab/covid-twitter-bert", num_labels=3
+)
+input_ids = tf.constant(
+    tokenizer.encode("Oh, when will this lockdown ever end?", add_special_tokens=True)
+)
+model(input_ids[None, :])  # Batch size 1
+# (<tf.Tensor: shape=(1, 3), dtype=float32, numpy=array([[ 0.17217427, -0.31084645, -0.47540542]], dtype=float32)>,)
+```
+
+</details>
 
 # Quick start
 You can either download the above checkpoints or pull the models from  or  (see examples below). The hosted models include the tokenizer. If you are downloading the checkpoints, make sure to use the official `bert-large-uncased` vocabulary.
