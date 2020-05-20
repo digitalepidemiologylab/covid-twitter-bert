@@ -11,7 +11,7 @@ This repository contains all code and references to models and datasets used in 
 ```
 Martin Müller, Marcel Salathé, and Per E Kummervold. 
 COVID-Twitter-BERT: A Natural Language Processing Model to Analyse COVID-19 Content on Twitter. 
-arXiv preprint arXiv:2005.07502, 2020.
+arXiv preprint arXiv:2005.07503 (2020).
 ```
 
 
@@ -223,18 +223,18 @@ A documentation of how we created CT-BERT can be found [here](README_pretrain.md
 # How do I cite COVID-Twitter-BERT?
 You can cite our [preprint](https://arxiv.org/abs/2005.07503):
 ```bibtex
-@article{mueller2020covid,
-  title={{COVID-Twitter-BERT: A Natural Language Processing Model to Analyse COVID-19 Content on Twitter}},
-  author={M\"uller, Martin and Salath\'e, Marcel and Kummervold, Per E},
-  journal={arXiv preprint arXiv:2005.07502},
+@article{muller2020covid,
+  title={COVID-Twitter-BERT: A Natural Language Processing Model to Analyse COVID-19 Content on Twitter},
+  author={M{\"u}ller, Martin and Salath{\'e}, Marcel and Kummervold, Per E},
+  journal={arXiv preprint arXiv:2005.07503},
   year={2020}
 }
 ```
 or
 ```
-Martin Müller, Marcel Salathé, and Per E Kummervold. 
-COVID-Twitter-BERT: A Natural Language Processing Model to Analyse COVID-19 Content on Twitter. 
-arXiv preprint arXiv:2005.07502, 2020.
+Martin Müller, Marcel Salathé, and Per E. Kummervold. 
+COVID-Twitter-BERT: A Natural Language Processing Model to Analyse COVID-19 Content on Twitter.
+arXiv preprint arXiv:2005.07503 (2020).
 ```
 
 # Acknowledgement
