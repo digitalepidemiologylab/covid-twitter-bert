@@ -203,6 +203,9 @@ python sync_bucket_data.py --bucket_name <bucket_name>
 
 # Datasets
 In our preliminary study we have evaluated our model on five different classification datasets
+
+<img align="center" src="images/COVID-Twitter-BERT-graph.jpeg">
+
 | Dataset name  | Num classes | Reference |
 | ------------- | ----------- | ----------|
 | COVID Category (CC)  | 2 | [Read more](datasets/covid_category) |
