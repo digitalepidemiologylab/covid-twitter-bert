@@ -46,44 +46,8 @@ model(input_ids[None, :])  # Batch size 1
 ```
 
 ## TFHub
-Make sure to have `tensorflow 2.x` and `tensorflow_hub` installed. You can then instantiate a `KerasLayer` with our TFHub URL `https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1` and build a classifier model like so: 
-```python
-import tensorflow as tf
-import tensorflow_hub as hub
+Our model can be loaded from TFHub using the TFHub URL [`https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1`](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1).
 
-max_seq_length = 96  # Your choice here.
-input_word_ids = tf.keras.layers.Input(
-    shape=(max_seq_length,), dtype=tf.int32, name="input_word_ids"
-)
-input_mask = tf.keras.layers.Input(
-    shape=(max_seq_length,), dtype=tf.int32, name="input_mask"
-)
-input_type_ids = tf.keras.layers.Input(
-    shape=(max_seq_length,), dtype=tf.int32, name="input_type_ids"
-)
-bert_layer = hub.KerasLayer(
-    "https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1", trainable=True
-)
-pooled_output, sequence_output = bert_layer(
-    [input_word_ids, input_mask, input_type_ids]
-)
-
-# Create classifier model
-num_labels = 3
-initializer = tf.keras.initializers.TruncatedNormal(stddev=0.2)
-output = tf.keras.layers.Dropout(rate=0.1)(pooled_output)
-output = tf.keras.layers.Dense(
-    num_labels, kernel_initializer=initializer, name="output"
-)(output)
-classifier_model = tf.keras.Model(
-    inputs={
-        "input_word_ids": input_word_ids,
-        "input_mask": input_mask,
-        "input_type_ids": input_type_ids,
-    },
-    outputs=output,
-)
-```
 # Datasets
 In our preliminary study we have evaluated our model on five different classification datasets
 | Dataset name  | Num classes | Reference |
