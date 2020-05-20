@@ -19,7 +19,7 @@ arXiv preprint arXiv:2005.07502, 2020.
 | -------- | ------------- | ----- | -------- | -------- |
 | COVID-Twitter-BERT v1  | 22.5M tweets (633M tokens) | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) |
 
-# Colab
+# Colaboratory
 For a demo on how to train a classifier on top of our model, please take a look at this Collaboratory. It finetunes a model on the SST-2 dataset, however it can easily be modified for finetuning on your own data as well.Please check it out:  <a href="https://colab.research.google.com/drive/1cIDAz19ASnQD4OeaYzZo6s2LLzSWLH_7?usp=sharing" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 # Quick start
