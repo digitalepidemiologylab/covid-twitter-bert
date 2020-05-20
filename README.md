@@ -3,8 +3,6 @@
 
 <img align="right" width="350px" src="images/COVID-Twitter-BERT-medium.png">
 
-A Pretrained BERT-large language model on Twitter data related to COVID-19
-
 COVID-Twitter-BERT (CT-BERT) is a transformer-based model pretrained on a large corpus of Twitter messages on the topic of COVID-19. When used on domain specific datasets our evaluation shows a marginal performance increase of 10–30% compared to the base model.
 
 This repository contains all code and references to models and datasets used in [our paper](https://arxiv.org/pdf/2005.07503.pdf) as well as notebooks to finetune CT-BERT on your own datasets. If you end up using our work, please cite it:
@@ -17,7 +15,7 @@ arXiv preprint arXiv:2005.07502, 2020.
 # Pretrained models
 | Version  | Training data | Base model | Language | Download |
 | -------- | ------------- | ----- | -------- | -------- |
-| v1  | 22.5M tweets (633M tokens) | BERT-large-uncased | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) |
+| COVID-Twitter-BERT v1  | 22.5M tweets (633M tokens) | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) |
 
 # Colab
 For a quick start, please test our Colab <a href="https://colab.research.google.com/drive/1cIDAz19ASnQD4OeaYzZo6s2LLzSWLH_7?usp=sharing" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
