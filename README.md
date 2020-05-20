@@ -25,26 +25,11 @@ If you are familiar with finetuning Transformer-models, the CT-BERT-model is ava
 | -------- |  ----- | -------- | -------- |------------- |------------- |
 | COVID-Twitter-BERT v1  | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) |[Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert)| [TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1)|
 
-Example code
+See below for some short sample code for how this can be integrated. This is provided mainly as a starting point.
 <details>
-  <summary>Click to expand!</summary>
+  <summary>Hugginface code example</summary>
   
-  ## Heading
-  1. A numbered
-  2. list
-     * With some
-     * Sub bullets
-</details>
-
-
-# Quick start
-You can either download the above checkpoints or pull the models from  or  (see examples below). The hosted models include the tokenizer. If you are downloading the checkpoints, make sure to use the official `bert-large-uncased` vocabulary.
-
-## Huggingface transformers
-You can create a classifier model with Huggingface by simply providing `digitalepidemiologylab/covid-twitter-bert`
-with the `from_pretrained()` syntax:
-
-```python
+ ```python
 from transformers import (
     TFBertForPreTraining,
     BertTokenizer,
@@ -62,6 +47,18 @@ input_ids = tf.constant(
 model(input_ids[None, :])  # Batch size 1
 # (<tf.Tensor: shape=(1, 3), dtype=float32, numpy=array([[ 0.17217427, -0.31084645, -0.47540542]], dtype=float32)>,)
 ```
+
+</details>
+
+
+# Quick start
+You can either download the above checkpoints or pull the models from  or  (see examples below). The hosted models include the tokenizer. If you are downloading the checkpoints, make sure to use the official `bert-large-uncased` vocabulary.
+
+## Huggingface transformers
+You can create a classifier model with Huggingface by simply providing `digitalepidemiologylab/covid-twitter-bert`
+with the `from_pretrained()` syntax:
+
+
 
 ## TFHub
 Our model can be loaded from TFHub using the TFHub URL [`https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1`](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1).
