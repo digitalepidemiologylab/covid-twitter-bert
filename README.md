@@ -21,11 +21,9 @@ For a demo on how to train a classifier on top of our model, please take a look 
 # Load the pretrained model directly
 If you are familiar with finetuning Transformer-models, the CT-BERT-model is available both as an downloadable archive, in TFHub and as a module in Huggingface.
 
-| Version  |  Base model | Language | TF2 | Huggingfase | TFHub |
+| Version  |  Base model | Language | TF2 | Huggingface | TFHub |
 | -------- |  ----- | -------- | -------- |------------- |------------- |
-| COVID-Twitter-BERT v1  | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) |
-[Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert)|
-[TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1)|
+| COVID-Twitter-BERT v1  | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) |[Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert)| [TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1)|
 
 Example code
 <details>
