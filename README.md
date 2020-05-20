@@ -22,6 +22,18 @@ arXiv preprint arXiv:2005.07502, 2020.
 # Colaboratory
 For a demo on how to train a classifier on top of our model, please take a look at this Collaboratory. It finetunes a model on the SST-2 dataset, however it can easily be modified for finetuning on your own data as well.Please check it out:  <a href="https://colab.research.google.com/drive/1cIDAz19ASnQD4OeaYzZo6s2LLzSWLH_7?usp=sharing" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
+# A collapsible section with markdown
+<details>
+  <summary>Click to expand!</summary>
+  
+  ## Heading
+  1. A numbered
+  2. list
+     * With some
+     * Sub bullets
+</details>
+
+
 # Quick start
 You can either download the above checkpoints or pull the models from [Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert) or [TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1) (see examples below). The hosted models include the tokenizer. If you are downloading the checkpoints, make sure to use the official `bert-large-uncased` vocabulary.
 
