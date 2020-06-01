@@ -1,13 +1,16 @@
 import sys
+sys.path.append('..')
 sys.path.append('../tensorflow_models')
 from official.nlp.bert import tokenization
+from config import PRETRAINED_MODELS
 import argparse
 import os
 
 vocab_file = os.path.join('vocabs', 'bert-large-uncased-vocab.txt')
 
 def main(args):
-    tknzr = tokenization.FullTokenizer(vocab_file=args.vocab_file, do_lower_case=True)
+    vocab_file = os.path.join('..', 'vocabs', PRETRAINED_MODELS[args.model_class]['vocab_file'])
+    tknzr = tokenization.FullTokenizer(vocab_file=vocab_file, do_lower_case=True)
     print('Input:')
     print(args.input)
     print('\nTokenized:')
@@ -20,7 +23,7 @@ def main(args):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', required=True, type=str, help="Input to tokenize")
-    parser.add_argument('--vocab_file', default=vocab_file, help="Path to vocab file")
+    parser.add_argument('--model_class', default='covid-twitter-bert', choices=list(PRETRAINED_MODELS.keys()), help="Model class")
     args = parser.parse_args()
     return args
 
