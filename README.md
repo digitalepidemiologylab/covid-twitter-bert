@@ -212,7 +212,9 @@ In our preliminary study we have evaluated our model on five different classific
 | Vaccine Sentiment (VS)  | 3 | [See :arrow_right:](https://github.com/digitalepidemiologylab/crowdbreaks-paper) |
 | Maternal vaccine Sentiment (MVS)  | 4 | [not yet public] |
 | Stanford Sentiment Treebank 2 (SST-2) | 2 | [See :arrow_right:](https://gluebenchmark.com/tasks) | 
-| Twitter Sentiment SemEval (SE) | 3 | [See :arrow_right:](http://alt.qcri.org/semeval2016/task4/index.php?id=data-and-tools) | 
+| Twitter Sentiment SemEval (SE) | 3 | [See :arrow_right:](http://alt.qcri.org/semeval2016/task4/index.php?id=data-and-tools) |
+
+
 If you end up using these datasets, please make sure to properly cite them.
 
 
