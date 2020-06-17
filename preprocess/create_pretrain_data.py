@@ -3,7 +3,7 @@ sys.path.append('../tensorflow_models')
 sys.path.append('..')
 from utils.misc import ArgParseDefault, add_bool_arg, save_to_json
 from config import PRETRAINED_MODELS
-from official.nlp.data.create_pretraining_data import create_instances_from_document, write_instance_to_example_files
+from pretrain_helpers import create_instances_from_document, write_instance_to_example_files
 from official.nlp.bert import tokenization
 import random
 import logging
@@ -154,7 +154,12 @@ def process(input_file, tokenizer, rng, args):
     input_file_name = os.path.basename(input_file)
     output_file = os.path.join(output_folder, f'{input_file_name}.tfrecords')
     logger.info(f'Writing to {output_file}...')
-    write_instance_to_example_files(instances, tokenizer, args.max_seq_length, args.max_predictions_per_seq, [output_file], args.gzipped)
+    write_instance_to_example_files(
+            instances, tokenizer,
+            args.max_seq_length,
+            args.max_predictions_per_seq,
+            [output_file],
+            args.gzipped)
     return num_documents, num_instances, _type
 
 def parse_args():
@@ -164,11 +169,11 @@ def parse_args():
     parser.add_argument('--max_seq_length', default=96, type=int, help='Maximum sequence length')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
     parser.add_argument('--dupe_factor', default=10, type=int, help='Number of times to duplicate the input data (with different masks).')
+    parser.add_argument('--gzipped', action='store_true', default=False, help='Create gzipped tfrecords files')
     parser.add_argument('--short_seq_prob', default=0.1, type=float, help='Probability of creating sequences which are shorter than the maximum length.')
     parser.add_argument('--max_predictions_per_seq', default=14, type=int, help='Maximum number of masked LM predictions per sequence.')
     parser.add_argument('--random_seed', default=42, type=int, help='Random seed')
     parser.add_argument('--masked_lm_prob', default=0.15, type=float, help='Masked LM probabibility')
-    parser.add_argument('--gzipped', action='store_true', default=False, help='Create gzipped tfrecords files')
     parser.add_argument('--num_logged_samples', default=10, type=int, help='Log first n samples to output')
     parser.add_argument('--max_num_cpus', default=10, type=int, help='Adapt this number based on the available memory/size of input files. \
             This code was tested on a machine with a lot of memory (250GB). Decrease this number if you run into memory issues.')
