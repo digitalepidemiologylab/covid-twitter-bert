@@ -2,6 +2,7 @@
 
 PRETRAINED_MODELS = {
         'bert_large_uncased': {
+            'bucket_location': 'pretrained_models/bert/keras_bert/uncased_L-24_H-1024_A-16',
             'hub_url': 'tensorflow/bert_en_uncased_L-24_H-1024_A-16/2',
             'config': 'bert_config_large_uncased.json',
             'is_tfhub_model': True,
@@ -10,6 +11,7 @@ PRETRAINED_MODELS = {
             'do_whole_word_masking': False
             },
         'bert_large_uncased_wwm': {
+            'bucket_location': 'pretrained_models/bert/keras_bert/wwm_uncased_L-24_H-1024_A-16',
             'hub_url': 'tensorflow/bert_en_wwm_uncased_L-24_H-1024_A-16/2',
             'config': 'bert_config_large_uncased_wwm.json',
             'is_tfhub_model': True,
