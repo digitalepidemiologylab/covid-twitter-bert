@@ -143,7 +143,7 @@ def run(args, strategy):
         pretrain_model, core_model = bert_models.pretrain_model(model_config, args.max_seq_length, args.max_predictions_per_seq)
         optimizer = utils.optimizer.create_optimizer(
                 args.learning_rate,
-                steps_per_epoch * args.num_epochs,
+                args.num_steps_per_epoch * args.num_epochs,
                 warmup_steps,
                 args.end_lr,
                 args.optimizer_type)
