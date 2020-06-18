@@ -144,7 +144,7 @@ def run(args, strategy):
         optimizer = utils.optimizer.create_optimizer(
                 args.learning_rate,
                 args.num_steps_per_epoch * args.num_epochs,
-                warmup_steps,
+                args.warmup_steps,
                 args.end_lr,
                 args.optimizer_type)
         pretrain_model.optimizer = configure_optimizer(optimizer, use_float16=args.dtype == 'fp16', use_graph_rewrite=False)
