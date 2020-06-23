@@ -161,7 +161,7 @@ def main(args):
 def parse_args():
     parser = ArgParseDefault()
     parser.add_argument('--finetune_datasets', type=str, nargs='+', help='Finetune dataset(s) to process. These correspond to folder names in data/finetune. \
-            Data should be located in data/finetune/{finetune_dataset}/originals/[train.csv/dev.csv/test.csv]. By default runs all datasets.')
+            Data should be located in data/finetune/{finetune_dataset}/originals/[train.tsv/dev.tsv/test.tsv]. By default runs all datasets.')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class')
     parser.add_argument('--run_prefix', help='Prefix to be added to all runs. Useful to identify runs')
     parser.add_argument('--max_seq_length', default=96, type=int, help='Maximum sequence length')
