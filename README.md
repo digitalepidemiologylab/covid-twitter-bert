@@ -33,21 +33,23 @@ See below for some short sample code for how this can be integrated. This is pro
   
  ```python
 from transformers import (
-    TFBertForPreTraining,
+    AutoConfig,
     BertTokenizer,
     TFBertForSequenceClassification,
 )
 import tensorflow as tf
 
 tokenizer = BertTokenizer.from_pretrained("digitalepidemiologylab/covid-twitter-bert")
+config = AutoConfig.from_pretrained('digitalepidemiologylab/covid-twitter-bert', num_labels=3)
 model = TFBertForSequenceClassification.from_pretrained(
-    "digitalepidemiologylab/covid-twitter-bert", num_labels=3
+    "digitalepidemiologylab/covid-twitter-bert",
+    config=config
 )
 input_ids = tf.constant(
     tokenizer.encode("Oh, when will this lockdown ever end?", add_special_tokens=True)
 )
 model(input_ids[None, :])  # Batch size 1
-# (<tf.Tensor: shape=(1, 3), dtype=float32, numpy=array([[ 0.17217427, -0.31084645, -0.47540542]], dtype=float32)>,)
+# (<tf.Tensor: shape=(1, 3), dtype=float32, numpy=array([[-0.46376148,  0.2295331 , -0.21242218]], dtype=float32)>,)
 ```
 
 </details>
