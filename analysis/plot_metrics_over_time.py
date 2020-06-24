@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 @plot
 def main(args):
-    df = get_run_logs(pattern=args.run_prefix)
+    df = get_run_logs(pattern=args.run_prefix, bucket_name=args.bucket_name, project_name=args.project_name)
     # transform to dict
     _df = pd.DataFrame(df.all_scores.tolist(), index=df.index)
     score_cols = []
@@ -39,6 +39,8 @@ def parse_args():
     # Parse commandline
     parser = ArgParseDefault()
     parser.add_argument('--run_prefix', default='eval_wwm_v2', help='Prefix to plot heatmap')
+    parser.add_argument('--bucket_name', help='Bucket name')
+    parser.add_argument('--project_name', help='Project name (subfolder in bucket)')
     parser.add_argument('--metric', default='f1_macro', help='Metric to plot')
     parser.add_argument('-v', '--version', type=int, default=9, help='Plot version')
     args = parser.parse_args()
