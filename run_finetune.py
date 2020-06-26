@@ -58,7 +58,8 @@ def configure_optimizer(optimizer, use_float16=False, use_graph_rewrite=False, l
 
 def get_model(args, model_config, steps_per_epoch, warmup_steps, num_labels, max_seq_length, is_hub_module=False):
     # Get classifier and core model (used to initialize from checkpoint)
-    if PRETRAINED_MODELS[args.model_class]['is_tfhub_model']:
+    if args.init_checkpoint is None and PRETRAINED_MODELS[args.model_class]['is_tfhub_model']:
+        # load pretrained model from TF-hub
         hub_module_url = f"https://tfhub.dev/{PRETRAINED_MODELS[args.model_class]['hub_url']}"
         hub_module_trainable = True
     else:
@@ -181,12 +182,8 @@ def run(args):
     loss_fn = get_loss_fn(num_labels)
 
     # Restore checkpoint
-    if not PRETRAINED_MODELS[args.model_class]['is_tfhub_model']:
-        if args.init_checkpoint is None:
-            pretrained_model_path = PRETRAINED_MODELS[args.model_class]['bucket_location']
-            checkpoint_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_model.ckpt'
-        else:
-            checkpoint_path = f'gs://{args.bucket_name}/{args.project_name}/pretrain/runs/{args.init_checkpoint}'
+    if args.init_checkpoint:
+        checkpoint_path = f'gs://{args.bucket_name}/{args.project_name}/pretrain/runs/{args.init_checkpoint}'
         checkpoint = tf.train.Checkpoint(model=core_model)
         checkpoint.restore(checkpoint_path).assert_existing_objects_matched()
         logger.info(f'Successfully restored checkpoint from {checkpoint_path}')
