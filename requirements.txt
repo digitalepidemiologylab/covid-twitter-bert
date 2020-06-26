@@ -12,3 +12,4 @@ spacy
 emoji
 unidecode
 cloud-tpu-client
+sentencepiece

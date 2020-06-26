@@ -141,3 +141,4 @@ analysis/plots
 *.xdv
 .DS_Store
 test_*.sh
+run_*.sh
