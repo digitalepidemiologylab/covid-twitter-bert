@@ -119,7 +119,10 @@ def run(args, strategy):
     except KeyError:
         raise ValueError(f'Could not find a pretrained model matching the model class {args.model_class}')
     pretrained_model_config_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_config.json'
-    pretrained_model_checkpoint_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_model.ckpt'
+    if args.init_checkpoint is None:
+        pretrained_model_checkpoint_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_model.ckpt'
+    else:
+        pretrained_model_checkpoint_path = f'gs://{args.bucket_name}/{args.project_name}/pretrain/runs/{args.init_checkpoint}'
 
     # some logging
     logger.info(f'Running pretraining of model {args.model_class} on pretrain data {args.pretrain_data}')
@@ -237,6 +240,8 @@ def parse_args():
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
     parser.add_argument('--eval_steps', default=1000, type=int, help='Number eval steps to run (only active when --do_eval flag is provided)')
+    parser.add_argument('--init_checkpoint', default=None, help='Run name to initialize checkpoint from. Example: "run2/ctl_step_8000.ckpt-8". \
+            By default using a pretrained model from gs://{bucket_name}/pretrained_models/')
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
     parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')
     parser.add_argument('--eval_batch_size', default=32, type=int, help='Eval batch size')
