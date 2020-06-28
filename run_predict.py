@@ -5,6 +5,7 @@ Run prediction by loading a fine-tuned model
 import sys
 # import from official repo
 sys.path.append('tensorflow_models')
+from official.utils.misc import distribution_utils
 from official.nlp.bert import bert_models
 from official.nlp.bert import configs as bert_configs
 from official.nlp.bert import tokenization
@@ -110,15 +111,16 @@ def generate_examples_from_txt_file(input_file, tokenizer, max_seq_length, batch
                 'input_type_ids': tf.stack([b[2] for b in batch], axis=0)
                 }
 
-def main(args):
+def run(args):
     # start time
     s_time = time.time()
     # paths
     run_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/runs/{args.run_name}'
     ts = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S_%f')
     output_folder = os.path.join('data', 'predictions', f'predictions_{ts}')
-    if not os.path.isdir(output_folder):
-        os.makedirs(output_folder)
+    predictions_output_folder = os.path.join('data', 'predictions', f'predictions_{ts}', 'predictions')
+    if not os.path.isdir(predictions_output_folder):
+        os.makedirs(predictions_output_folder)
     # read configs
     logger.info(f'Reading run configs...')
     run_log = read_run_log(run_dir)
@@ -163,7 +165,7 @@ def main(args):
             num_lines = sum(1 for _ in open(input_file, 'r'))
             num_batches = int(num_lines/args.eval_batch_size) + 1
             f_out_name = os.path.basename(input_file).split('.')[-2]
-            f_out = os.path.join(output_folder, f'{f_out_name}.jsonl')
+            f_out = os.path.join(predictions_output_folder, f'{f_out_name}.jsonl')
             logger.info(f'Predicting file {input_file}...')
             for batch in tqdm(generate_examples_from_txt_file(input_file, tokenizer, max_seq_length, args.eval_batch_size), total=num_batches, unit='batches'):
                 preds = model.predict(batch)
@@ -198,7 +200,7 @@ def main(args):
             dataset = dataset.batch(args.eval_batch_size)
             num_records = sum(1 for _ in tf.data.TFRecordDataset(input_file))
             f_out_name = os.path.basename(input_file).split('.')[-2]
-            f_out = os.path.join(output_folder, f'{f_out_name}.jsonl')
+            f_out = os.path.join(predictions_output_folder, f'{f_out_name}.jsonl')
             for batch in tqdm(dataset, total=int(num_records/args.eval_batch_size) + 1, unit='batches'):
                 preds = model.predict(batch)
                 preds = format_prediction(preds, label_mapping, args.label_name)
@@ -220,6 +222,17 @@ def main(args):
             **vars(args)}
     save_to_json(data, f_config)
 
+def main(args):
+    # Get distribution strategy
+    if args.use_tpu:
+        logger.info(f'Intializing TPU on address {args.tpu_ip}...')
+        tpu_address = f'grpc://{args.tpu_ip}:8470'
+        strategy = distribution_utils.get_distribution_strategy(distribution_strategy='tpu', tpu_address=tpu_address, num_gpus=args.num_gpus)
+    else:
+        strategy = distribution_utils.get_distribution_strategy(distribution_strategy='mirrored', num_gpus=args.num_gpus)
+    # Run training
+    with strategy.scope():
+        run(args)
 
 def parse_args():
     # Parse commandline
@@ -236,7 +249,7 @@ def parse_args():
     parser.add_argument('--eval_batch_size', default=32, type=int, help='Eval batch size')
     parser.add_argument('--label_name', default='label', type=str, help='Name of label to predicted')
     add_bool_arg(parser, 'interactive_mode', default=False, help='Interactive mode')
-    add_bool_arg(parser, 'use_tpu', default=True, help='Use TPU')
+    add_bool_arg(parser, 'use_tpu', default=False, help='Use TPU')
     args = parser.parse_args()
     return args
 
