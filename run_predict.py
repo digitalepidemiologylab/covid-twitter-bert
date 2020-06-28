@@ -17,7 +17,7 @@ import logging
 from tqdm import tqdm
 import json
 import tensorflow as tf
-from utils.misc import ArgParseDefault, add_bool_arg
+from utils.misc import ArgParseDefault, add_bool_arg, save_to_json
 import utils.optimizer
 from config import PRETRAINED_MODELS
 import collections
@@ -115,7 +115,10 @@ def main(args):
     s_time = time.time()
     # paths
     run_dir = f'gs://{args.bucket_name}/{args.project_name}/finetune/runs/{args.run_name}'
-    output_folder = os.path.join('data', 'predictions')
+    ts = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S_%f')
+    output_folder = os.path.join('data', 'predictions', f'predictions_{ts}')
+    if not os.path.isdir(output_folder):
+        os.makedirs(output_folder)
     # read configs
     logger.info(f'Reading run configs...')
     run_log = read_run_log(run_dir)
@@ -124,11 +127,9 @@ def main(args):
     max_seq_length = run_log['max_seq_length']
     label_mapping = run_log['label_mapping']
     num_labels = len(label_mapping)
-
     # load tokenizer
     logger.info(f'Loading tokenizer...')
     tokenizer = get_tokenizer(args.model_class)
-
     # load model
     logger.info(f'Loading model...')
     model = get_model(args, model_config, num_labels, max_seq_length)
@@ -136,10 +137,11 @@ def main(args):
     checkpoint_path = os.path.join(run_dir, 'checkpoint')
     logger.info(f'Restore run checkpoint {checkpoint_path}...')
     # load weights (expect partial state because we don't want need the optimizer state)
-    model.load_weights(checkpoint_path).expect_partial()
+    model.load_weights(checkpoint_path)
     logger.info(f'... successfully restored checkpoint')
-
     # predict
+    num_predictions = 0
+    predictions = []
     if args.input_text:
         example = generate_single_example(args.input_text, tokenizer, max_seq_length)
         preds = model.predict(example)
@@ -147,33 +149,76 @@ def main(args):
         print(json.dumps(preds, indent=4))
     elif args.interactive_mode:
         while True:
-            text = input('Type text to predict. Quit by typing "n".\n>>> ')
-            if text.lower() == 'n':
+            text = input('Type text to predict. Quit by typing "q".\n>>> ')
+            if text.lower() == 'q':
                 break
             example = generate_single_example(text, tokenizer, max_seq_length)
             preds = model.predict(example)
             preds = format_prediction(preds, label_mapping, args.label_name)
             print(json.dumps(preds, indent=4))
-    elif args.input_txt_file:
-        predictions = []
-        num_lines = sum(1 for _ in open(args.input_txt_file, 'r'))
-        num_batches = int(num_lines/args.eval_batch_size) + 1
-        if not os.path.isdir(output_folder):
-            os.makedirs(output_folder)
-        ts = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S_%f')
-        f_out = os.path.join(output_folder, f'predictions_{ts}_{args.run_name}_{args.label_name}.jsonl')
-        num_predictions = 0
-        logger.info('Predicting file {args.input_txt_file}...')
-        for batch in tqdm(generate_examples_from_txt_file(args.input_txt_file, tokenizer, max_seq_length, args.eval_batch_size), total=num_batches, unit='batch'):
-            preds = model.predict(batch)
-            preds = format_prediction(preds, label_mapping, args.label_name)
-            num_predictions += len(preds)
-            with open(f_out, 'a') as f:
-                for pred in preds:
-                    f.write(json.dumps(pred) + '\n')
-        logger.info(f'Wrote {num_predictions} predictions to file {f_out}')
+        return
+    elif args.input_txt_files:
+        s_time_predict = time.time()
+        for input_file in args.input_txt_files:
+            num_lines = sum(1 for _ in open(input_file, 'r'))
+            num_batches = int(num_lines/args.eval_batch_size) + 1
+            f_out_name = os.path.basename(input_file).split('.')[-2]
+            f_out = os.path.join(output_folder, f'{f_out_name}.jsonl')
+            logger.info(f'Predicting file {input_file}...')
+            for batch in tqdm(generate_examples_from_txt_file(input_file, tokenizer, max_seq_length, args.eval_batch_size), total=num_batches, unit='batches'):
+                preds = model.predict(batch)
+                preds = format_prediction(preds, label_mapping, args.label_name)
+                num_predictions += len(preds)
+                with open(f_out, 'a') as f:
+                    for pred in preds:
+                        f.write(json.dumps(pred) + '\n')
+        e_time_predict = time.time()
+        prediction_time_min = (e_time_predict - s_time_predict)/60
+        logger.info(f'Wrote {num_predictions:,} predictions in {prediction_time_min:.1f} min ({num_predictions/prediction_time_min:.1f} predictions per min)')
+    elif args.input_tfrecord_files:
+        def decode_record(record):
+            """Decodes a record to a TensorFlow example."""
+            name_to_features = {
+                'input_word_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+                'input_mask': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+                'input_type_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            }
+            example = tf.io.parse_single_example(record, name_to_features)
+            # tf.Example only supports tf.int64, but the TPU only supports tf.int32
+            for name in list(example.keys()):
+                t = example[name]
+                if t.dtype == tf.int64:
+                    t = tf.cast(t, tf.int32)
+                    example[name] = t
+            return example
+        s_time_predict = time.time()
+        for input_file in args.input_tfrecord_files:
+            dataset = tf.data.TFRecordDataset(input_file)
+            dataset = dataset.map(decode_record)
+            dataset = dataset.batch(args.eval_batch_size)
+            num_records = sum(1 for _ in tf.data.TFRecordDataset(input_file))
+            f_out_name = os.path.basename(input_file).split('.')[-2]
+            f_out = os.path.join(output_folder, f'{f_out_name}.jsonl')
+            for batch in tqdm(dataset, total=int(num_records/args.eval_batch_size) + 1, unit='batches'):
+                preds = model.predict(batch)
+                preds = format_prediction(preds, label_mapping, args.label_name)
+                num_predictions += len(preds)
+                with open(f_out, 'a') as f:
+                    for pred in preds:
+                        f.write(json.dumps(pred) + '\n')
+        e_time_predict = time.time()
+        prediction_time_min = (e_time_predict - s_time_predict)/60
+        logger.info(f'Wrote {num_predictions:,} predictions in {prediction_time_min:.1f} min ({num_predictions/prediction_time_min:.1f} predictions per min)')
     e_time = time.time()
-    logger.info(f'Took a total of {(e_time-s_time)/60:.1f} min')
+    total_time_min = (e_time - s_time)/60
+    f_config = os.path.join(output_folder, 'predict_config.json')
+    logger.info(f'Saving config to {f_config}')
+    data = {
+            'prediction_time_min': prediction_time_min,
+            'total_time_min': total_time_min,
+            'num_predictions': num_predictions,
+            **vars(args)}
+    save_to_json(data, f_config)
 
 
 def parse_args():
@@ -183,7 +228,8 @@ def parse_args():
     parser.add_argument('--bucket_name', required=True, help='Bucket name')
     parser.add_argument('--project_name', required=False, default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--input_text', required=False, help='Predict arbitrary input text and print prediction to stdout')
-    parser.add_argument('--input_txt_file', required=False, help='Predict text from txt file. One example per line.')
+    parser.add_argument('--input_txt_files', nargs='+', required=False, help='Predict text from txt files. One example per line.')
+    parser.add_argument('--input_tfrecord_files', nargs='+', required=False, help='Predict text from tfrecord files.')
     parser.add_argument('--tpu_ip', required=False, help='IP-address of the TPU')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
