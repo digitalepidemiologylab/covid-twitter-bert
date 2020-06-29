@@ -40,9 +40,9 @@ def create_example(text, tokenizer, max_seq_length):
       return f
     tokens = ['[CLS]']
     input_tokenized = tokenizer.tokenize(text)
-    if len(input_tokenized) + 2 > max_seq_length:
+    if len(input_tokenized) > max_seq_length - 2:
         # truncate
-        input_tokenized = input_tokenized[:(max_seq_length + 2)]
+        input_tokenized = input_tokenized[:(max_seq_length - 2)]
     tokens.extend(input_tokenized)
     tokens.append('[SEP]')
     input_ids = tokenizer.convert_tokens_to_ids(tokens)
@@ -88,6 +88,7 @@ def process(f_name, tfrecord_folder, preprocessed_folder, args):
     tfrecord_writer = tf.io.TFRecordWriter(f_out_tfrecord)
     num_lines = sum(1 for _ in tf.io.gfile.GFile(os.path.join(f_name), 'r'))
     f_out_preprocessed = os.path.join(preprocessed_folder, os.path.basename(f_name))
+    logger.info(f'Writing tfrecord data to {tfrecord_folder}...')
     with tf.io.gfile.GFile(os.path.join(f_name), 'r') as reader:
         for line in tqdm(reader, total=num_lines):
             line_processed = preprocess_bert(line, args, do_lower_case=do_lower_case)
