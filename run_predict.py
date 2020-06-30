@@ -9,6 +9,7 @@ from official.utils.misc import distribution_utils
 from official.nlp.bert import bert_models
 from official.nlp.bert import configs as bert_configs
 from official.nlp.bert import tokenization
+from official.nlp.bert.input_pipeline import single_file_dataset
 
 import os
 import datetime
@@ -111,6 +112,28 @@ def generate_examples_from_txt_file(input_file, tokenizer, max_seq_length, batch
                 'input_type_ids': tf.stack([b[2] for b in batch], axis=0)
                 }
 
+def create_tfrecord_dataset_pipeline(input_file, max_seq_length, batch_size, input_pipeline_context=None):
+    name_to_features = {
+        'input_word_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+        'input_mask': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+        'input_type_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+    }
+    dataset = single_file_dataset(input_file, name_to_features)
+    # shard dataset between hosts
+    if input_pipeline_context and input_pipeline_context.num_input_pipelines > 1:
+        dataset = dataset.shard(input_pipeline_context.num_input_pipelines, input_pipeline_context.input_pipeline_id)
+    dataset = dataset.batch(batch_size, drop_remainder=False)
+    dataset = dataset.prefetch(1024)
+    return dataset
+
+def get_tfrecord_dataset(input_file, eval_batch_size, max_seq_length):
+    def _dataset_fn(ctx=None):
+        """Returns tf.data.Dataset for distributed prediction."""
+        batch_size = ctx.get_per_replica_batch_size(eval_batch_sizeglobal_batch_size) if ctx else eval_batch_size
+        dataset = create_tfrecord_dataset_pipeline(input_file, max_seq_length, batch_size, input_pipeline_context=ctx)
+        return dataset
+    return _dataset_fn
+
 def run(args):
     # start time
     s_time = time.time()
@@ -167,7 +190,7 @@ def run(args):
             f_out_name = os.path.basename(input_file).split('.')[-2]
             f_out = os.path.join(predictions_output_folder, f'{f_out_name}.jsonl')
             logger.info(f'Predicting file {input_file}...')
-            for batch in tqdm(generate_examples_from_txt_file(input_file, tokenizer, max_seq_length, args.eval_batch_size), total=num_batches, unit='batches'):
+            for batch in tqdm(generate_examples_from_txt_file(input_file, tokenizer, max_seq_length, args.eval_batch_size), total=num_batches, unit='batch'):
                 preds = model.predict(batch)
                 preds = format_prediction(preds, label_mapping, args.label_name)
                 num_predictions += len(preds)
@@ -178,36 +201,21 @@ def run(args):
         prediction_time_min = (e_time_predict - s_time_predict)/60
         logger.info(f'Wrote {num_predictions:,} predictions in {prediction_time_min:.1f} min ({num_predictions/prediction_time_min:.1f} predictions per min)')
     elif args.input_tfrecord_files:
-        def decode_record(record):
-            """Decodes a record to a TensorFlow example."""
-            name_to_features = {
-                'input_word_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
-                'input_mask': tf.io.FixedLenFeature([max_seq_length], tf.int64),
-                'input_type_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
-            }
-            example = tf.io.parse_single_example(record, name_to_features)
-            # tf.Example only supports tf.int64, but the TPU only supports tf.int32
-            for name in list(example.keys()):
-                t = example[name]
-                if t.dtype == tf.int64:
-                    t = tf.cast(t, tf.int32)
-                    example[name] = t
-            return example
         s_time_predict = time.time()
-        for input_file in args.input_tfrecord_files:
-            dataset = tf.data.TFRecordDataset(input_file)
-            dataset = dataset.map(decode_record)
-            dataset = dataset.batch(args.eval_batch_size)
-            num_records = sum(1 for _ in tf.data.TFRecordDataset(input_file))
-            f_out_name = os.path.basename(input_file).split('.')[-2]
-            f_out = os.path.join(predictions_output_folder, f'{f_out_name}.jsonl')
-            for batch in tqdm(dataset, total=int(num_records/args.eval_batch_size) + 1, unit='batches'):
-                preds = model.predict(batch)
-                preds = format_prediction(preds, label_mapping, args.label_name)
-                num_predictions += len(preds)
-                with open(f_out, 'a') as f:
-                    for pred in preds:
-                        f.write(json.dumps(pred) + '\n')
+        for input_file_pattern in args.input_tfrecord_files:
+            for input_file in tf.io.gfile.glob(input_file_pattern):
+                logger.info(f'Processing file {input_file}')
+                dataset = get_tfrecord_dataset(input_file, args.eval_batch_size, max_seq_length)()
+                num_batches = sum(1 for _ in tf.data.TFRecordDataset(input_file).batch(args.eval_batch_size))
+                f_out_name = os.path.basename(input_file).split('.')[-2]
+                f_out = os.path.join(predictions_output_folder, f'{f_out_name}.jsonl')
+                for batch in tqdm(dataset, total=num_batches, unit='batch'):
+                    preds = model.predict(batch)
+                    preds = format_prediction(preds, label_mapping, args.label_name)
+                    num_predictions += len(preds)
+                    with open(f_out, 'a') as f:
+                        for pred in preds:
+                            f.write(json.dumps(pred) + '\n')
         e_time_predict = time.time()
         prediction_time_min = (e_time_predict - s_time_predict)/60
         logger.info(f'Wrote {num_predictions:,} predictions in {prediction_time_min:.1f} min ({num_predictions/prediction_time_min:.1f} predictions per min)')
@@ -241,15 +249,15 @@ def parse_args():
     parser.add_argument('--bucket_name', required=True, help='Bucket name')
     parser.add_argument('--project_name', required=False, default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--input_text', required=False, help='Predict arbitrary input text and print prediction to stdout')
-    parser.add_argument('--input_txt_files', nargs='+', required=False, help='Predict text from txt files. One example per line.')
-    parser.add_argument('--input_tfrecord_files', nargs='+', required=False, help='Predict text from tfrecord files.')
+    parser.add_argument('--input_txt_files', nargs='+', required=False, help='Predict text from local txt files. One example per line.')
+    parser.add_argument('--input_tfrecord_files', nargs='+', required=False, help='Predict text from tfrecord files (local or on bucket).')
     parser.add_argument('--tpu_ip', required=False, help='IP-address of the TPU')
     parser.add_argument('--model_class', default='bert_large_uncased_wwm', choices=PRETRAINED_MODELS.keys(), help='Model class to use')
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
     parser.add_argument('--eval_batch_size', default=32, type=int, help='Eval batch size')
     parser.add_argument('--label_name', default='label', type=str, help='Name of label to predicted')
     add_bool_arg(parser, 'interactive_mode', default=False, help='Interactive mode')
-    add_bool_arg(parser, 'use_tpu', default=False, help='Use TPU')
+    add_bool_arg(parser, 'use_tpu', default=False, help='Use TPU (only works when using input_tfrecord_files stored on a Google bucket)')
     args = parser.parse_args()
     return args
 
