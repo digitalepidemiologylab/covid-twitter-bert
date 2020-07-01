@@ -292,7 +292,7 @@ def run(args):
     model_config.label2id = {v:k for k, v in label_mapping.items()}
     f_path_bert_config = os.path.join(output_dir, 'bert_config.json')
     logger.info(f'Writing BERT config to {f_path_bert_config}...')
-    save_to_json(model_config, f_path_bert_config)
+    save_to_json(model_config.to_dict(), f_path_bert_config)
 
 def set_mixed_precision_policy(args):
     """Sets mix precision policy."""

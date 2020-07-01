@@ -209,7 +209,7 @@ def run(args, strategy):
     # Write bert config
     f_path_bert_config = os.path.join(output_dir, 'bert_config.json')
     logger.info(f'Writing BERT config to {f_path_bert_config}...')
-    save_to_json(model_config, f_path_bert_config)
+    save_to_json(model_config.to_dict(), f_path_bert_config)
 
 def main(args):
     # Get distribution strategy
