@@ -118,7 +118,7 @@ def get_label_mapping(data_dir):
     return label_mapping
 
 def get_metrics():
-    return [tf.keras.metrics.SparseCategoricalAccuracy('test_accuracy', dtype=tf.float32)]
+    return [tf.keras.metrics.SparseCategoricalAccuracy('accuracy', dtype=tf.float32)]
 
 def get_model_config_path(args):
     try:

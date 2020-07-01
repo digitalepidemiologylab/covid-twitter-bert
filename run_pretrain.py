@@ -103,7 +103,7 @@ def get_run_name(args):
     return run_name
 
 def get_eval_metric_fn():
-    return tf.keras.metrics.SparseCategoricalAccuracy('test_accuracy', dtype=tf.float32)
+    return tf.keras.metrics.SparseCategoricalAccuracy('accuracy', dtype=tf.float32)
 
 def run(args, strategy):
     """Pretrains model using TF2. Adapted from the tensorflow/models Github"""
