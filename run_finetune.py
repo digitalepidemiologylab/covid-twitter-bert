@@ -283,10 +283,16 @@ def run(args):
             **final_scores,
             **vars(args),
             }
-    # Write to run directory
+    # Write run_log
     f_path_training_log = os.path.join(output_dir, 'run_logs.json')
     logger.info(f'Writing training log to {f_path_training_log}...')
     save_to_json(data, f_path_training_log)
+    # Write bert config
+    model_config.id2label = label_mapping
+    model_config.label2id = {v:k for k, v in label_mapping.items()}
+    f_path_bert_config = os.path.join(output_dir, 'bert_config.json')
+    logger.info(f'Writing BERT config to {f_path_bert_config}...')
+    save_to_json(model_config, f_path_bert_config)
 
 def set_mixed_precision_policy(args):
     """Sets mix precision policy."""

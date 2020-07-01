@@ -171,6 +171,7 @@ def run(args, strategy):
             'output_dir': output_dir,
             **vars(args),
             }
+    # write initial training log
     f_path_training_log = os.path.join(output_dir, 'run_logs.json')
     logger.info(f'Writing training preliminary log to {f_path_training_log}...')
     save_to_json(data, f_path_training_log)
@@ -200,11 +201,15 @@ def run(args, strategy):
         post_allreduce_callbacks=None)
     time_end = time.time()
     training_time_min = (time_end-time_start)/60
+    data['training_time_min'] = training_time_min
     logger.info(f'Finished training after {training_time_min:.1f} min')
     # Write to run directory
-    data['training_time_min'] = training_time_min
-    logger.info(f'Writing final log to {f_path_training_log}...')
+    logger.info(f'Writing final training log to {f_path_training_log}...')
     save_to_json(data, f_path_training_log)
+    # Write bert config
+    f_path_bert_config = os.path.join(output_dir, 'bert_config.json')
+    logger.info(f'Writing BERT config to {f_path_bert_config}...')
+    save_to_json(model_config, f_path_bert_config)
 
 def main(args):
     # Get distribution strategy
