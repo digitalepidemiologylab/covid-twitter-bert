@@ -1,6 +1,6 @@
 import os
 import tensorflow as tf
-#from tensorflow.python.summary.summary_iterator import summary_iterator
+from tensorflow.python.summary.summary_iterator import summary_iterator
 from tensorflow.python.framework import tensor_util
 from google.cloud import storage
 
@@ -26,8 +26,7 @@ def read_summary_file(path_to_events_file, tag = ""):
 
     path_to_events_file = os.path.join(path_to_events_file,event_files[0])
   
-  #for e in summary_iterator(path_to_events_file): 
-  for e in tf.data.TFRecordDataset(path_to_events_file):
+  for e in summary_iterator(path_to_events_file): 
       for v in e.summary.value:
         tagSet.add(v.tag)
         if v.tag == tag:
