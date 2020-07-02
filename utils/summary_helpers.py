@@ -27,7 +27,7 @@ def read_summary_file(path_to_events_file, tag = ""):
     path_to_events_file = os.path.join(path_to_events_file,event_files[0])
   
   #for e in summary_iterator(path_to_events_file): 
-  for e in tf.data.TFRecordDatase(path_to_events_file):
+  for e in tf.data.TFRecordDataset(path_to_events_file):
       for v in e.summary.value:
       tagSet.add(v.tag)
       if v.tag == tag:
