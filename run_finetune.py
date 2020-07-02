@@ -290,6 +290,8 @@ def run(args):
     # Write bert config
     model_config.id2label = label_mapping
     model_config.label2id = {v:k for k, v in label_mapping.items()}
+    model_config.max_seq_length = max_seq_length
+    model_config.num_labels = num_labels
     f_path_bert_config = os.path.join(output_dir, 'bert_config.json')
     logger.info(f'Writing BERT config to {f_path_bert_config}...')
     save_to_json(model_config.to_dict(), f_path_bert_config)
