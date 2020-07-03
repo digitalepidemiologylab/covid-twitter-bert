@@ -30,7 +30,10 @@ def read_summary_file(path_to_events_file, tag = ""):
       for v in e.summary.value:
         tagSet.add(v.tag)
         if v.tag == tag:
-            valuesDict.update( {int(e.step) : float(tensor_util.MakeNdarray(v.tensor))} )
+            if(v.simple_value):
+              valuesDict.update( {int(e.step) : float(v.simple_value)} )
+            else:
+              valuesDict.update( {int(e.step) : float(tensor_util.MakeNdarray(v.tensor))} )
 
   if tag:
     return valuesDict
