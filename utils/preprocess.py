@@ -43,6 +43,8 @@ def preprocess_bert(text, args, do_lower_case=True):
         text = replace_urls(text, filler=args.url_filler)
     if args.asciify_emojis:
         text = asciify_emojis(text)
+    if args.standardize_punctuation:
+        text = standardize_punctuation(text)
     if do_lower_case:
         text = text.lower()
     if args.replace_multiple_usernames:
@@ -148,6 +150,9 @@ def standardize_text(text):
     # replace multiple spaces with single space
     text = ' '.join(text.split())
     return text.strip()
+
+def standardize_punctuation(text):
+    return ''.join([unidecode.unidecode(t) if unicodedata.category(t)[0] == 'P' else t for t in text])
 
 def replace_usernames(text, filler='user'):
     # @<user> is a marker used internally. use filler instead
