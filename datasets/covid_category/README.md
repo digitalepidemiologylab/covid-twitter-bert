@@ -8,4 +8,20 @@ Download the file using [this link](https://raw.githubusercontent.com/digitalepi
 
 We can only share the Tweet IDs. You can download the full tweet objects using the script provided [here](https://github.com/digitalepidemiologylab/crowdbreaks-paper).
 
-If you end up using this dataset, please cite this work. If you have questions, please get in touch martin.muller@epfl.ch.
+If you end up using this dataset, please cite our pre-print:
+```bibtex
+@article{muller2020covid,
+  title={COVID-Twitter-BERT: A Natural Language Processing Model to Analyse COVID-19 Content on Twitter},
+  author={M{\"u}ller, Martin and Salath{\'e}, Marcel and Kummervold, Per E},
+  journal={arXiv preprint arXiv:2005.07503},
+  year={2020}
+}
+```
+or
+```
+Martin Müller, Marcel Salathé, and Per E. Kummervold. 
+COVID-Twitter-BERT: A Natural Language Processing Model to Analyse COVID-19 Content on Twitter.
+arXiv preprint arXiv:2005.07503 (2020).
+```
+
+If you have questions, please get in touch martin.muller@epfl.ch.
