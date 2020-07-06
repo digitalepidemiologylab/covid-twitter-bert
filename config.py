@@ -11,7 +11,6 @@ PRETRAINED_MODELS = {
             'do_whole_word_masking': False
             },
         'bert_multi_cased': {
-            'bucket_location': '',
             'hub_url': 'tensorflow/bert_multi_cased_L-12_H-768_A-12/2',
             'config': 'bert_config_multi_cased.json',
             'is_tfhub_model': True,
