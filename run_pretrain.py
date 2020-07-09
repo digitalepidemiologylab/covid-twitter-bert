@@ -214,15 +214,18 @@ def run(args, strategy):
 def main(args):
     # Get distribution strategy
     if args.use_tpu:
-        if args.tpu_name is not None:
+        if args.tpu_ip:
+            logger.info(f'Intializing TPU on address {args.tpu_ip}...')
+            tpu_address = f'grpc://{args.tpu_ip}:8470'
+            strategy = distribution_utils.get_distribution_strategy(distribution_strategy='tpu', tpu_address=tpu_address)
+        elif args.tpu_name:
+            logger.info(f'Intializing TPU with name {args.tpu_name}...')
             cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu=args.tpu_name)
             tf.config.experimental_connect_to_cluster(cluster_resolver)
             tf.tpu.experimental.initialize_tpu_system(cluster_resolver)
             strategy = tf.distribute.experimental.TPUStrategy(cluster_resolver)
         else:
-            logger.info(f'Intializing TPU on address {args.tpu_ip}...')
-            tpu_address = f'grpc://{args.tpu_ip}:8470'
-            strategy = distribution_utils.get_distribution_strategy(distribution_strategy='tpu', tpu_address=tpu_address, num_gpus=args.num_gpus)
+            raise ValueError(f'You need to either specify a tpu_ip or a tpu_name in order to use a TPU.')
     else:
         strategy = distribution_utils.get_distribution_strategy(distribution_strategy='mirrored', num_gpus=args.num_gpus)
     # set mixed precision
