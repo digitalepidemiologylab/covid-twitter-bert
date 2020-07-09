@@ -215,10 +215,7 @@ def main(args):
     # Get distribution strategy
     if args.use_tpu:
         if args.tpu_name is not None:
-            cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(
-                    tpu=args.tpu_name,
-                    zone='europe-west4-a',
-                    project=args.tpu_name_project)
+            cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu=args.tpu_name)
             tf.config.experimental_connect_to_cluster(cluster_resolver)
             tf.tpu.experimental.initialize_tpu_system(cluster_resolver)
             strategy = tf.distribute.experimental.TPUStrategy(cluster_resolver)
@@ -235,7 +232,7 @@ def main(args):
 def parse_args():
     # Parse commandline
     parser = ArgParseDefault()
-    parser.add_argument('--tpu_ip', required=True, help='IP-address of the TPU')
+    parser.add_argument('--tpu_ip', required=False, help='IP-address of the TPU')
     parser.add_argument('--bucket_name', required=True, help='Bucket name')
     parser.add_argument('--tpu_name', required=False, help='Name of the TPU')
     parser.add_argument('--tpu_name_project', required=False, help='Name of the TPU project')
