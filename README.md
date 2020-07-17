@@ -32,37 +32,16 @@ If you are familiar with finetuning transformer models, the CT-BERT-model is ava
 | -------- |  ----- | -------- | -------- |------------- |------------- |
 | COVID-Twitter-BERT v1  | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) |[Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert)| [TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1)|
 
-See below for some short sample code for how this can be integrated. This is provided mainly as a starting point.
-<details>
-  <summary>Hugginface code example</summary>
-  
- ```python
-from transformers import (
-    AutoConfig,
-    BertTokenizer,
-    TFBertForSequenceClassification,
-)
-import tensorflow as tf
-
-tokenizer = BertTokenizer.from_pretrained("digitalepidemiologylab/covid-twitter-bert")
-config = AutoConfig.from_pretrained('digitalepidemiologylab/covid-twitter-bert', num_labels=3)
-model = TFBertForSequenceClassification.from_pretrained(
-    "digitalepidemiologylab/covid-twitter-bert",
-    config=config
-)
-input_ids = tf.constant(
-    tokenizer.encode("Oh, when will this lockdown ever end?", add_special_tokens=True)
-)
-model(input_ids[None, :])  # Batch size 1
-# (<tf.Tensor: shape=(1, 3), dtype=float32, numpy=array([[-0.46376148,  0.2295331 , -0.21242218]], dtype=float32)>,)
+## Huggingface
+```python
+from transformers import BertForPreTraining
+model = BertForPreTraining.from_pretrained('digitalepidemiologylab/covid-twitter-bert')
 ```
 
-</details>
-<details>
-  <summary>TFHub code example</summary>
-  
- ```python
-#Load the saved model directly
+## TF-Hub
+```python
+import tensorflow_hub as hub
+
 max_seq_length = 96  # Your choice here.
 input_word_ids = tf.keras.layers.Input(
   shape=(max_seq_length,),
@@ -78,29 +57,9 @@ input_type_ids = tf.keras.layers.Input(
   name="input_type_ids")
 bert_layer = hub.KerasLayer("https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1", trainable=True)
 pooled_output, sequence_output = bert_layer([input_word_ids, input_mask, input_type_ids])
-
-#Create a classifier model
-num_labels = 3
-initializer = tf.keras.initializers.TruncatedNormal(stddev=0.2)
-output = tf.keras.layers.Dropout(rate=0.1)(pooled_output)
-output = tf.keras.layers.Dense(num_labels, kernel_initializer=initializer, name='output')(output)
-classifier_model = tf.keras.Model(
-  inputs={
-          'input_word_ids': input_word_ids,
-          'input_mask': input_mask,
-          'input_type_ids': input_type_ids},
-  outputs=output)
-
-#Load the tokenizer
-vocab_file = bert_layer.resolved_object.vocab_file.asset_path.numpy()
-do_lower_case = bert_layer.resolved_object.do_lower_case.numpy()
-tokenizer = tokenization.FullTokenizer(vocab_file, do_lower_case)
 ```
 
-</details>
-
-
-# Finetune CT-BERT
+# Finetune CT-BERT using our scripts
 The script `run_finetune.py` can be used for training a classifier. This code depends on the official [tensorflow/models](https://github.com/tensorflow/models) implementation of BERT under tensorflow 2.2/Keras.
 
 In order to use our code you need to set up:
