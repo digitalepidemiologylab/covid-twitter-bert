@@ -25,7 +25,7 @@ For a demo on how to train a classifier on top of CT-BERT, please take a look at
 <p align="left"><a href="https://colab.research.google.com/github/digitalepidemiologylab/covid-twitter-bert/blob/master/Finetune_COVID_Twitter_BERT.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></p>
 
 
-# Load CT-BERT directly
+# Usage
 If you are familiar with finetuning transformer models, the CT-BERT-model is available both as an downloadable archive, in TFHub and as a module in Huggingface.
 
 | Version  |  Base model | Language | TF2 | Huggingface | TFHub |
@@ -33,9 +33,28 @@ If you are familiar with finetuning transformer models, the CT-BERT-model is ava
 | COVID-Twitter-BERT v1  | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) |[Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert)| [TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1)|
 
 ## Huggingface
+You can load the pretrained model from huggingface:
 ```python
 from transformers import BertForPreTraining
 model = BertForPreTraining.from_pretrained('digitalepidemiologylab/covid-twitter-bert')
+```
+You can predict tokens using the built-in pipelines:
+```python
+from transformers import pipeline
+import json
+
+pipe = pipeline(task='fill-mask', model='digitalepidemiologylab/covid-twitter-bert')
+out = pipe(f"In places with a lot of people, it's a good idea to wear a {pipe.tokenizer.mask_token}")
+print(json.dumps(out, indent=4))
+[
+    {
+        "sequence": "[CLS] in places with a lot of people, it's a good idea to wear a mask [SEP]",
+        "score": 0.9959408044815063,
+        "token": 7308,
+        "token_str": "mask"
+    },
+    ...
+]
 ```
 
 ## TF-Hub
