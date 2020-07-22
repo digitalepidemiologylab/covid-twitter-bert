@@ -19,7 +19,7 @@ arXiv preprint arXiv:2005.07503 (2020).
 For a demo on how to train a classifier on top of CT-BERT, please take a look at this Colab. It finetunes a model on the SST-2 dataset. It can also easily be modified for finetuning on your own data. 
 
 **Using Huggingface (on GPU)**
-<p align="left"><a href="https://github.com/digitalepidemiologylab/covid-twitter-bert/blob/master/CT_BERT_Huggingface_(GPU_training).ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></p>
+<p align="left"><a href="https://colab.research.google.com/github/digitalepidemiologylab/covid-twitter-bert/blob/master/CT_BERT_Huggingface_(GPU_training).ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></p>
 
 **Using Tensorflow 2.x (on TPUs)**
 <p align="left"><a href="https://colab.research.google.com/github/digitalepidemiologylab/covid-twitter-bert/blob/master/Finetune_COVID_Twitter_BERT.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></p>
