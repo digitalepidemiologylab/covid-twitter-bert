@@ -33,13 +33,17 @@ VOCAB_PATH = 'vocabs'
 tf_logger = tf.get_logger()
 tf_logger.handlers.pop()
 
-def get_model(args, model_config, num_labels, max_seq_length, is_hub_module=False):
+def get_model(args, model_config, num_labels, max_seq_length):
+    if args.use_tf_hub:
+        hub_module_url = f"https://tfhub.dev/{PRETRAINED_MODELS[args.model_class]['hub_url']}"
+    else:
+        hub_module_url = None
     classifier_model, _ = bert_models.classifier_model(
             model_config,
             num_labels,
             max_seq_length,
-            hub_module_url=None,
-            hub_module_trainable=False)
+            hub_module_url=hub_module_url,
+            hub_module_trainable=args.use_tf_hub)
     return classifier_model
 
 def get_model_config_path(args):
@@ -256,6 +260,7 @@ def parse_args():
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
     parser.add_argument('--eval_batch_size', default=32, type=int, help='Eval batch size')
     parser.add_argument('--label_name', default='label', type=str, help='Name of label to predicted')
+    add_bool_arg(parser, 'use_tf_hub', default=False, help='Use TF-Hub to initialize model')
     add_bool_arg(parser, 'interactive_mode', default=False, help='Interactive mode')
     add_bool_arg(parser, 'use_tpu', default=False, help='Use TPU (only works when using input_tfrecord_files stored on a Google bucket)')
     args = parser.parse_args()
