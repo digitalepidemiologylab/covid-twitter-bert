@@ -34,16 +34,18 @@ tf_logger = tf.get_logger()
 tf_logger.handlers.pop()
 
 def get_model(args, model_config, num_labels, max_seq_length):
-    if args.use_tf_hub:
+    if args.use_tf_hub and PRETRAINED_MODELS[args.model_class]['is_tfhub_model']:
         hub_module_url = f"https://tfhub.dev/{PRETRAINED_MODELS[args.model_class]['hub_url']}"
+        hub_module_trainable = True
     else:
         hub_module_url = None
+        hub_module_trainable = False
     classifier_model, _ = bert_models.classifier_model(
             model_config,
             num_labels,
             max_seq_length,
             hub_module_url=hub_module_url,
-            hub_module_trainable=args.use_tf_hub)
+            hub_module_trainable=hub_module_trainable)
     return classifier_model
 
 def get_model_config_path(args):
@@ -235,6 +237,8 @@ def run(args):
     save_to_json(data, f_config)
 
 def main(args):
+    # Set TF Hub caching to bucket
+    os.environ['TFHUB_CACHE_DIR'] = os.path.join(f'gs://{args.bucket_name}/tmp')
     # Get distribution strategy
     if args.use_tpu:
         logger.info(f'Intializing TPU on address {args.tpu_ip}...')
