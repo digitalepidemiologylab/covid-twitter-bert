@@ -38,11 +38,11 @@ def main(args):
 def parse_args():
     # Parse commandline
     parser = ArgParseDefault()
-    parser.add_argument('--run_prefix', default='eval_wwm_v2', help='Prefix to plot heatmap')
-    parser.add_argument('--bucket_name', help='Bucket name')
-    parser.add_argument('--project_name', help='Project name (subfolder in bucket)')
+    parser.add_argument('--run_prefix', default='B5', help='Prefix to plot heatmap')
+    parser.add_argument('--bucket_name', default='cb-tpu-us-central1', help='Bucket name')
+    parser.add_argument('--project_name', default='covid-bert-v2', help='Project name (subfolder in bucket)')
     parser.add_argument('--metric', default='f1_macro', help='Metric to plot')
-    parser.add_argument('-v', '--version', type=int, default=9, help='Plot version')
+    parser.add_argument('-v', '--version', type=int, default=1, help='Plot version')
     args = parser.parse_args()
     return args
 

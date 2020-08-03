@@ -9,47 +9,39 @@ from utils.misc import ArgParseDefault
 import ast
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)-5.5s] [%(name)-12.12s]: %(message)s')
-    # df.loc[df.init_checkpoint_index.isna(), 'init_checkpoint'] = 'ct-bert-v1'
 logger = logging.getLogger(__name__)
 
 @plot
 def main(args):
     df = get_run_logs(pattern=args.run_prefix, bucket_name=args.bucket_name, project_name=args.project_name)
-    df.loc[(df.model_class == 'covid-twitter-bert'), 'init_checkpoint'] = 'ct-bert-v1/bla'
-    df.loc[(df.model_class != 'covid-twitter-bert') & (df.init_checkpoint_index == 0), 'init_checkpoint'] = 'bert-large-uncased-wwm/bla'
-    df = df.reset_index(drop=True)
-    df = df[df.init_checkpoint_index.isin([None, 0, 9])]
-    n = 3
-    to_delete = []
-    for (finetune_data, init_checkpoint), grp in df.groupby(['finetune_data', 'init_checkpoint']):
-        sorted_vals = grp[args.metric].sort_values(ascending=False)
-        to_delete.extend(sorted_vals[n:].index.tolist())
-
-    df = df.drop(index=to_delete)
-    df.finetune_data = df.finetune_data.apply(lambda s: s.split('/')[-1])
-    df = df[~df.finetune_data.isin(
-        ['SemEval2016_6_climate_change_is_a_real_concern', 'SemEval2016_6_feminist_movement', 'SemEval2016_6_hillary_clinton', 'SemEval2016_6_legalization_of_abortion']
-        )]
-    df['exp'] = df.init_checkpoint.apply(lambda s: s.split('/')[0])
     if len(df) == 0:
         logger.info('No run logs found')
         sys.exit()
-    fig = sns.catplot(y=args.metric, x='finetune_data', hue='exp', data=df, kind='bar', height=4, aspect=1.5, ci='sd')
-    # plt.legend(loc='bottom')
-    # fig.set_xticklabels(rotation=90)
-    fig.set(ylim=(0.5, 1))
-    plt.gca().set_title(args.run_prefix)
+    df.loc[(df.model_class == 'covid-twitter-bert'), 'init_checkpoint'] = 'ct-bert-v1/bla'
+    df.loc[(df.model_class != 'covid-twitter-bert') & (df.init_checkpoint_index == 0), 'init_checkpoint'] = 'bert-large-uncased-wwm/bla'
+    df = df.reset_index(drop=True)
+    df.finetune_data = df.finetune_data.apply(lambda s: s.split('/')[-1])
+    df['exp'] = df.init_checkpoint.apply(lambda s: s.split('/')[0])
+    df.loc[df.exp.str.contains('B5'), 'exp'] = 'expB5_34e5_nodecay_concat'
+    df = df[['run_name', 'exp', 'finetune_data', 'init_checkpoint_index', args.metric]]
 
+    # exclude single checkpoint runs
+    df = df[~df.exp.isin(['ct-bert-v1', 'bert-large-uncased-wwm'])]
+
+    g = sns.FacetGrid(df, row='finetune_data', hue='exp', aspect=3, height=2, sharey=False)
+    g = g.map(sns.lineplot, 'init_checkpoint_index', args.metric)
+    g.add_legend()
     # plotting
-    save_fig(fig, 'metrics_by_checkpoint', version=args.version, plot_formats=['png'])
+    save_fig(plt.gcf(), 'metrics_by_checkpoint', version=args.version, plot_formats=['png'])
 
 def parse_args():
     parser = ArgParseDefault()
     parser.add_argument('--bucket_name', default='cb-tpu-us-central1', help='Bucket name')
     parser.add_argument('--project_name', default='covid-bert-v2', help='Project name')
-    parser.add_argument('--run_prefix', default='ct_bert_v2_eval', help='Run prefix')
+    parser.add_argument('--run_prefix', default='(exp2|exp3|exp4|B3|B4|B5)', help='Run prefix')
+    parser.add_argument('--confidence_intervals', default='ci', choices=['ci', 'sd'], help='Type of confidence intervals')
     parser.add_argument('--metric', default='f1_macro', help='Metric to plot')
-    parser.add_argument('-v', '--version', type=int, default=7, help='Plot version')
+    parser.add_argument('-v', '--version', type=int, default=14, help='Plot version')
     args = parser.parse_args()
     return args
 
