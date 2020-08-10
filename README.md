@@ -225,7 +225,8 @@ arXiv preprint arXiv:2005.07503 (2020).
 ```
 
 # Acknowledgement
-* Thanks to Aksel Kummervold for creating the COVID-Twitter-Bert logo
+* Thanks to Aksel Kummervold for creating the COVID-Twitter-Bert logo.
+* The model have been trained using resources made available by Tensorflow Research Cloud (TFRC) and Google Cloud COVID-19 research credits. 
 
 # Authors
 * Martin Müller (martin.muller@epfl.ch)
