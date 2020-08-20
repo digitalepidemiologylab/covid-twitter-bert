@@ -144,10 +144,17 @@ def run(args, strategy):
     def _get_pretrained_model(end_lr=0.0):
         """Gets a pretraining model."""
         pretrain_model, core_model = bert_models.pretrain_model(model_config, args.max_seq_length, args.max_predictions_per_seq)
+        if args.warmup_proportion is None:
+            warmup_steps = args.warmup_steps
+            warmup_proportion_perc = 100 * args.warmup_steps/(args.num_epochs * args.num_steps_per_epoch)
+        else:
+            warmup_steps = int(args.num_epochs * args.num_steps_per_epoch * args.warmup_proportion)
+            warmup_proportion_perc = args.warmup_proportion * 100
+        logger.info(f'Running {warmup_steps:,} warmup steps ({warmup_proportion_perc:.2f}% warmup)')
         optimizer = utils.optimizer.create_optimizer(
                 args.learning_rate,
                 args.num_steps_per_epoch * args.num_epochs,
-                args.warmup_steps,
+                warmup_steps,
                 args.end_lr,
                 args.optimizer_type)
         pretrain_model.optimizer = configure_optimizer(optimizer, use_float16=args.dtype == 'fp16', use_graph_rewrite=False)
@@ -253,6 +260,7 @@ def parse_args():
     parser.add_argument('--num_epochs', default=3, type=int, help='Number of epochs')
     parser.add_argument('--num_steps_per_epoch', default=1000, type=int, help='Number of steps per epoch')
     parser.add_argument('--warmup_steps', default=10000, type=int, help='Warmup steps')
+    parser.add_argument('--warmup_proportion', default=None, type=float, help='If set overwrites warmup_steps.')
     parser.add_argument('--learning_rate', default=2e-5, type=float, help='Learning rate')
     parser.add_argument('--end_lr', default=0, type=float, help='Final learning rate')
     parser.add_argument('--max_seq_length', default=96, type=int, help='Maximum sequence length. Sequences longer than this will be truncated, and sequences shorter than this will be padded.')
