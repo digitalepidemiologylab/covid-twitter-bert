@@ -5,7 +5,8 @@ from official.utils.misc import distribution_utils
 from official.nlp.bert import input_pipeline
 from official.nlp.bert import bert_models
 from official.nlp.bert import configs as bert_configs
-from official.modeling import model_training_utils
+#from official.modeling import model_training_utils
+import utils.model_training_utils as model_training_utils
 from official.nlp import optimization
 from official.utils.misc import keras_utils
 
@@ -200,6 +201,7 @@ def run(args, strategy):
         eval_steps=args.eval_steps,
         metric_fn=eval_metric_fn,
         init_checkpoint=pretrained_model_checkpoint_path,
+        load_mlm_nsp_weights = args.load_mlm_nsp_weights,
         custom_callbacks=custom_callbacks,
         run_eagerly=False,
         sub_model_export_name='pretrained/bert_model',
@@ -252,8 +254,9 @@ def parse_args():
     parser.add_argument('--project_name', default='covid-bert', help='Name of subfolder in Google bucket')
     parser.add_argument('--num_gpus', default=1, type=int, help='Number of GPUs to use')
     parser.add_argument('--eval_steps', default=1000, type=int, help='Number eval steps to run (only active when --do_eval flag is provided)')
-    parser.add_argument('--init_checkpoint', default=None, help='Run name to initialize checkpoint from. Example: "run2/ctl_step_8000.ckpt-8". \
+    parser.add_argument('--init_checkpoint', default=None, help='Run name to initialize checkpoint from. Example: "run2/ctl_step_8000.ckpt-8". or "run2/pretrained/bert_model_8000.ckpt-8". The first contains the mlm/nsp layers. \
             By default using a pretrained model from gs://{bucket_name}/pretrained_models/')
+    parser.add_argument('--load_mlm_nsp_weights', default=None, help="If set to True it will load the mlm/nsp-layers. The init_checkpoint should then be set to a model containing these. Usually in base run-directory named 'ctl_step*'.") 
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
     parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')
     parser.add_argument('--eval_batch_size', default=32, type=int, help='Eval batch size')
