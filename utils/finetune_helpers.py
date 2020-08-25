@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class Metrics(tf.keras.callbacks.Callback):
     """Metrics to compute as a callback"""
 
-    def __init__(self, eval_data_fn, label_mapping, logdir, eval_steps, eval_batch_size):
+    def __init__(self, eval_data_fn, label_mapping, logdir, eval_steps, eval_batch_size, validation_freq):
         super().__init__()
         self.eval_data = eval_data_fn()
         self.label_mapping = label_mapping
@@ -20,8 +20,13 @@ class Metrics(tf.keras.callbacks.Callback):
         self.logdir = logdir
         self.eval_steps = eval_steps
         self.eval_batch_size = eval_batch_size
+        self.validation_freq = validation_freq
 
     def on_epoch_end(self, epoch, logs):
+        if self.validation_freq is not None:
+            if epoch + 1 not in self.validation_freq:
+                logger.info(f'Not running eval for epoch {epoch+1}')
+                return
         logger.info('Computing metrics on validation set...')
         t_s = time.time()
         y_true = np.concatenate([label.numpy() for _, label in self.eval_data])

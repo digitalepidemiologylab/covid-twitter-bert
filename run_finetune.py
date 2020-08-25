@@ -229,7 +229,8 @@ def run(args):
             label_mapping,
             os.path.join(summary_dir, 'metrics'),
             eval_steps,
-            args.eval_batch_size)
+            args.eval_batch_size,
+            args.validation_freq)
     custom_callbacks.append(performance_metrics_callback)
 
     # Run keras fit
@@ -241,6 +242,7 @@ def run(args):
         steps_per_epoch=steps_per_epoch,
         epochs=args.num_epochs,
         validation_steps=eval_steps,
+        validation_freq=args.validation_freq,
         callbacks=custom_callbacks,
         verbose=1)
     time_end = time.time()
@@ -252,7 +254,7 @@ def run(args):
     all_predictions = performance_metrics_callback.predictions
     if len(all_scores) > 0:
         final_scores = all_scores[-1]
-        logger.info(f'Final scores: {final_scores}')
+        logger.info(f'Final eval scores: {final_scores}')
     else:
         final_scores = {}
     full_history = history.history
@@ -366,6 +368,7 @@ def parse_args():
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
     parser.add_argument('--dtype', default='fp32', choices=['fp32', 'bf16', 'fp16'], type=str, help='Data type')
     parser.add_argument('--steps_per_loop', default=10, type=int, help='Steps per loop (unavailable for Keras fit in TF 2.2, will be added in later version)')
+    parser.add_argument('--validation_freq', default=None, type=int, nargs='+', help='Validation frequency. Run eval after specified epochs. Default: After every epoch')
     parser.add_argument('--time_history_log_steps', default=10, type=int, help='Frequency with which to log timing information with TimeHistory.')
     add_bool_arg(parser, 'use_tpu', default=True, help='Use TPU')
     args = parser.parse_args()
