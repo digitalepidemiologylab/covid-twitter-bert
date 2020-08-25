@@ -256,7 +256,7 @@ def parse_args():
     parser.add_argument('--eval_steps', default=1000, type=int, help='Number eval steps to run (only active when --do_eval flag is provided)')
     parser.add_argument('--init_checkpoint', default=None, help='Run name to initialize checkpoint from. Example: "run2/ctl_step_8000.ckpt-8". or "run2/pretrained/bert_model_8000.ckpt-8". The first contains the mlm/nsp layers. \
             By default using a pretrained model from gs://{bucket_name}/pretrained_models/')
-    parser.add_argument('--load_mlm_nsp_weights', default=None, help="If set to True it will load the mlm/nsp-layers. The init_checkpoint should then be set to a model containing these. Usually in base run-directory named 'ctl_step*'.") 
+    parser.add_argument('--load_mlm_nsp_weights', default=None, help="If set to True it will load the mlm/nsp-layers. The init_checkpoint should then be set to a model containing these. Usually in base run-directory named 'ctl_step*'.")
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
     parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')
     parser.add_argument('--eval_batch_size', default=32, type=int, help='Eval batch size')
