@@ -447,6 +447,10 @@ def run_customized_training_loop(
                         metric_value = _float_metric_value(metric)
                         training_status += '  %s = %f' % (metric.name, metric_value)
                         tf.summary.scalar(metric.name, metric_value, step=current_step)
+                    # add current learning rate
+                    current_learning_rate = model.optimizer._decayed_lr(tf.float32).numpy()
+                    tf.summary.scalar('lr', current_learning_rate, step=current_step)
+                    training_status += '  %s = %f' % ('lr', current_learning_rate)
                     train_summary_writer.flush()
             logging.info(training_status)
 
