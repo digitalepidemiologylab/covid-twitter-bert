@@ -202,6 +202,7 @@ def run(args, strategy):
         metric_fn=eval_metric_fn,
         init_checkpoint=pretrained_model_checkpoint_path,
         load_mlm_nsp_weights = args.load_mlm_nsp_weights,
+        set_trainstep = args.set_trainstep,
         custom_callbacks=custom_callbacks,
         run_eagerly=False,
         sub_model_export_name='pretrained/bert_model',
@@ -257,6 +258,7 @@ def parse_args():
     parser.add_argument('--init_checkpoint', default=None, help='Run name to initialize checkpoint from. Example: "run2/ctl_step_8000.ckpt-8". or "run2/pretrained/bert_model_8000.ckpt-8". The first contains the mlm/nsp layers. \
             By default using a pretrained model from gs://{bucket_name}/pretrained_models/')
     parser.add_argument('--load_mlm_nsp_weights', default=None, help="If set to True it will load the mlm/nsp-layers. The init_checkpoint should then be set to a model containing these. Usually in base run-directory named 'ctl_step*'.")
+    parser.add_argument('--set_trainstep', default=None, help="If set this will set the trainstep. This is only needed when restarting from an old checkpoint and you would like to get the scheduler/optimiser to start at the correct point.")
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
     parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')
     parser.add_argument('--eval_batch_size', default=32, type=int, help='Eval batch size')
