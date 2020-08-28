@@ -243,17 +243,14 @@ def run_customized_training_loop(
 
         optimizer = model.optimizer
 
-
         if init_checkpoint:
             logging.info(
                     'Checkpoint file %s found and restoring from '
                     'initial checkpoint for core model.', init_checkpoint)
             if load_mlm_nsp_weights:
-                checkpoint = tf.train.Checkpoint(model=model)
+                checkpoint = tf.train.Checkpoint(model=model, optimizer=optimizer)
                 logging.info('Trying to restore the mlm/nsp weights')
-                checkpoint.restore(init_checkpoint).expect_partial()
-
-                               #import pdb; pdb.set_trace()
+                checkpoint.restore(init_checkpoint).assert_existing_objects_matched()
             else:
                 checkpoint = tf.train.Checkpoint(model=sub_model)
                 checkpoint.restore(init_checkpoint).assert_existing_objects_matched()
@@ -263,11 +260,10 @@ def run_customized_training_loop(
                 import numpy as np
                 current_trainstep = optimizer.iterations.numpy()
                 new_trainstep = [np.array(int(set_trainstep))]
-                #import pdb; pdb.set_trace()
-                
+
                 optimizer.set_weights(new_trainstep)
                 logging.info(f'Set the training step to {set_trainstep}')
-                
+
 
             logging.info('Loading from checkpoint file completed')
 
