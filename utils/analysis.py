@@ -50,5 +50,5 @@ def get_summary_logs(pattern=None, dataset_type='train', bucket_name='my-bucket'
     return df
 
 def find_project_root():
-    return os.path.abspath(os.path.join(os.path.abspath(__file__), '..', '..', '..'))
+    return os.path.abspath(os.path.join(os.path.abspath(__file__), '..', '..'))
 

@@ -241,14 +241,12 @@ def run_customized_training_loop(
             raise ValueError('sub_model_export_name is specified as %s, but '
                                               'sub_model is None.' % sub_model_export_name)
 
-        optimizer = model.optimizer
-
         if init_checkpoint:
             logging.info(
                     'Checkpoint file %s found and restoring from '
                     'initial checkpoint for core model.', init_checkpoint)
             if load_mlm_nsp_weights:
-                checkpoint = tf.train.Checkpoint(model=model, optimizer=optimizer)
+                checkpoint = tf.train.Checkpoint(model=model, optimizer=model.optimizer)
                 logging.info('Trying to restore the mlm/nsp weights')
                 checkpoint.restore(init_checkpoint).assert_existing_objects_matched()
             else:
@@ -258,14 +256,15 @@ def run_customized_training_loop(
             if set_trainstep:
                 # start from iteration #
                 import numpy as np
-                current_trainstep = optimizer.iterations.numpy()
+                current_trainstep = model.optimizer.iterations.numpy()
                 new_trainstep = [np.array(int(set_trainstep))]
 
-                optimizer.set_weights(new_trainstep)
+                model.optimizer.set_weights(new_trainstep)
                 logging.info(f'Set the training step to {set_trainstep}')
 
-
             logging.info('Loading from checkpoint file completed')
+
+        optimizer = model.optimizer
 
         train_loss_metric = tf.keras.metrics.Mean(
                 'training_loss', dtype=tf.float32)
