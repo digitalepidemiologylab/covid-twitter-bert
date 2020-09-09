@@ -246,14 +246,16 @@ def run_customized_training_loop(
                     'Checkpoint file %s found and restoring from '
                     'initial checkpoint for core model.', init_checkpoint)
             if load_mlm_nsp_weights:
-                checkpoint = tf.train.Checkpoint(model=model, optimizer=model.optimizer)
-                logging.info('Trying to restore the mlm/nsp weights')
-                checkpoint.restore(init_checkpoint).assert_existing_objects_matched()
-                logger.info(f'Sample of optimizer weights: {model.optimizer.weights[0][0][:10]}')
-                logger.info(f'Optimizer iteration: {model.optimizer.iterations}')
+                with strategy.scope():
+                    checkpoint = tf.train.Checkpoint(model=model, optimizer=model.optimizer)
+                    logging.info('Trying to restore the mlm/nsp weights')
+                    checkpoint.restore(init_checkpoint).assert_existing_objects_matched()
+                    logger.info(f'Sample of optimizer weights: {model.optimizer.weights[0][0][:10]}')
+                    logger.info(f'Optimizer iteration: {model.optimizer.iterations}')
             else:
-                checkpoint = tf.train.Checkpoint(model=sub_model)
-                checkpoint.restore(init_checkpoint).assert_existing_objects_matched()
+                with strategy.scope():
+                    checkpoint = tf.train.Checkpoint(model=sub_model)
+                    checkpoint.restore(init_checkpoint).assert_existing_objects_matched()
 
             if set_trainstep:
                 # start from iteration #
