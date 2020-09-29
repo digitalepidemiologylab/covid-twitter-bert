@@ -30,7 +30,8 @@ If you are familiar with finetuning transformer models, the CT-BERT-model is ava
 
 | Version  |  Base model | Language | TF2 | Huggingface | TFHub |
 | -------- |  ----- | -------- | -------- |------------- |------------- |
-| COVID-Twitter-BERT v1  | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) |[Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert)| [TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1)|
+| COVID-Twitter-BERT v1 | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) |[Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert)| [TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1)|
+| COVID-Twitter-BERT v2 | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v2/checkpoint_submodel/covid-twitter-bert-v2.tar.gz) |[Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert-v2)| :construction: |
 
 ## Huggingface
 You can load the pretrained model from huggingface:
