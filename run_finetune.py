@@ -205,7 +205,9 @@ def run(args):
         batch_size=args.train_batch_size,
         log_steps=args.time_history_log_steps,
         logdir=summary_dir)
-    custom_callbacks = [summary_callback, checkpoint_callback, time_history_callback]
+    custom_callbacks = [summary_callback, time_history_callback]
+    if args.save_model:
+        custom_callbacks.append(checkpoint_callback)
     if args.early_stopping_epochs > 0:
         logger.info(f'Using early stopping of after {args.early_stopping_epochs} epochs of val_loss not decreasing')
         early_stopping_callback = tf.keras.callbacks.EarlyStopping(patience=args.early_stopping_epochs, monitor='val_loss')
@@ -371,6 +373,7 @@ def parse_args():
     parser.add_argument('--validation_freq', default=None, type=int, nargs='+', help='Validation frequency. Run eval after specified epochs. Default: After every epoch')
     parser.add_argument('--time_history_log_steps', default=10, type=int, help='Frequency with which to log timing information with TimeHistory.')
     add_bool_arg(parser, 'use_tpu', default=True, help='Use TPU')
+    add_bool_arg(parser, 'save_model', default=True, help='Save model checkpoint(s)')
     args = parser.parse_args()
     return args
 
