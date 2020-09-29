@@ -50,7 +50,7 @@ print(json.dumps(out, indent=4))
 [
     {
         "sequence": "[CLS] in places with a lot of people, it's a good idea to wear a mask [SEP]",
-        "score": 0.9959408044815063,
+        "score": 0.9998226761817932,
         "token": 7308,
         "token_str": "mask"
     },
