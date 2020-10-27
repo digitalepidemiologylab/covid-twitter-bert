@@ -28,6 +28,15 @@ PRETRAINED_MODELS = {
             'lower_case': True,
             'do_whole_word_masking': True
             },
+        'bert_large_cased_wwm': {
+            'bucket_location': 'pretrained_models/bert/keras_bert/wwm_cased_L-24_H-1024_A-16',
+            'hub_url': 'tensorflow/bert_en_wwm_cased_L-24_H-1024_A-16/2',
+            'config': 'bert_config_large_cased_wwm.json',
+            'is_tfhub_model': True,
+            'vocab_file': 'bert-large-cased-whole-word-masking-vocab.txt',
+            'lower_case': False,
+            'do_whole_word_masking': True
+            },
         'covid-twitter-bert': {
             'hub_url': 'digitalepidemiologylab/covid-twitter-bert/1',
             'is_tfhub_model': True,
@@ -37,3 +46,4 @@ PRETRAINED_MODELS = {
             'do_whole_word_masking': True
             }
         }
+
