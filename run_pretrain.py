@@ -121,13 +121,19 @@ def run(args, strategy):
         raise ValueError(f'Could not find a pretrained model matching the model class {args.model_class}')
     pretrained_model_config_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_config.json'
     if args.init_checkpoint is None:
-        pretrained_model_checkpoint_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_model.ckpt'
+        if args.init_weights is False:
+            pretrained_model_checkpoint_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_model.ckpt'
+        else:
+            pretrained_model_checkpoint_path = None
     else:
         pretrained_model_checkpoint_path = f'gs://{args.bucket_name}/{args.project_name}/pretrain/runs/{args.init_checkpoint}'
 
     # some logging
     logger.info(f'Running pretraining of model {args.model_class} on pretrain data {args.pretrain_data}')
-    logger.info(f'Initializing model from checkpoint {pretrained_model_checkpoint_path}')
+    if pretrained_model_checkpoint_path:
+        logger.info(f'Initializing model from checkpoint {pretrained_model_checkpoint_path}')
+    else:
+        logger.info(f'Initializing model with random weights')
 
     # load model config based on model_class
     model_config = get_model_config(pretrained_model_config_path)
@@ -257,6 +263,7 @@ def parse_args():
     parser.add_argument('--eval_steps', default=1000, type=int, help='Number eval steps to run (only active when --do_eval flag is provided)')
     parser.add_argument('--init_checkpoint', default=None, help='Run name to initialize checkpoint from. Example: "run2/ctl_step_8000.ckpt-8". or "run2/pretrained/bert_model_8000.ckpt-8". The first contains the mlm/nsp layers. \
             By default using a pretrained model from gs://{bucket_name}/pretrained_models/')
+    parser.add_argument('--init_weights', default=False, help="If set to True, the network is initialised with random weights. Only works in init_checkpoint is False.")
     parser.add_argument('--load_mlm_nsp_weights', default=None, help="If set to True it will load the mlm/nsp-layers. The init_checkpoint should then be set to a model containing these. Usually in base run-directory named 'ctl_step*'.")
     parser.add_argument('--set_trainstep', default=None, help="If set this will set the trainstep. This is only needed when restarting from an old checkpoint and you would like to get the scheduler/optimiser to start at the correct point.")
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
