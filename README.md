@@ -3,7 +3,7 @@
 
 <img align="right" width="350px" src="images/COVID-Twitter-BERT-medium.png">
 
-COVID-Twitter-BERT (CT-BERT) is a transformer-based model pretrained on a large corpus of Twitter messages on the topic of COVID-19. The model is trained on 22.5M tweets (633M tokens).
+COVID-Twitter-BERT (CT-BERT) is a transformer-based model pretrained on a large corpus of Twitter messages on the topic of COVID-19. The v2 model is trained on 97M tweets (1.2B training examples).
 
 When used on domain specific datasets our evaluation shows that this model will get a marginal performance increase of 10–30% compared to the standard BERT-Large-model. Most improvements are shown on COVID-19 related and on Twitter-like messages. 
 
@@ -30,26 +30,27 @@ If you are familiar with finetuning transformer models, the CT-BERT-model is ava
 
 | Version  |  Base model | Language | TF2 | Huggingface | TFHub |
 | -------- |  ----- | -------- | -------- |------------- |------------- |
-| COVID-Twitter-BERT v1  | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) |[Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert)| [TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1)|
+| v1 | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v1/checkpoint_submodel/covid-twitter-bert-v1.tar.gz) |[Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert)| [TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/1)|
+| v2 | BERT-large-uncased-WWM | en | [TF2 Checkpoint](https://crowdbreaks-public.s3.eu-central-1.amazonaws.com/models/covid-twitter-bert/v2/checkpoint_submodel/covid-twitter-bert-v2.tar.gz) |[Huggingface](https://huggingface.co/digitalepidemiologylab/covid-twitter-bert-v2)| [TFHub](https://tfhub.dev/digitalepidemiologylab/covid-twitter-bert/2) |
 
 ## Huggingface
 You can load the pretrained model from huggingface:
 ```python
 from transformers import BertForPreTraining
-model = BertForPreTraining.from_pretrained('digitalepidemiologylab/covid-twitter-bert')
+model = BertForPreTraining.from_pretrained('digitalepidemiologylab/covid-twitter-bert-v2')
 ```
 You can predict tokens using the built-in pipelines:
 ```python
 from transformers import pipeline
 import json
 
-pipe = pipeline(task='fill-mask', model='digitalepidemiologylab/covid-twitter-bert')
+pipe = pipeline(task='fill-mask', model='digitalepidemiologylab/covid-twitter-bert-v2')
 out = pipe(f"In places with a lot of people, it's a good idea to wear a {pipe.tokenizer.mask_token}")
 print(json.dumps(out, indent=4))
 [
     {
         "sequence": "[CLS] in places with a lot of people, it's a good idea to wear a mask [SEP]",
-        "score": 0.9959408044815063,
+        "score": 0.9998226761817932,
         "token": 7308,
         "token_str": "mask"
     },
