@@ -180,6 +180,15 @@ def run(args):
     classifier_model, core_model = get_model(args, model_config, steps_per_epoch, warmup_steps, num_labels, max_seq_length)
     optimizer = classifier_model.optimizer
     loss_fn = get_loss_fn(num_labels)
+    try:
+        if ',' in args.validation_freq:
+            validation_freq = args.validation_freq.split(',')
+            validation_freq = [int(v) for v in validation_freq]
+        else:
+            validation_freq = int(args.validation_freq)
+    except:
+        raise ValueError(f'Invalid argument for validation_freq!')
+    logger.info(f'Using a validation frequency of {validation_freq}')
 
     # Restore checkpoint
     if args.init_checkpoint:
@@ -207,6 +216,7 @@ def run(args):
         logdir=summary_dir)
     custom_callbacks = [summary_callback, time_history_callback]
     if args.save_model:
+        logger.info('Using save_model option...')
         custom_callbacks.append(checkpoint_callback)
     if args.early_stopping_epochs > 0:
         logger.info(f'Using early stopping of after {args.early_stopping_epochs} epochs of val_loss not decreasing')
@@ -232,7 +242,7 @@ def run(args):
             os.path.join(summary_dir, 'metrics'),
             eval_steps,
             args.eval_batch_size,
-            args.validation_freq)
+            validation_freq)
     custom_callbacks.append(performance_metrics_callback)
 
     # Run keras fit
@@ -244,7 +254,7 @@ def run(args):
         steps_per_epoch=steps_per_epoch,
         epochs=args.num_epochs,
         validation_steps=eval_steps,
-        validation_freq=args.validation_freq,
+        validation_freq=validation_freq,
         callbacks=custom_callbacks,
         verbose=1)
     time_end = time.time()
@@ -370,7 +380,8 @@ def parse_args():
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
     parser.add_argument('--dtype', default='fp32', choices=['fp32', 'bf16', 'fp16'], type=str, help='Data type')
     parser.add_argument('--steps_per_loop', default=10, type=int, help='Steps per loop (unavailable for Keras fit in TF 2.2, will be added in later version)')
-    parser.add_argument('--validation_freq', default=None, type=int, nargs='+', help='Validation frequency. Run eval after specified epochs. Default: After every epoch')
+    parser.add_argument('--validation_freq', default='1', type=str, help='Validation frequency. Run eval after specified epochs. Single values mean run every nth epoch.\
+            Else specify epochs with comma separation: E.g.: 5,10,15. Default: Run after every epoch')
     parser.add_argument('--time_history_log_steps', default=10, type=int, help='Frequency with which to log timing information with TimeHistory.')
     add_bool_arg(parser, 'use_tpu', default=True, help='Use TPU')
     add_bool_arg(parser, 'save_model', default=True, help='Save model checkpoint(s)')
