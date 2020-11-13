@@ -124,7 +124,7 @@ def main(args):
         os.makedirs(run_dir)
     # find input data
     originals_dir = os.path.join(DATA_DIR, 'finetune', 'originals')
-    if len(args.finetune_datasets) == 0:
+    if args.finetune_datasets is None or len(args.finetune_datasets) ==  0:
         finetune_datasets = os.listdir(originals_dir)
     else:
         finetune_datasets = args.finetune_datasets
