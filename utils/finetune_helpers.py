@@ -23,10 +23,16 @@ class Metrics(tf.keras.callbacks.Callback):
         self.validation_freq = validation_freq
 
     def on_epoch_end(self, epoch, logs):
-        if self.validation_freq is not None:
+        if isinstance(self.validation_freq, int):
+            if (epoch + 1) % self.validation_freq != 0:
+                logger.info(f'Not running eval for epoch {epoch+1}')
+                return
+        elif isinstance(self.validation_freq, list):
             if epoch + 1 not in self.validation_freq:
                 logger.info(f'Not running eval for epoch {epoch+1}')
                 return
+        else:
+            raise ValueError('Incorrect type for validation frequency')
         logger.info('Computing metrics on validation set...')
         t_s = time.time()
         y_true = np.concatenate([label.numpy() for _, label in self.eval_data])
