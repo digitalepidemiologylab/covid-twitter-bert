@@ -208,8 +208,6 @@ def run(args):
     # Create all custom callbacks
     summary_dir = os.path.join(output_dir, 'summaries')
     summary_callback = tf.keras.callbacks.TensorBoard(summary_dir, profile_batch=0)
-    checkpoint_path = os.path.join(output_dir, 'checkpoint')
-    checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path, save_weights_only=True)
     time_history_callback = keras_utils.TimeHistory(
         batch_size=args.train_batch_size,
         log_steps=args.time_history_log_steps,
@@ -217,6 +215,8 @@ def run(args):
     custom_callbacks = [summary_callback, time_history_callback]
     if args.save_model:
         logger.info('Using save_model option...')
+        checkpoint_path = os.path.join(output_dir, 'checkpoint')
+        checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path, save_weights_only=True, verbose=1)
         custom_callbacks.append(checkpoint_callback)
     if args.early_stopping_epochs > 0:
         logger.info(f'Using early stopping of after {args.early_stopping_epochs} epochs of val_loss not decreasing')

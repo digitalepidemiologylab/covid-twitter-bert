@@ -20,7 +20,6 @@ from tqdm import tqdm
 import json
 import tensorflow as tf
 from utils.misc import ArgParseDefault, add_bool_arg, save_to_json
-import utils.optimizer
 from config import PRETRAINED_MODELS
 import collections
 import pandas as pd
@@ -168,8 +167,13 @@ def run(args):
     checkpoint_path = os.path.join(run_dir, 'checkpoint')
     logger.info(f'Restore run checkpoint {checkpoint_path}...')
     # load weights (expect partial state because we don't want need the optimizer state)
-    model.load_weights(checkpoint_path)
-    logger.info(f'... successfully restored checkpoint')
+    try:
+        model.load_weights(checkpoint_path).expect_partial()
+    except:
+        logger.error(f'Restoring from checkpoint unsuccessful. Use the flag --use_tf_hub if the TFHub was used to initialize the model.')
+        return
+    else:
+        logger.info(f'... successfully restored checkpoint')
     # predict
     num_predictions = 0
     predictions = []
@@ -178,6 +182,7 @@ def run(args):
         preds = model.predict(example)
         preds = format_prediction(preds, label_mapping, args.label_name)
         print(json.dumps(preds, indent=4))
+        return
     elif args.interactive_mode:
         while True:
             text = input('Type text to predict. Quit by typing "q".\n>>> ')
