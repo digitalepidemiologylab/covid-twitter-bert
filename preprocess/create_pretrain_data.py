@@ -1,13 +1,16 @@
-import sys
-sys.path.append('../tensorflow_models')
+import sys, os
+#sys.path.append('/home/tensor/covid-twitter-bert/preprocess/utils')
+#sys.path.append('../tensorflow_models')
+sys.path.append('../utils')
+sys.path.append('.')
 sys.path.append('..')
-from utils.misc import ArgParseDefault, add_bool_arg, save_to_json
+
+from misc import ArgParseDefault, add_bool_arg, save_to_json
 from config import PRETRAINED_MODELS
 from pretrain_helpers import create_instances_from_document, write_instance_to_example_files
 from official.nlp.bert import tokenization
 import random
 import logging
-import os
 import glob
 import joblib
 import multiprocessing
@@ -20,32 +23,46 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)-5.5s] 
 logger = logging.getLogger(__name__)
 
 VOCAB_PATH = os.path.join('..', 'vocabs')
-DATA_DIR = os.path.join('..', 'data')
+#DATA_DIR = os.path.join('..', 'data')
 
-def get_tokenizer(model_class):
+def get_tokenizer(model_class, vocab_dir):
     model = PRETRAINED_MODELS[model_class]
-    vocab_file = os.path.join(VOCAB_PATH, model['vocab_file'])
+    if vocab_dir:
+        vocab_file = os.path.join(vocab_dir, model['bucket_location'], model['vocab_file'])
+    else:
+        vocab_file = os.path.join(VOCAB_PATH, model['vocab_file'])
+    print(vocab_file)
     tokenizer = tokenization.FullTokenizer(vocab_file=vocab_file, do_lower_case=model['lower_case'])
     return tokenizer
 
 def get_input_files(run_folder):
-    input_files = glob.glob(os.path.join(run_folder, 'preprocessed', '**', '*.txt'))
+    input_files = glob.glob(os.path.join(run_folder, '*.txt'))
     if len(input_files) == 0:
-        raise ValueError(f'No txt files found in folder {run_folder}/preprocessed')
+        raise ValueError(f'No txt files found in folder {run_folder}')
     return input_files
 
 def main(args):
-    rng = random.Random(args.random_seed)
-    run_folder = os.path.join(DATA_DIR, 'pretrain', args.run_name)
+    if args.data_dir:
+        data_dir = args.data_dir
+        run_folder = data_dir
+    else:
+        data_dir = os.path.join('..', 'data')
+        run_folder = os.path.join(data_dir, 'pretrain/preprocessed/**', args.run_name)
+    
+    logger.info(f'Setting up tokenizer for model class {args.model_class}')
+    tokenizer = get_tokenizer(args.model_class, args.vocab_dir)
+       
     input_files = get_input_files(run_folder)
-
     logger.info('Processing the following {len(input_files):,} input files:')
+
+    
+    rng = random.Random(args.random_seed)
+    
     for input_file in input_files:
         logger.info(f'{input_file}')
 
-    logger.info(f'Setting up tokenizer for model class {args.model_class}')
-    tokenizer = get_tokenizer(args.model_class)
-
+   
+    
     if args.run_in_parallel:
         num_cpus = max(min(multiprocessing.cpu_count() - 1, args.max_num_cpus), 1)
     else:
@@ -145,10 +162,16 @@ def process(input_file, tokenizer, rng, args):
     # write tf records file
     _type = os.path.basename(os.path.dirname(input_file))
     if _type in ['train', 'dev', 'test']:
-        output_folder = os.path.join(DATA_DIR, 'pretrain', args.run_name, 'tfrecords', _type)
+        if args.output_dir:
+            output_folder = os.path.join(data_dir, _type)
+        else:
+            output_folder = os.path.join(data_dir, 'pretrain', args.run_name, 'tfrecords', _type)
     else:
         _type = 'default'
-        output_folder = os.path.join(DATA_DIR, 'pretrain', args.run_name, 'tfrecords')
+        if args.output_dir:       
+            output_folder = os.path.join(data_dir)
+        else:
+            output_folder = os.path.join(data_dir, 'pretrain', args.run_name, 'tfrecords')
     if not os.path.isdir(output_folder):
         os.makedirs(output_folder)
     input_file_name = os.path.basename(input_file)
@@ -177,6 +200,9 @@ def parse_args():
     parser.add_argument('--num_logged_samples', default=10, type=int, help='Log first n samples to output')
     parser.add_argument('--max_num_cpus', default=10, type=int, help='Adapt this number based on the available memory/size of input files. \
             This code was tested on a machine with a lot of memory (250GB). Decrease this number if you run into memory issues.')
+    parser.add_argument('--data_dir', default='', required=False, help='Directory where the segmented sentences are placed. Overrides ../data')
+    parser.add_argument('--output_dir', default='', required=False, help='Directory where the tfrecords-files are stored. Overrides pretrain/run_name/tfrecords')
+    parser.add_argument('--vocab_dir', default='', required=False, help='Base directory where the vocab-file is located. Overrides ../vocabs. Still depends on subfolders')
     add_bool_arg(parser, 'run_in_parallel', default=True, help='Run script in parallel')
     return parser.parse_args()
 
