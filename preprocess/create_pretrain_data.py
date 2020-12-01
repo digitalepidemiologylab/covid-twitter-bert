@@ -163,15 +163,15 @@ def process(input_file, tokenizer, rng, args):
     _type = os.path.basename(os.path.dirname(input_file))
     if _type in ['train', 'dev', 'test']:
         if args.output_dir:
-            output_folder = os.path.join(data_dir, _type)
+            output_folder = os.path.join(args.output_dir, _type)
         else:
-            output_folder = os.path.join(data_dir, 'pretrain', args.run_name, 'tfrecords', _type)
+            output_folder = os.path.join(args.output_dir, 'pretrain', args.run_name, 'tfrecords', _type)
     else:
         _type = 'default'
         if args.output_dir:       
-            output_folder = os.path.join(data_dir)
+            output_folder = args.output_dir
         else:
-            output_folder = os.path.join(data_dir, 'pretrain', args.run_name, 'tfrecords')
+            output_folder = os.path.join(args.output_dir, 'pretrain', args.run_name, 'tfrecords')
     if not os.path.isdir(output_folder):
         os.makedirs(output_folder)
     input_file_name = os.path.basename(input_file)

@@ -33,7 +33,7 @@ PRETRAINED_MODELS = {
             'hub_url': 'tensorflow/bert_en_wwm_cased_L-24_H-1024_A-16/2',
             'config': 'bert_config_large_cased_wwm.json',
             'is_tfhub_model': True,
-            'vocab_file': 'bert-large-cased-whole-word-masking-vocab.txt',
+            'vocab_file': 'vocab.txt',
             'lower_case': False,
             'do_whole_word_masking': True
             },
