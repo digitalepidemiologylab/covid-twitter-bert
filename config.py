@@ -15,9 +15,9 @@ PRETRAINED_MODELS = {
             'hub_url': 'tensorflow/bert_multi_cased_L-12_H-768_A-12/2',
             'config': 'bert_config_multi_cased.json',
             'is_tfhub_model': True,
-            'vocab_file': 'bert-multi-cased-vocab.txt',
+            'vocab_file': 'vocab.txt',
             'lower_case': False,
-            'do_whole_word_masking': False
+            'do_whole_word_masking': True
             },
         'bert_large_uncased_wwm': {
             'bucket_location': 'pretrained_models/bert/keras_bert/wwm_uncased_L-24_H-1024_A-16',

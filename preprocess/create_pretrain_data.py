@@ -31,7 +31,7 @@ def get_tokenizer(model_class, vocab_dir):
         vocab_file = os.path.join(vocab_dir, model['bucket_location'], model['vocab_file'])
     else:
         vocab_file = os.path.join(VOCAB_PATH, model['vocab_file'])
-    print(vocab_file)
+    print(f'Using vocab-file: {vocab_file}')
     tokenizer = tokenization.FullTokenizer(vocab_file=vocab_file, do_lower_case=model['lower_case'])
     return tokenizer
 
