@@ -15,6 +15,7 @@ arXiv preprint arXiv:2005.07503 (2020).
 ```
 
 
+
 # Colab
 For a demo on how to train a classifier on top of CT-BERT, please take a look at this Colab. It finetunes a model on the SST-2 dataset. It can also easily be modified for finetuning on your own data. 
 
