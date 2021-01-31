@@ -10,6 +10,24 @@ PRETRAINED_MODELS = {
             'lower_case': True,
             'do_whole_word_masking': False
             },
+         'bert_base_norwegian_uncased': {
+            'bucket_location': '',
+            'hub_url': 'tensorflow/bert_multi_cased_L-12_H-768_A-12/2',
+            'config': 'bert_config_base_norwegian_cased.json',
+            'is_tfhub_model': True,
+            'vocab_file': 'vocab.txt',
+            'lower_case': True,
+            'do_whole_word_masking': True
+            },
+        'bert_base_norwegian_cased': {
+            'bucket_location': '',
+            'hub_url': 'tensorflow/bert_multi_cased_L-12_H-768_A-12/2',
+            'config': 'bert_config_base_norwegian_cased.json',
+            'is_tfhub_model': True,
+            'vocab_file': 'vocab.txt',
+            'lower_case': False,
+            'do_whole_word_masking': True
+            },
         'bert_multi_cased': {
             'bucket_location': 'pretrained_models/bert/keras_bert/multi_cased_L-12_H-768_A-12',
             'hub_url': 'tensorflow/bert_multi_cased_L-12_H-768_A-12/2',
