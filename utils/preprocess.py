@@ -6,20 +6,25 @@ from html.parser import HTMLParser
 import emoji
 import unidecode
 from spacy.lang.en import English
+from spacy.language import Language
 
 logger = logging.getLogger(__name__)
 
+@Language.component("avoid_sentencizer_hashtags")
+def _avoid_sentence_boundary_on_hashtag(doc):
+    for token in doc[:-1]:
+        if token.text == '#':
+            doc[token.i+1].is_sent_start = False
+    return doc
+
 # build spacy model
 def build_spacy_model():
-    def _avoid_sentence_boundary_on_hashtag(doc):
-        for token in doc[:-1]:
-            if token.text == '#':
-                doc[token.i+1].is_sent_start = False
-        return doc
+    
     nlp = English()
-    sentencizer = nlp.create_pipe("sentencizer")
-    nlp.add_pipe(sentencizer)
-    nlp.add_pipe(_avoid_sentence_boundary_on_hashtag)
+    #sentencizer = nlp.create_pipe("sentencizer")
+    #nlp.add_pipe(sentencizer)
+    nlp.add_pipe("sentencizer")
+    nlp.add_pipe("avoid_sentencizer_hashtags")
     return nlp
 nlp = build_spacy_model()
 # compile regexes
