@@ -19,7 +19,6 @@ def _avoid_sentence_boundary_on_hashtag(doc):
 
 # build spacy model
 def build_spacy_model():
-    
     nlp = English()
     #sentencizer = nlp.create_pipe("sentencizer")
     #nlp.add_pipe(sentencizer)
