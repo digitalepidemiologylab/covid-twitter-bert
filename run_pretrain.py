@@ -119,7 +119,7 @@ def run(args, strategy):
         pretrained_model_path = PRETRAINED_MODELS[args.model_class]['bucket_location']
     except KeyError:
         raise ValueError(f'Could not find a pretrained model matching the model class {args.model_class}')
-    pretrained_model_config_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_config.json'
+    pretrained_model_config_path = f'gs://{args.bucket_name}/{pretrained_model_path}/{PRETRAINED_MODELS[args.model_class]["config"]}'
     if args.init_checkpoint is None:
         if args.init_weights is False:
             pretrained_model_checkpoint_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_model.ckpt'

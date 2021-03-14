@@ -1,20 +1,20 @@
 PROJECT_NAME=notram_v2
 BUCKET_NAME=notram-west4-a
-#TPU_IP=10.94.10.194
-TPU_NAME=notram_pod
-RUN_PREFIX=test
-TRAIN_BATCH_SIZE=384
-PRETRAIN_DATA=corpus2_cased_512
-MODEL_CLASS=bert_multi_cased
-NUM_EPOCHS=7
-MAX_SEQ_LENGTH=512
-MAX_PREDICTIONS_PER_SEQ=77
+TPU_IP=10.109.189.2
+RUN_PREFIX=test_T4_noTram2_BERT_norwegian_cased
+TRAIN_BATCH_SIZE=2760
+PRETRAIN_DATA=corpus2_cased_128
+MODEL_CLASS=bert_base_norwegian_cased
+NUM_EPOCHS=14
+MAX_SEQ_LENGTH=128
+MAX_PREDICTIONS_PER_SEQ=19
 LEARNING_RATE=4e-4
 END_LEARNING_RATE=4e-4
 STEPS_PER_LOOP=100
 NUM_STEPS_PER_EPOCH=100000
 WARMUP_STEPS=50000
 OPTIMIZER_TYPE=lamb
+INIT_WEIGHTS=True
 
 python run_pretrain.py \
   --run_prefix $RUN_PREFIX \
@@ -32,4 +32,5 @@ python run_pretrain.py \
   --steps_per_loop $STEPS_PER_LOOP \
   --num_steps_per_epoch $NUM_STEPS_PER_EPOCH \
   --warmup_steps $WARMUP_STEPS \
-  --optimizer_type $OPTIMIZER_TYPE
+  --optimizer_type $OPTIMIZER_TYPE \
+  --init_weights $INIT_WEIGHTS
