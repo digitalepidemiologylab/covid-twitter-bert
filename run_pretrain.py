@@ -119,7 +119,7 @@ def run(args, strategy):
         pretrained_model_path = PRETRAINED_MODELS[args.model_class]['bucket_location']
     except KeyError:
         raise ValueError(f'Could not find a pretrained model matching the model class {args.model_class}')
-    pretrained_model_config_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_config.json'
+    pretrained_model_config_path = f'gs://{args.bucket_name}/{pretrained_model_path}/{PRETRAINED_MODELS[args.model_class]["config"]}'
     if args.init_checkpoint is None:
         if args.init_weights is False:
             pretrained_model_checkpoint_path = f'gs://{args.bucket_name}/{pretrained_model_path}/bert_model.ckpt'
@@ -208,6 +208,7 @@ def run(args, strategy):
         metric_fn=eval_metric_fn,
         init_checkpoint=pretrained_model_checkpoint_path,
         load_mlm_nsp_weights = args.load_mlm_nsp_weights,
+        expect_partial = args.expect_partial,
         set_trainstep = args.set_trainstep,
         custom_callbacks=custom_callbacks,
         run_eagerly=False,
@@ -265,6 +266,7 @@ def parse_args():
             By default using a pretrained model from gs://{bucket_name}/pretrained_models/')
     parser.add_argument('--init_weights', default=False, help="If set to True, the network is initialised with random weights. Only works in init_checkpoint is False.")
     parser.add_argument('--load_mlm_nsp_weights', default=None, help="If set to True it will load the mlm/nsp-layers. The init_checkpoint should then be set to a model containing these. Usually in base run-directory named 'ctl_step*'.")
+    parser.add_argument('--expect_partial', default=None, help="This bypasses a check for loading the entire model. There are few cases where this is necessary. Use with care")
     parser.add_argument('--set_trainstep', default=None, help="If set this will set the trainstep. This is only needed when restarting from an old checkpoint and you would like to get the scheduler/optimiser to start at the correct point.")
     parser.add_argument('--optimizer_type', default='adamw', choices=['adamw', 'lamb'], type=str, help='Optimizer')
     parser.add_argument('--train_batch_size', default=32, type=int, help='Training batch size')

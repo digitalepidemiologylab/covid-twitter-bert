@@ -113,6 +113,7 @@ def run_customized_training_loop(
         metric_fn=None,
         init_checkpoint=None,
         load_mlm_nsp_weights=False,
+        expect_partial=False,
         set_trainstep=None,
         custom_callbacks=None,
         run_eagerly=False,
@@ -120,6 +121,7 @@ def run_customized_training_loop(
         explicit_allreduce=False,
         pre_allreduce_callbacks=None,
         post_allreduce_callbacks=None):
+  
     """Run BERT pretrain model training using low-level API.
 
     Arguments:
@@ -249,9 +251,13 @@ def run_customized_training_loop(
                 with strategy.scope():
                     checkpoint = tf.train.Checkpoint(model=model, optimizer=model.optimizer)
                     logging.info('Trying to restore the mlm/nsp weights')
-                    checkpoint.restore(init_checkpoint).assert_existing_objects_matched()
-                    logger.info(f'Sample of optimizer weights: {model.optimizer.weights[0][0][:10]}')
-                    logger.info(f'Optimizer iteration: {model.optimizer.iterations}')
+                    if expect_partial:
+                        checkpoint.restore(init_checkpoint).expect_partial()
+                    else:
+                        checkpoint.restore(init_checkpoint).assert_existing_objects_matched()
+
+                    #logger.info(f'Sample of optimizer weights: {model.optimizer.weights[0][0][:10]}')
+                    #logger.info(f'Optimizer iteration: {model.optimizer.iterations}')
             else:
                 with strategy.scope():
                     checkpoint = tf.train.Checkpoint(model=sub_model)
