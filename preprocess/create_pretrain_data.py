@@ -32,7 +32,7 @@ def get_tokenizer(model_class, vocab_dir):
     else:
         vocab_file = os.path.join(VOCAB_PATH, model['vocab_file'])
     print(f'Using vocab-file: {vocab_file}')
-    tokenizer = tokenization.FullTokenizer(vocab_file=vocab_file, do_lower_case=model['lower_case'])
+    tokenizer = tokenization.FullTokenizer(vocab_file=vocab_file, do_lower_case=model['lower_case'], strip_accents=model['strip_accents'])
     return tokenizer
 
 def get_input_files(run_folder):
