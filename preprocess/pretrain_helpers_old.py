@@ -49,10 +49,7 @@ def write_instance_to_example_files(instances, tokenizer, max_seq_length,
 
   total_written = 0
   for (inst_index, instance) in enumerate(instances):
-    input_ids = []
-    for t in instance.tokens:
-        input_ids.append(tokenizer.token_to_id(t))
-    
+    input_ids = tokenizer.convert_tokens_to_ids(instance.tokens)
     input_mask = [1] * len(input_ids)
     segment_ids = list(instance.segment_ids)
     assert len(input_ids) <= max_seq_length
@@ -67,12 +64,7 @@ def write_instance_to_example_files(instances, tokenizer, max_seq_length,
     assert len(segment_ids) == max_seq_length
 
     masked_lm_positions = list(instance.masked_lm_positions)
-    
-    masked_lm_ids = []
-    for t in instance.masked_lm_labels:
-        masked_lm_ids.append(tokenizer.token_to_id(t))
-
-    #masked_lm_ids = tokenizer.convert_tokens_to_ids(instance.masked_lm_labels)
+    masked_lm_ids = tokenizer.convert_tokens_to_ids(instance.masked_lm_labels)
     masked_lm_weights = [1.0] * len(masked_lm_ids)
 
     while len(masked_lm_positions) < max_predictions_per_seq:

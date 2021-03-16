@@ -7,7 +7,7 @@ sys.path.append('..')
 
 from misc import ArgParseDefault, add_bool_arg, save_to_json
 from config import PRETRAINED_MODELS
-from pretrain_helpers import create_instances_from_document, write_instance_to_example_files
+from pretrain_helpers_old import create_instances_from_document, write_instance_to_example_files
 from official.nlp.bert import tokenization
 from tokenizers import BertWordPieceTokenizer
 import random
@@ -33,9 +33,8 @@ def get_tokenizer(model_class, vocab_dir):
     else:
         vocab_file = os.path.join(VOCAB_PATH, model['vocab_file'])
     print(f'Using vocab-file: {vocab_file}')
-    #tokenizer = tokenization.FullTokenizer(vocab_file=vocab_file, do_lower_case=model['lower_case'])
-    tokenizer = BertWordPieceTokenizer(vocab_file, lowercase=model['lower_case'], strip_accents=model['strip_accents'])
-    #breakpoint()
+    tokenizer = tokenization.FullTokenizer(vocab_file=vocab_file, do_lower_case=model['lower_case'])
+    #newtokenizer = BertWordPieceTokenizer(vocab_file, lowercase=model['lower_case'], strip_accents=model['strip_accents'])
     return tokenizer
 
 def get_input_files(run_folder):
@@ -123,8 +122,8 @@ def process(input_file, tokenizer, rng, args):
             # Empty lines are used as document delimiters
             if not line:
                 all_documents.append([])
-            #tokens = tokenizer.tokenize(line)
-            tokens = tokenizer.encode(line, add_special_tokens=False).tokens
+            tokens = tokenizer.tokenize(line)
+            #tokens = tokenizer.encode(line).tokens
             if tokens:
                 all_documents[-1].append(tokens)
                 if num_logged_examples < args.num_logged_samples:
@@ -143,14 +142,7 @@ def process(input_file, tokenizer, rng, args):
     logger.info(f'Tokenized a total of {num_documents:,} documents')
     # create instances
     logger.info('Creating instances...')
-    
-    #New version
-    vocab_dict = tokenizer.get_vocab()
-    sorted_vocab_list = sorted(vocab_dict.items(), key=lambda item: item[1])
-    vocab_words = [i[0] for i in sorted_vocab_list]
-    #Old version
-    #vocab_words = list(tokenizer.vocab.keys())
-    
+    vocab_words = list(tokenizer.vocab.keys())
     instances = []
     do_whole_word_masking = PRETRAINED_MODELS[args.model_class]['do_whole_word_masking']
     for _ in range(args.dupe_factor):
