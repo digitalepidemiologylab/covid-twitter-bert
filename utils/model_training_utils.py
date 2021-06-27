@@ -113,6 +113,7 @@ def run_customized_training_loop(
         metric_fn=None,
         init_checkpoint=None,
         load_mlm_nsp_weights=False,
+        reset_optimizer=False,
         expect_partial=False,
         set_trainstep=None,
         custom_callbacks=None,
@@ -275,6 +276,13 @@ def run_customized_training_loop(
             logging.info('Loading from checkpoint file completed')
 
         optimizer = model.optimizer
+        
+        # Added by pere 11.04.21
+        # Forces the optimizer to rest. For testing if this is necessary when reducing batch size
+        if reset_optimizer:
+            logging.info('Resetting all optimizer values')
+            for var in optimizer.variables():
+                var.assign(tf.zeros_like(var))
 
         train_loss_metric = tf.keras.metrics.Mean(
                 'training_loss', dtype=tf.float32)

@@ -210,6 +210,7 @@ def run(args, strategy):
         load_mlm_nsp_weights = args.load_mlm_nsp_weights,
         expect_partial = args.expect_partial,
         set_trainstep = args.set_trainstep,
+        reset_optimizer = args.reset_optimizer,
         custom_callbacks=custom_callbacks,
         run_eagerly=False,
         sub_model_export_name='pretrained/bert_model',
@@ -283,6 +284,7 @@ def parse_args():
     parser.add_argument('--steps_per_loop', default=10, type=int, help='Steps per loop')
     parser.add_argument('--time_history_log_steps', default=1000, type=int, help='Frequency with which to log timing information with TimeHistory.')
     add_bool_arg(parser, 'use_tpu', default=True, help='Use TPU')
+    add_bool_arg(parser, 'reset_optimizer', default=False, help='Reset the optimizer weights')
     add_bool_arg(parser, 'do_eval', default=False, help='Run evaluation (make sure eval data is present in tfrecords folder)')
     args = parser.parse_args()
     return args
