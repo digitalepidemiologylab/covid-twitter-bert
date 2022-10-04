@@ -31,7 +31,7 @@ username_regex = re.compile(r'(^|[^@\w])@(\w{1,15})\b')
 url_regex = re.compile(r'((www\.[^\s]+)|(https?://[^\s]+)|(http?://[^\s]+))')
 control_char_regex = re.compile(r'[\r\n\t]+')
 # translate table for punctuation
-transl_table = dict([(ord(x), ord(y)) for x, y in zip(u"‘’´“”–-",  u"'''\"\"--")])
+transl_table = {ord(x): ord(y) for x, y in zip(u"‘’´“”–-",  u"'''\"\"--")}
 # HTML parser
 html_parser = HTMLParser()
 
